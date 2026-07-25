@@ -24,6 +24,40 @@ from `lib/domain/schemas/core.ts` rather than defining a parallel shape.
 Adapters take an injectable `SourceTransport` so every contract test runs offline and
 deterministically. No test in this segment performs a network call.
 
+## Modules
+
+| Prompt contract (`prompts/modules/`) | Implementation | Contract tests | Rules | Tests |
+| --- | --- | --- | --- | --- |
+| `source-url-policy_typescript.prompt` | `lib/security/url-policy.ts` | `tests/contracts/source-url-policy.contract.test.ts` | R1–R17 | 28 |
+| `source-record-envelope_typescript.prompt` | `lib/adapters/sources/source-record.ts` | `tests/contracts/source-record-envelope.contract.test.ts` | R1–R13 | 16 |
+| `arcgis-feature-source-adapter_typescript.prompt` | `lib/adapters/sources/arcgis.ts` | `tests/contracts/arcgis-feature-source-adapter.contract.test.ts` | R1–R19 | 32 |
+| `socrata-resource-source-adapter_typescript.prompt` | `lib/adapters/sources/socrata.ts` | `tests/contracts/socrata-resource-source-adapter.contract.test.ts` | R1–R21 | 30 |
+| `san-jose-jurisdiction-adapter_typescript.prompt` | `lib/adapters/jurisdictions/san-jose.ts` | `tests/contracts/san-jose-jurisdiction-adapter.contract.test.ts` | R1–R14 | 24 |
+
+84 rules, 130 contract tests, every rule covered by at least one named test whose name
+declares the rule IDs it verifies. `queryArcgis` remains exported so
+`scripts/ingest-candidates.ts` is unaffected.
+
+## Behavioral guarantees worth knowing
+
+- **An endpoint error never becomes "zero results."** ArcGIS reports failures as HTTP 200
+  with an `error` object in the body. `listArcgisFeatures` returns
+  `status: "failed"` with `code: "endpoint_error"` and the endpoint's error code, while a
+  genuinely empty result set returns `status: "listed"` with `stopReason: "exhausted"`.
+  These two cases are distinguishable by the caller — that is the point.
+- **Every requested Socrata key is accounted for.** Keys the endpoint did not return are
+  reported as *not returned*, never silently dropped and never recorded as absent.
+- **An empty `getPermitSources()` means no source is declared**, not that San José
+  publishes no permits.
+- **Fail-closed SSRF control.** The private/loopback/link-local check runs before the
+  allowlist, so `RESEARCH_URL_ALLOWLIST` cannot re-admit a metadata endpoint. Hostnames
+  are normalized (lowercased, trailing DNS root dot stripped) so the deny check and the
+  allow check judge one canonical spelling. Refusals name the host but never echo the
+  path, query, or credentials.
+- **Offline-deterministic tests.** Adapters take an injected `SourceTransport` and clock.
+  The whole contract suite passes with `globalThis.fetch` and `net.Socket.prototype.connect`
+  replaced by throwing stubs.
+
 ## PDD CLI conventions (CLI 0.0.308)
 
 These are enforced by `pdd contracts check --strict` but are not written down in
@@ -74,3 +108,29 @@ Repo-wide:
 npm run typecheck
 npm test
 ```
+
+### Result on this branch
+
+| Gate | Result |
+| --- | --- |
+| `pdd contracts check --strict` (5 prompts) | `0 warning(s), 0 error(s)` each |
+| `pdd context --table` (5 prompts) | all includes resolve, no `unresolved` warning |
+| `pdd --estimate-json generate ... --unit-test ...` (5) | all produce an estimate, `provider_call_made: false` |
+| `npm run typecheck` | clean |
+| `npm test` | 151 pass / 0 fail |
+| Contract suite with network disabled | 143 pass / 0 fail |
+| Secret scan of the segment diff | clean; no `.env` in the commit |
+
+## Open items
+
+- Segment 1 (foundation) has not landed a branch. This segment declared its own shared
+  vocabulary in `lib/adapters/sources/source-record.ts` and reused `SourceRef` from
+  `lib/domain/schemas/core.ts` rather than inventing a parallel provenance shape. If the
+  foundation owner later publishes a different shared source vocabulary, this is the file
+  to reconcile.
+- `normalize()` from the `SourceAdapter` port in §9.4 is intentionally **not** implemented
+  here — canonical mapping belongs to the Candidate Pipeline segment, which already owns
+  `lib/domain/candidate-normalizer.ts`.
+- `lib/adapters/sources/registry.ts` still imports `SourceMapping` from
+  `lib/domain/candidate-normalizer`, which couples the source registry to Segment 3. Worth
+  a joint decision with that owner about which side the mappings live on.
