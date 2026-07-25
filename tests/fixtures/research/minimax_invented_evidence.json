@@ -1,0 +1,23 @@
+{
+  "requestId": "minimax-req-invented-evidence-001",
+  "usage": {
+    "inputTokens": 500,
+    "outputTokens": 120,
+    "totalTokens": 620
+  },
+  "findings": [
+    {
+      "id": "finding-invented-ev",
+      "siteId": "site-alpha-001",
+      "category": "land_use",
+      "field": "zoning",
+      "valueJson": "R-M",
+      "status": "probable",
+      "evidenceLevel": "ai_researched",
+      "confidence": 0.8,
+      "impact": "opportunity",
+      "evidenceIds": ["ev-does-not-exist"],
+      "note": "References an evidence ID absent from the request."
+    }
+  ]
+}

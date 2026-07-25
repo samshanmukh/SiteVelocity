@@ -1,0 +1,90 @@
+{
+  "activeRoute": "command-center",
+  "capabilityStates": {
+    "commandCenter": "LIVE",
+    "scout": "LIVE",
+    "map": "LIVE",
+    "siteDossier": "LIVE",
+    "agents": "LIVE",
+    "nextSteps": "LIVE"
+  },
+  "thesis": {
+    "developmentType": "multifamily",
+    "market": "San Jose, CA",
+    "acreageMin": 0.5,
+    "acreageMax": 5,
+    "minimumPotentialUnits": 20,
+    "preferredSignals": [
+      "transit",
+      "underutilized"
+    ],
+    "riskTolerance": "moderate"
+  },
+  "commandCenter": {
+    "marketsMonitored": 1,
+    "sitesScreened": 0,
+    "candidatesCount": 0,
+    "priorityOpportunities": 0,
+    "researchRuns": 3,
+    "developmentEventPreviews": [
+      {
+        "id": "evt-preview-001",
+        "label": "Entitlement timeline estimator",
+        "capabilityState": "PREVIEW",
+        "freshnessLabel": "preview"
+      }
+    ],
+    "freshnessLabel": "snapshot 2026-07-25"
+  },
+  "candidates": [],
+  "selectedCandidateId": null,
+  "map": {
+    "selectedSiteId": null,
+    "candidates": []
+  },
+  "dossier": null,
+  "agents": [
+    {
+      "role": "Scout",
+      "status": "pending",
+      "updatedAt": "2026-07-25T12:01:00.000Z"
+    },
+    {
+      "role": "Land Use",
+      "status": "pending",
+      "updatedAt": "2026-07-25T12:02:00.000Z"
+    },
+    {
+      "role": "Development History",
+      "status": "pending",
+      "updatedAt": "2026-07-25T12:03:00.000Z"
+    },
+    {
+      "role": "Site Risk",
+      "status": "pending",
+      "updatedAt": "2026-07-25T12:04:00.000Z"
+    },
+    {
+      "role": "Verifier",
+      "status": "pending"
+    },
+    {
+      "role": "Next Best Action",
+      "status": "pending"
+    }
+  ],
+  "workflow": {
+    "status": "idle"
+  },
+  "snapshot": null,
+  "refresh": {
+    "state": "idle"
+  },
+  "demoMode": true,
+  "liveResearch": false,
+  "dataState": "empty",
+  "safeIssue": null,
+  "locale": "en-US",
+  "timeZone": "America/Los_Angeles",
+  "now": "2026-07-25T18:00:00.000Z"
+}

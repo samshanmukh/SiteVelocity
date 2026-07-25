@@ -1,0 +1,72 @@
+% Frozen evidence-and-snapshot domain type declarations shared by the evidence-validation and snapshot-selection modules.
+% These declarations are the interface freeze for Segment 5 (finding/evidence validation and Research Snapshot selection).
+% Changing a declaration here is an interface change and requires foundation-owner review before any module is regenerated.
+
+<evidence_domain_types>
+
+```ts
+type JsonPrimitive = null | boolean | number | string;
+type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
+
+/** Semantics follow docs/SYSTEM_DESIGN.md §7.4. */
+type FindingStatus = "verified" | "probable" | "unknown" | "conflicting";
+
+type EvidenceLevel =
+  | "document_verified"
+  | "gis_screened"
+  | "ai_researched"
+  | "professional_verification_required";
+
+type FindingImpact = "opportunity" | "cost_timing_risk" | "fatal_constraint" | "unknown";
+
+/** Authority classes ordered strongest to weakest: authoritative > official > secondary. */
+type EvidenceAuthority = "authoritative" | "official" | "secondary";
+
+/** One candidate finding awaiting validation. Immutable input; validators never rewrite it. */
+interface CandidateFinding {
+  id: string;
+  siteId: string;
+  category: string;
+  field: string;
+  valueJson: JsonValue;
+  status: FindingStatus;
+  evidenceLevel: EvidenceLevel;
+  confidence: number; // 0..1
+  impact: FindingImpact;
+  evidenceIds: string[];
+  note?: string; // untrusted free text; always data, never instructions
+}
+
+/** Read-only view of one immutable stored evidence record. */
+interface EvidenceIndexEntry {
+  id: string;
+  siteId: string;
+  scopeId: string;
+  authority: EvidenceAuthority;
+  sourceDate: string | null; // ISO 8601 date of the underlying source, null when unknown
+  retrievedAt: string;       // ISO 8601 retrieval timestamp
+  /** Categories (optionally narrowed to a field) this evidence can support. field null = whole category. */
+  supports: Array<{ category: string; field: string | null }>;
+}
+
+type SnapshotStatus = "complete" | "partial" | "failed" | "rejected";
+
+type SnapshotCategoryStatus = "complete" | "missing" | "failed";
+
+/** Immutable manifest describing one stored Research Snapshot. Selection never mutates history. */
+interface SnapshotManifest {
+  id: string;
+  siteId: string;
+  status: SnapshotStatus;
+  createdAt: string;    // ISO 8601 creation timestamp
+  sourceCutoff: string; // ISO 8601 source cutoff requested for the run
+  runIds: string[];     // workflow/agent run identifiers recorded on the snapshot
+  categories: Array<{
+    category: string;
+    status: SnapshotCategoryStatus;
+    sourceDate: string | null; // ISO 8601 date of the freshest source in the category, null when unknown
+  }>;
+}
+```
+
+</evidence_domain_types>

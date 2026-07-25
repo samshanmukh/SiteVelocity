@@ -1,0 +1,387 @@
+{
+  "snapshot": {
+    "id": "snap-2026-07-25T21-34-53-512Z",
+    "siteId": "sj-27415017",
+    "status": "partial",
+    "createdAt": "2026-07-25T21:34:53.512Z",
+    "sourceCutoff": "2026-07-25T21:34:53.512Z",
+    "evidenceIds": [
+      "ev-zoning-sj-27415017-1g",
+      "ev-fema-sj-27415017-1j",
+      "ev-gp-sj-27415017-1m"
+    ],
+    "findingIds": [
+      "f-zoning-sj-27415017-1h",
+      "f-permuse-sj-27415017-1i",
+      "f-flood-sj-27415017-1k",
+      "f-screens-sj-27415017-1l",
+      "f-gp-sj-27415017-1n",
+      "f-history-sj-27415017-1p"
+    ],
+    "agentRunIds": [
+      "run-scout-sj-27415017-1d",
+      "run-landuse-sj-27415017-1e",
+      "run-risk-sj-27415017-1f",
+      "run-history-sj-27415017-1o",
+      "run-verify-sj-27415017-1q",
+      "run-nba-sj-27415017-1r"
+    ],
+    "schemaVersion": "1"
+  },
+  "evidence": [
+    {
+      "id": "ev-zoning-sj-27415017-1g",
+      "source": {
+        "agency": "City of San José GIS",
+        "dataset": "Zoning District (OPN layer 401)",
+        "sourceRecordId": "MUC",
+        "sourceUrl": "https://geo.sanjoseca.gov/server/rest/services/OPN/OPN_OpenDataService/MapServer/401/query",
+        "retrievedAt": "2026-07-25T21:34:53.512Z"
+      },
+      "title": "Zoning district at parcel centroid — MUC",
+      "excerpt": "Official zoning layer: district MUC, rezoning file C22-007.",
+      "payload": {
+        "ZONING": "MUC",
+        "ZONINGABBREV": "MUC",
+        "PDUSE": null,
+        "PDDENSITY": "0",
+        "REZONINGFILE": "C22-007",
+        "APPROVALDATE": 1651536000000
+      }
+    },
+    {
+      "id": "ev-fema-sj-27415017-1j",
+      "source": {
+        "agency": "FEMA",
+        "dataset": "National Flood Hazard Layer (S_Fld_Haz_Ar)",
+        "sourceRecordId": "D",
+        "sourceUrl": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query",
+        "retrievedAt": "2026-07-25T21:34:53.512Z"
+      },
+      "title": "FEMA flood zone D",
+      "excerpt": "NFHL: zone D; special flood hazard area: no.",
+      "payload": {
+        "FLD_ZONE": "D",
+        "ZONE_SUBTY": null,
+        "SFHA_TF": "F"
+      }
+    },
+    {
+      "id": "ev-gp-sj-27415017-1m",
+      "source": {
+        "agency": "City of San José GIS",
+        "dataset": "General Plan 2040 (OPN layer 404)",
+        "sourceRecordId": "MUC",
+        "sourceUrl": "https://geo.sanjoseca.gov/server/rest/services/OPN/OPN_OpenDataService/MapServer/404/query",
+        "retrievedAt": "2026-07-25T21:34:53.512Z"
+      },
+      "title": "General Plan 2040 designation — Mixed Use Commercial",
+      "excerpt": "Envision San José 2040 land-use designation at the parcel centroid: Mixed Use Commercial.",
+      "payload": {
+        "GPDESIGNATION": "Mixed Use Commercial",
+        "GPABBREVIATION": "MUC"
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "f-zoning-sj-27415017-1h",
+      "siteId": "sj-27415017",
+      "category": "land_use",
+      "field": "zoning_district",
+      "valueJson": "MUC",
+      "status": "verified",
+      "evidenceLevel": "gis_screened",
+      "confidence": 0.9,
+      "impact": "opportunity",
+      "evidenceIds": [
+        "ev-zoning-sj-27415017-1g"
+      ],
+      "note": "District mapped by the official City zoning layer. Zone name alone does not establish permitted use.",
+      "createdAt": "2026-07-25T21:34:53.512Z"
+    },
+    {
+      "id": "f-permuse-sj-27415017-1i",
+      "siteId": "sj-27415017",
+      "category": "land_use",
+      "field": "residential_permitted_use",
+      "valueJson": null,
+      "status": "unknown",
+      "evidenceLevel": "professional_verification_required",
+      "confidence": 0.3,
+      "impact": "unknown",
+      "evidenceIds": [
+        "ev-zoning-sj-27415017-1g"
+      ],
+      "note": "Permitted residential use and density must be confirmed against the municipal code and any PD overlay — not inferred from the zone abbreviation.",
+      "createdAt": "2026-07-25T21:34:53.512Z"
+    },
+    {
+      "id": "f-flood-sj-27415017-1k",
+      "siteId": "sj-27415017",
+      "category": "site_risk",
+      "field": "fema_flood_zone",
+      "valueJson": "D",
+      "status": "verified",
+      "evidenceLevel": "gis_screened",
+      "confidence": 0.9,
+      "impact": "opportunity",
+      "evidenceIds": [
+        "ev-fema-sj-27415017-1j"
+      ],
+      "note": "Centroid screen only; a flood screen is not an engineering or insurance determination.",
+      "createdAt": "2026-07-25T21:34:53.512Z"
+    },
+    {
+      "id": "f-screens-sj-27415017-1l",
+      "siteId": "sj-27415017",
+      "category": "site_risk",
+      "field": "city_constraint_screens",
+      "valueJson": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "YES",
+        "VACANT": "YES"
+      },
+      "status": "probable",
+      "evidenceLevel": "gis_screened",
+      "confidence": 0.7,
+      "impact": "opportunity",
+      "evidenceIds": [
+        "ev-ab2011-27415017"
+      ],
+      "note": "City AB 2011 screening (Apr 2024) reports no wetland, historic, habitat, farmland, or waste-site conflicts. A public screen is not environmental clearance.",
+      "createdAt": "2026-07-25T21:34:53.512Z"
+    },
+    {
+      "id": "f-gp-sj-27415017-1n",
+      "siteId": "sj-27415017",
+      "category": "land_use",
+      "field": "general_plan_designation",
+      "valueJson": "Mixed Use Commercial",
+      "status": "verified",
+      "evidenceLevel": "gis_screened",
+      "confidence": 0.9,
+      "impact": "opportunity",
+      "evidenceIds": [
+        "ev-gp-sj-27415017-1m"
+      ],
+      "createdAt": "2026-07-25T21:34:53.512Z"
+    },
+    {
+      "id": "f-history-sj-27415017-1p",
+      "siteId": "sj-27415017",
+      "category": "development_history",
+      "field": "planning_and_permit_history",
+      "valueJson": null,
+      "status": "unknown",
+      "evidenceLevel": "professional_verification_required",
+      "confidence": 0.2,
+      "impact": "unknown",
+      "evidenceIds": [],
+      "note": "Planning-case and permit history has not been researched yet. Absence of a located record is never proof that no record exists.",
+      "createdAt": "2026-07-25T21:34:53.512Z"
+    }
+  ],
+  "agentRuns": [
+    {
+      "id": "run-scout-sj-27415017-1d",
+      "siteId": "sj-27415017",
+      "agent": "scout",
+      "status": "complete",
+      "startedAt": "2026-07-25T21:34:53.512Z",
+      "finishedAt": "2026-07-25T21:34:53.512Z",
+      "sourcesUsed": 2,
+      "summary": "Ranked #4 for the thesis: Listed in the City of San José AB 2011 opportunity screening (Apr 2024); Jurisdiction matches thesis market (San José); Parcel size 0.73 ac inside the 0.5–10 ac window."
+    },
+    {
+      "id": "run-landuse-sj-27415017-1e",
+      "siteId": "sj-27415017",
+      "agent": "land_use",
+      "status": "complete",
+      "startedAt": "2026-07-25T21:34:53.512Z",
+      "sourcesUsed": 2,
+      "summary": "Zoning and General Plan designations mapped from official City GIS (2 layers).",
+      "finishedAt": "2026-07-25T21:34:53.512Z"
+    },
+    {
+      "id": "run-risk-sj-27415017-1f",
+      "siteId": "sj-27415017",
+      "agent": "site_risk",
+      "status": "complete",
+      "startedAt": "2026-07-25T21:34:53.512Z",
+      "sourcesUsed": 2,
+      "summary": "Flood and public constraint screens completed from 2 authoritative source(s).",
+      "finishedAt": "2026-07-25T21:34:53.512Z"
+    },
+    {
+      "id": "run-history-sj-27415017-1o",
+      "siteId": "sj-27415017",
+      "agent": "development_history",
+      "status": "queued",
+      "startedAt": "2026-07-25T21:34:53.512Z",
+      "sourcesUsed": 0,
+      "summary": "Awaiting live research providers (Rtrvr + MiniMax keys not configured on this machine).",
+      "finishedAt": "2026-07-25T21:34:53.512Z"
+    },
+    {
+      "id": "run-verify-sj-27415017-1q",
+      "siteId": "sj-27415017",
+      "agent": "verifier",
+      "status": "complete",
+      "startedAt": "2026-07-25T21:34:53.512Z",
+      "sourcesUsed": 0,
+      "summary": "Checked 3 high-impact claim(s); downgraded 0. Unknowns and conflicts preserved, not resolved.",
+      "finishedAt": "2026-07-25T21:34:53.512Z"
+    },
+    {
+      "id": "run-nba-sj-27415017-1r",
+      "siteId": "sj-27415017",
+      "agent": "next_best_action",
+      "status": "complete",
+      "startedAt": "2026-07-25T21:34:53.512Z",
+      "sourcesUsed": 0,
+      "summary": "Selected highest-impact unresolved question: residential permitted use.",
+      "finishedAt": "2026-07-25T21:34:53.512Z"
+    }
+  ],
+  "scores": {
+    "strategyFit": {
+      "type": "strategy_fit",
+      "version": "1.0.0",
+      "inputHash": "b0702f4a",
+      "warnings": [
+        "Reported capacity unknown — density preference not scored"
+      ],
+      "output": {
+        "score": 75,
+        "drivers": [
+          {
+            "delta": 30,
+            "reason": "Inside thesis market (San José)"
+          },
+          {
+            "delta": 25,
+            "reason": "Parcel size inside 0.5–10 ac window"
+          },
+          {
+            "delta": 10,
+            "reason": "Resolvable location identity (APN or coordinates)"
+          },
+          {
+            "delta": 10,
+            "reason": "Sourced from an official government inventory"
+          }
+        ],
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ]
+      },
+      "calculatedAt": "2026-07-25T21:31:50.172Z"
+    },
+    "developmentReadiness": {
+      "type": "development_readiness",
+      "version": "0.1.0",
+      "inputHash": "99d4b218",
+      "warnings": [
+        "Development history not yet researched",
+        "Permit activity not yet researched",
+        "Housing Element status unknown"
+      ],
+      "output": {
+        "score": 25,
+        "drivers": [
+          {
+            "delta": 5,
+            "reason": "Zoning identified but residential support unclear"
+          }
+        ],
+        "warnings": [
+          "Development history not yet researched",
+          "Permit activity not yet researched",
+          "Housing Element status unknown"
+        ]
+      },
+      "calculatedAt": "2026-07-25T21:34:53.512Z"
+    },
+    "evidenceConfidence": {
+      "type": "evidence_confidence",
+      "version": "1.0.0",
+      "inputHash": "64e4a546",
+      "warnings": [
+        "2 finding(s) require professional or field verification"
+      ],
+      "output": {
+        "score": 42,
+        "drivers": [
+          {
+            "delta": 0,
+            "reason": "0 claim(s) document-verified from official records"
+          },
+          {
+            "delta": 24,
+            "reason": "4 claim(s) GIS-screened against authoritative layers"
+          },
+          {
+            "delta": 0,
+            "reason": "0 claim(s) AI-researched pending verification"
+          },
+          {
+            "delta": 10,
+            "reason": "No conflicting sources among retained findings"
+          },
+          {
+            "delta": -12,
+            "reason": "2 material fact(s) still unknown"
+          }
+        ],
+        "warnings": [
+          "2 finding(s) require professional or field verification"
+        ]
+      },
+      "calculatedAt": "2026-07-25T21:34:53.512Z"
+    }
+  },
+  "nextAction": {
+    "id": "nba-sj-27415017-1s",
+    "siteId": "sj-27415017",
+    "sourceFindingIds": [
+      "f-permuse-sj-27415017-1i"
+    ],
+    "title": "Confirm permitted residential use and density with Current Planning",
+    "why": "The zoning district is mapped, but permitted use and density come from the municipal code and any PD overlay — this is the highest-impact unknown for the thesis.",
+    "role": "City of San José — Planning Division (Current Planning counter)",
+    "knownFacts": [
+      "APN 274-15-017 — 1585 SAN CARLOS ST, San Jose",
+      "Zoning district (official GIS): MUC",
+      "Parcel ~0.73 ac (GIS-derived)",
+      "Listed in the City's April 2024 AB 2011 screening"
+    ],
+    "questions": [
+      "Is multifamily or mixed-use residential permitted by right, conditionally, or via AB 2011 / SB 6 streamlining on this parcel?",
+      "What density, height, and FAR apply, and does any PD overlay or urban village plan control?",
+      "Are there active or expired entitlements on this APN?"
+    ],
+    "documents": [
+      "Zoning verification letter request form",
+      "Any PD overlay ordinance and conditions",
+      "Urban village plan excerpt if applicable"
+    ],
+    "expectedFollowUp": "Written confirmation of permitted use/density, or identification of the controlling overlay documents."
+  },
+  "timeline": [
+    {
+      "year": "2022",
+      "title": "Rezoning approved",
+      "description": "Rezoning file C22-007 approved 2022-05-03 (official zoning layer).",
+      "dotColor": "#2557C7",
+      "evidenceId": "ev-zoning-sj-27415017-1g"
+    }
+  ]
+}

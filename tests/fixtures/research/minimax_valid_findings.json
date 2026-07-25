@@ -1,0 +1,35 @@
+{
+  "requestId": "minimax-req-valid-001",
+  "usage": {
+    "inputTokens": 1200,
+    "outputTokens": 340,
+    "totalTokens": 1540
+  },
+  "findings": [
+    {
+      "id": "finding-zoning-001",
+      "siteId": "site-alpha-001",
+      "category": "land_use",
+      "field": "zoning",
+      "valueJson": "R-M",
+      "status": "probable",
+      "evidenceLevel": "ai_researched",
+      "confidence": 0.72,
+      "impact": "opportunity",
+      "evidenceIds": ["ev-planning-001"],
+      "note": "Zoning stated on planning page excerpt."
+    },
+    {
+      "id": "finding-hearing-001",
+      "siteId": "site-alpha-001",
+      "category": "process",
+      "field": "hearing_notice",
+      "valueJson": true,
+      "status": "probable",
+      "evidenceLevel": "ai_researched",
+      "confidence": 0.65,
+      "impact": "cost_timing_risk",
+      "evidenceIds": ["ev-hearing-001"]
+    }
+  ]
+}

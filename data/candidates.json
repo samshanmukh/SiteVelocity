@@ -1,0 +1,2372 @@
+{
+  "generatedAt": "2026-07-25T21:31:50.172Z",
+  "thesisId": "thesis-sj-multifamily-v1",
+  "funnel": {
+    "rawRecords": 87,
+    "enriched": 87,
+    "qualified": 23,
+    "shortlisted": 15
+  },
+  "sources": [
+    {
+      "agency": "City of San José — Planning, Building & Code Enforcement",
+      "dataset": "AB2011Parcels2024",
+      "url": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+      "retrievedAt": "2026-07-25T21:31:50.172Z",
+      "recordCount": 87
+    },
+    {
+      "agency": "County of Santa Clara",
+      "dataset": "Parcels (ubcd-cewv)",
+      "url": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+      "retrievedAt": "2026-07-25T21:31:50.172Z",
+      "recordCount": 87
+    }
+  ],
+  "sites": [
+    {
+      "id": "sj-23018033",
+      "apn": "23018033",
+      "apnFormatted": "230-18-033",
+      "jurisdiction": "San José",
+      "county": "Santa Clara",
+      "address": "2165 THE ALAMEDA, San Jose",
+      "acresDerived": {
+        "value": 0.53,
+        "method": "county_parcel_stateplane_area_sqft / 43560 (GIS-derived, not a survey)",
+        "evidenceId": "ev-sccparcel-23018033"
+      },
+      "coordinates": {
+        "latitude": 37.34364142273057,
+        "longitude": -121.9308918223037,
+        "method": "county_parcel_geometry_centroid (GIS-derived)",
+        "evidenceId": "ev-sccparcel-23018033"
+      },
+      "zoningAbbr": "CO",
+      "vacant": true,
+      "cityScreens": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "NO",
+        "VACANT": "YES"
+      },
+      "evidence": [
+        {
+          "id": "ev-ab2011-23018033",
+          "source": {
+            "agency": "City of San José — Planning, Building & Code Enforcement",
+            "dataset": "AB2011Parcels2024",
+            "sourceRecordId": "4384",
+            "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "AB 2011 eligible parcel screening — APN 230-18-033",
+          "excerpt": "City screening (Apr 2024): zoning CO, vacant YES, flood NO, wetlands NO, historic NO.",
+          "payload": {
+            "OBJECTID": 4384,
+            "FACILITYID": "9925",
+            "INTID": 9925,
+            "PARCELID": "282811",
+            "APN": "23018033",
+            "ZONINGABBR": "CO",
+            "FLOOD": "NO",
+            "FARMLAND": "NO",
+            "CONSERVATI": "NO",
+            "FREEWAY500": "NO",
+            "HABITAT": "NO",
+            "HISTORICSI": "NO",
+            "WETLANDS": "NO",
+            "PRIVATEDEV": "NO",
+            "WASTESITE": "NO",
+            "STATEGEOFA": "NO",
+            "ACROSSREST": "NO",
+            "VACANT": "YES",
+            "ADJOINDEVE": "YES",
+            "URBANVILLA": "NO",
+            "LASTUPDATE": 1712188800000,
+            "LASTEDITOR": "MICHAEL.FUNG",
+            "NOTES": " ",
+            "ENTERPRISE": "PLN-ABPA-0000009925",
+            "GlobalID": "{17D644AB-E9EC-4360-9478-DFCDBFF8CD1D}",
+            "Shape__Area": 23300.880859375,
+            "Shape__Length": 665.3947173387133
+          }
+        },
+        {
+          "id": "ev-sccparcel-23018033",
+          "source": {
+            "agency": "County of Santa Clara",
+            "dataset": "Parcels (ubcd-cewv)",
+            "sourceRecordId": "23018033",
+            "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "County parcel record — APN 230-18-033",
+          "excerpt": "Situs 2165 THE ALAMEDA, San Jose · jurisdiction SAN JOSE · state-plane area 23301.091451050001 sq ft.",
+          "payload": {
+            "objectid": "496290",
+            "apn": "23018033",
+            "tax_rate_area": "17108",
+            "situs_house_number": "2165",
+            "situs_street_name": "THE ALAMEDA",
+            "situs_city_name": "SAN JOSE",
+            "situs_state_code": "CA",
+            "situs_zip_code": "95126-1146",
+            "number_of_situs_address": "1",
+            "shape_length_stateplane": "665.39891083816644",
+            "shape_area_stateplane": "23301.091451050001",
+            "ap_lp": "LP",
+            "jurisdiction": "SAN JOSE",
+            "shape_length": "255.51123505667059",
+            "shape_area": "3431.431541709364"
+          }
+        }
+      ],
+      "qualification": {
+        "qualified": true,
+        "reasons": [
+          "Jurisdiction matches thesis market (San José)",
+          "Parcel size 0.53 ac inside the 0.5–10 ac window"
+        ],
+        "exclusions": [],
+        "unknowns": [
+          "Reported unit capacity unknown"
+        ]
+      },
+      "strategyFit": {
+        "type": "strategy_fit",
+        "version": "1.0.0",
+        "inputHash": "e8970d78",
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ],
+        "output": {
+          "score": 75,
+          "drivers": [
+            {
+              "delta": 30,
+              "reason": "Inside thesis market (San José)"
+            },
+            {
+              "delta": 25,
+              "reason": "Parcel size inside 0.5–10 ac window"
+            },
+            {
+              "delta": 10,
+              "reason": "Resolvable location identity (APN or coordinates)"
+            },
+            {
+              "delta": 10,
+              "reason": "Sourced from an official government inventory"
+            }
+          ],
+          "warnings": [
+            "Reported capacity unknown — density preference not scored"
+          ]
+        },
+        "calculatedAt": "2026-07-25T21:31:50.172Z"
+      },
+      "rank": 1,
+      "scoutReasons": [
+        "Listed in the City of San José AB 2011 opportunity screening (Apr 2024)",
+        "Jurisdiction matches thesis market (San José)",
+        "Parcel size 0.53 ac inside the 0.5–10 ac window"
+      ]
+    },
+    {
+      "id": "sj-25925034",
+      "apn": "25925034",
+      "apnFormatted": "259-25-034",
+      "jurisdiction": "San José",
+      "county": "Santa Clara",
+      "address": "CINNABAR ST, San Jose",
+      "acresDerived": {
+        "value": 0.82,
+        "method": "county_parcel_stateplane_area_sqft / 43560 (GIS-derived, not a survey)",
+        "evidenceId": "ev-sccparcel-25925034"
+      },
+      "coordinates": {
+        "latitude": 37.33725104246346,
+        "longitude": -121.90468234812533,
+        "method": "county_parcel_geometry_centroid (GIS-derived)",
+        "evidenceId": "ev-sccparcel-25925034"
+      },
+      "zoningAbbr": "DC",
+      "vacant": true,
+      "cityScreens": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "NO",
+        "VACANT": "YES"
+      },
+      "evidence": [
+        {
+          "id": "ev-ab2011-25925034",
+          "source": {
+            "agency": "City of San José — Planning, Building & Code Enforcement",
+            "dataset": "AB2011Parcels2024",
+            "sourceRecordId": "947",
+            "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "AB 2011 eligible parcel screening — APN 259-25-034",
+          "excerpt": "City screening (Apr 2024): zoning DC, vacant YES, flood NO, wetlands NO, historic NO.",
+          "payload": {
+            "OBJECTID": 947,
+            "FACILITYID": "6488",
+            "INTID": 6488,
+            "PARCELID": "44378",
+            "APN": "25925034",
+            "ZONINGABBR": "DC",
+            "FLOOD": "NO",
+            "FARMLAND": "NO",
+            "CONSERVATI": "NO",
+            "FREEWAY500": "NO",
+            "HABITAT": "NO",
+            "HISTORICSI": "NO",
+            "WETLANDS": "NO",
+            "PRIVATEDEV": "NO",
+            "WASTESITE": "NO",
+            "STATEGEOFA": "NO",
+            "ACROSSREST": "NO",
+            "VACANT": "YES",
+            "ADJOINDEVE": "YES",
+            "URBANVILLA": "NO",
+            "LASTUPDATE": 1712188800000,
+            "LASTEDITOR": "MICHAEL.FUNG",
+            "NOTES": " ",
+            "ENTERPRISE": "PLN-ABPA-0000006488",
+            "GlobalID": "{8D81CE4B-02F6-4D6F-B618-19B08FBC4702}",
+            "Shape__Area": 34255.548828125,
+            "Shape__Length": 794.237201105093
+          }
+        },
+        {
+          "id": "ev-sccparcel-25925034",
+          "source": {
+            "agency": "County of Santa Clara",
+            "dataset": "Parcels (ubcd-cewv)",
+            "sourceRecordId": "25925034",
+            "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "County parcel record — APN 259-25-034",
+          "excerpt": "Situs CINNABAR ST, San Jose · jurisdiction SAN JOSE · state-plane area 35559.220942191001 sq ft.",
+          "payload": {
+            "objectid": "51654",
+            "apn": "25925034",
+            "tax_rate_area": "17095",
+            "situs_street_name": "CINNABAR",
+            "situs_street_type": "ST",
+            "situs_city_name": "SAN JOSE",
+            "situs_state_code": "CA",
+            "situs_zip_code": "95110",
+            "number_of_situs_address": "1",
+            "shape_length_stateplane": "801.76814313187333",
+            "shape_area_stateplane": "35559.220942191001",
+            "ap_lp": "LP",
+            "jurisdiction": "SAN JOSE",
+            "shape_length": "307.62991390695464",
+            "shape_area": "5235.7349349606602"
+          }
+        }
+      ],
+      "qualification": {
+        "qualified": true,
+        "reasons": [
+          "Jurisdiction matches thesis market (San José)",
+          "Parcel size 0.82 ac inside the 0.5–10 ac window"
+        ],
+        "exclusions": [],
+        "unknowns": [
+          "Reported unit capacity unknown"
+        ]
+      },
+      "strategyFit": {
+        "type": "strategy_fit",
+        "version": "1.0.0",
+        "inputHash": "3b77c21e",
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ],
+        "output": {
+          "score": 75,
+          "drivers": [
+            {
+              "delta": 30,
+              "reason": "Inside thesis market (San José)"
+            },
+            {
+              "delta": 25,
+              "reason": "Parcel size inside 0.5–10 ac window"
+            },
+            {
+              "delta": 10,
+              "reason": "Resolvable location identity (APN or coordinates)"
+            },
+            {
+              "delta": 10,
+              "reason": "Sourced from an official government inventory"
+            }
+          ],
+          "warnings": [
+            "Reported capacity unknown — density preference not scored"
+          ]
+        },
+        "calculatedAt": "2026-07-25T21:31:50.172Z"
+      },
+      "rank": 2,
+      "scoutReasons": [
+        "Listed in the City of San José AB 2011 opportunity screening (Apr 2024)",
+        "Jurisdiction matches thesis market (San José)",
+        "Parcel size 0.82 ac inside the 0.5–10 ac window"
+      ]
+    },
+    {
+      "id": "sj-25928028",
+      "apn": "25928028",
+      "apnFormatted": "259-28-028",
+      "jurisdiction": "San José",
+      "county": "Santa Clara",
+      "address": "292 STOCKTON AV, San Jose",
+      "acresDerived": {
+        "value": 0.91,
+        "method": "county_parcel_stateplane_area_sqft / 43560 (GIS-derived, not a survey)",
+        "evidenceId": "ev-sccparcel-25928028"
+      },
+      "coordinates": {
+        "latitude": 37.33396914560186,
+        "longitude": -121.90506943620642,
+        "method": "county_parcel_geometry_centroid (GIS-derived)",
+        "evidenceId": "ev-sccparcel-25928028"
+      },
+      "zoningAbbr": "DC",
+      "vacant": true,
+      "cityScreens": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "NO",
+        "VACANT": "YES"
+      },
+      "evidence": [
+        {
+          "id": "ev-ab2011-25928028",
+          "source": {
+            "agency": "City of San José — Planning, Building & Code Enforcement",
+            "dataset": "AB2011Parcels2024",
+            "sourceRecordId": "1180",
+            "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "AB 2011 eligible parcel screening — APN 259-28-028",
+          "excerpt": "City screening (Apr 2024): zoning DC, vacant YES, flood NO, wetlands NO, historic NO.",
+          "payload": {
+            "OBJECTID": 1180,
+            "FACILITYID": "6721",
+            "INTID": 6721,
+            "PARCELID": "44417",
+            "APN": "25928028",
+            "ZONINGABBR": "DC",
+            "FLOOD": "NO",
+            "FARMLAND": "NO",
+            "CONSERVATI": "NO",
+            "FREEWAY500": "NO",
+            "HABITAT": "NO",
+            "HISTORICSI": "NO",
+            "WETLANDS": "NO",
+            "PRIVATEDEV": "NO",
+            "WASTESITE": "NO",
+            "STATEGEOFA": "NO",
+            "ACROSSREST": "NO",
+            "VACANT": "YES",
+            "ADJOINDEVE": "YES",
+            "URBANVILLA": "NO",
+            "LASTUPDATE": 1712188800000,
+            "LASTEDITOR": "MICHAEL.FUNG",
+            "NOTES": " ",
+            "ENTERPRISE": "PLN-ABPA-0000006721",
+            "GlobalID": "{E8FC9EFE-6628-442C-ADAE-95E5FB3F091E}",
+            "Shape__Area": 38859.5615234375,
+            "Shape__Length": 958.4874391106196
+          }
+        },
+        {
+          "id": "ev-sccparcel-25928028",
+          "source": {
+            "agency": "County of Santa Clara",
+            "dataset": "Parcels (ubcd-cewv)",
+            "sourceRecordId": "25928028",
+            "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "County parcel record — APN 259-28-028",
+          "excerpt": "Situs 292 STOCKTON AV, San Jose · jurisdiction SAN JOSE · state-plane area 39675.147489157796 sq ft.",
+          "payload": {
+            "objectid": "368040",
+            "apn": "25928028",
+            "tax_rate_area": "17095",
+            "situs_house_number": "292",
+            "situs_street_name": "STOCKTON",
+            "situs_street_type": "AV",
+            "situs_city_name": "SAN JOSE",
+            "situs_state_code": "CA",
+            "situs_zip_code": "95126-2761",
+            "number_of_situs_address": "2",
+            "shape_length_stateplane": "964.15319936318042",
+            "shape_area_stateplane": "39675.147489157796",
+            "ap_lp": "LP",
+            "jurisdiction": "SAN JOSE",
+            "shape_length": "369.90162491880767",
+            "shape_area": "5841.2540934239596"
+          }
+        }
+      ],
+      "qualification": {
+        "qualified": true,
+        "reasons": [
+          "Jurisdiction matches thesis market (San José)",
+          "Parcel size 0.91 ac inside the 0.5–10 ac window"
+        ],
+        "exclusions": [],
+        "unknowns": [
+          "Reported unit capacity unknown"
+        ]
+      },
+      "strategyFit": {
+        "type": "strategy_fit",
+        "version": "1.0.0",
+        "inputHash": "d5222fce",
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ],
+        "output": {
+          "score": 75,
+          "drivers": [
+            {
+              "delta": 30,
+              "reason": "Inside thesis market (San José)"
+            },
+            {
+              "delta": 25,
+              "reason": "Parcel size inside 0.5–10 ac window"
+            },
+            {
+              "delta": 10,
+              "reason": "Resolvable location identity (APN or coordinates)"
+            },
+            {
+              "delta": 10,
+              "reason": "Sourced from an official government inventory"
+            }
+          ],
+          "warnings": [
+            "Reported capacity unknown — density preference not scored"
+          ]
+        },
+        "calculatedAt": "2026-07-25T21:31:50.172Z"
+      },
+      "rank": 3,
+      "scoutReasons": [
+        "Listed in the City of San José AB 2011 opportunity screening (Apr 2024)",
+        "Jurisdiction matches thesis market (San José)",
+        "Parcel size 0.91 ac inside the 0.5–10 ac window"
+      ]
+    },
+    {
+      "id": "sj-27415017",
+      "apn": "27415017",
+      "apnFormatted": "274-15-017",
+      "jurisdiction": "San José",
+      "county": "Santa Clara",
+      "address": "1585 SAN CARLOS ST, San Jose",
+      "acresDerived": {
+        "value": 0.73,
+        "method": "county_parcel_stateplane_area_sqft / 43560 (GIS-derived, not a survey)",
+        "evidenceId": "ev-sccparcel-27415017"
+      },
+      "coordinates": {
+        "latitude": 37.323746645953186,
+        "longitude": -121.91973907772821,
+        "method": "county_parcel_geometry_centroid (GIS-derived)",
+        "evidenceId": "ev-sccparcel-27415017"
+      },
+      "zoningAbbr": "MUC",
+      "vacant": true,
+      "cityScreens": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "YES",
+        "VACANT": "YES"
+      },
+      "evidence": [
+        {
+          "id": "ev-ab2011-27415017",
+          "source": {
+            "agency": "City of San José — Planning, Building & Code Enforcement",
+            "dataset": "AB2011Parcels2024",
+            "sourceRecordId": "1909",
+            "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "AB 2011 eligible parcel screening — APN 274-15-017",
+          "excerpt": "City screening (Apr 2024): zoning MUC, vacant YES, flood NO, wetlands NO, historic NO.",
+          "payload": {
+            "OBJECTID": 1909,
+            "FACILITYID": "7450",
+            "INTID": 7450,
+            "PARCELID": "48311",
+            "APN": "27415017",
+            "ZONINGABBR": "MUC",
+            "FLOOD": "NO",
+            "FARMLAND": "NO",
+            "CONSERVATI": "NO",
+            "FREEWAY500": "NO",
+            "HABITAT": "NO",
+            "HISTORICSI": "NO",
+            "WETLANDS": "NO",
+            "PRIVATEDEV": "NO",
+            "WASTESITE": "NO",
+            "STATEGEOFA": "NO",
+            "ACROSSREST": "NO",
+            "VACANT": "YES",
+            "ADJOINDEVE": "YES",
+            "URBANVILLA": "YES",
+            "LASTUPDATE": 1712188800000,
+            "LASTEDITOR": "MICHAEL.FUNG",
+            "NOTES": " ",
+            "ENTERPRISE": "PLN-ABPA-0000007450",
+            "GlobalID": "{7D1FC592-3291-4279-9A69-65337B35031C}",
+            "Shape__Area": 31856.5986328125,
+            "Shape__Length": 746.5712613387138
+          }
+        },
+        {
+          "id": "ev-sccparcel-27415017",
+          "source": {
+            "agency": "County of Santa Clara",
+            "dataset": "Parcels (ubcd-cewv)",
+            "sourceRecordId": "27415017",
+            "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "County parcel record — APN 274-15-017",
+          "excerpt": "Situs 1585 SAN CARLOS ST, San Jose · jurisdiction SAN JOSE · state-plane area 31857.758583534302 sq ft.",
+          "payload": {
+            "objectid": "109434",
+            "apn": "27415017",
+            "tax_rate_area": "17108",
+            "situs_house_number": "1585",
+            "situs_street_direction": "W",
+            "situs_street_name": "SAN CARLOS",
+            "situs_street_type": "ST",
+            "situs_city_name": "SAN JOSE",
+            "situs_state_code": "CA",
+            "situs_zip_code": "95126-3239",
+            "number_of_situs_address": "1",
+            "shape_length_stateplane": "746.6088974066372",
+            "shape_area_stateplane": "31857.758583534302",
+            "ap_lp": "LP",
+            "jurisdiction": "SAN JOSE",
+            "shape_length": "286.63852435123334",
+            "shape_area": "4689.0681979727624"
+          }
+        }
+      ],
+      "qualification": {
+        "qualified": true,
+        "reasons": [
+          "Jurisdiction matches thesis market (San José)",
+          "Parcel size 0.73 ac inside the 0.5–10 ac window"
+        ],
+        "exclusions": [],
+        "unknowns": [
+          "Reported unit capacity unknown"
+        ]
+      },
+      "strategyFit": {
+        "type": "strategy_fit",
+        "version": "1.0.0",
+        "inputHash": "b0702f4a",
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ],
+        "output": {
+          "score": 75,
+          "drivers": [
+            {
+              "delta": 30,
+              "reason": "Inside thesis market (San José)"
+            },
+            {
+              "delta": 25,
+              "reason": "Parcel size inside 0.5–10 ac window"
+            },
+            {
+              "delta": 10,
+              "reason": "Resolvable location identity (APN or coordinates)"
+            },
+            {
+              "delta": 10,
+              "reason": "Sourced from an official government inventory"
+            }
+          ],
+          "warnings": [
+            "Reported capacity unknown — density preference not scored"
+          ]
+        },
+        "calculatedAt": "2026-07-25T21:31:50.172Z"
+      },
+      "rank": 4,
+      "scoutReasons": [
+        "Listed in the City of San José AB 2011 opportunity screening (Apr 2024)",
+        "Jurisdiction matches thesis market (San José)",
+        "Parcel size 0.73 ac inside the 0.5–10 ac window"
+      ]
+    },
+    {
+      "id": "sj-27451016",
+      "apn": "27451016",
+      "apnFormatted": "274-51-016",
+      "jurisdiction": "San José",
+      "county": "Santa Clara",
+      "address": "176 WINCHESTER BL, San Jose",
+      "acresDerived": {
+        "value": 0.95,
+        "method": "county_parcel_stateplane_area_sqft / 43560 (GIS-derived, not a survey)",
+        "evidenceId": "ev-sccparcel-27451016"
+      },
+      "coordinates": {
+        "latitude": 37.33217775209329,
+        "longitude": -121.94974812271163,
+        "method": "county_parcel_geometry_centroid (GIS-derived)",
+        "evidenceId": "ev-sccparcel-27451016"
+      },
+      "zoningAbbr": "CP",
+      "vacant": true,
+      "cityScreens": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "NO",
+        "VACANT": "YES"
+      },
+      "evidence": [
+        {
+          "id": "ev-ab2011-27451016",
+          "source": {
+            "agency": "City of San José — Planning, Building & Code Enforcement",
+            "dataset": "AB2011Parcels2024",
+            "sourceRecordId": "4924",
+            "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "AB 2011 eligible parcel screening — APN 274-51-016",
+          "excerpt": "City screening (Apr 2024): zoning CP, vacant YES, flood NO, wetlands NO, historic NO.",
+          "payload": {
+            "OBJECTID": 4924,
+            "FACILITYID": "10465",
+            "INTID": 10465,
+            "PARCELID": "50498",
+            "APN": "27451016",
+            "ZONINGABBR": "CP",
+            "FLOOD": "NO",
+            "FARMLAND": "NO",
+            "CONSERVATI": "NO",
+            "FREEWAY500": "NO",
+            "HABITAT": "NO",
+            "HISTORICSI": "NO",
+            "WETLANDS": "NO",
+            "PRIVATEDEV": "NO",
+            "WASTESITE": "NO",
+            "STATEGEOFA": "NO",
+            "ACROSSREST": "NO",
+            "VACANT": "YES",
+            "ADJOINDEVE": "YES",
+            "URBANVILLA": "NO",
+            "LASTUPDATE": 1712188800000,
+            "LASTEDITOR": "MICHAEL.FUNG",
+            "NOTES": " ",
+            "ENTERPRISE": "PLN-ABPA-0000010465",
+            "GlobalID": "{B24E1C22-78B0-4D33-8F45-071F4BFEAA1A}",
+            "Shape__Area": 41314.501953125,
+            "Shape__Length": 794.8278377226574
+          }
+        },
+        {
+          "id": "ev-sccparcel-27451016",
+          "source": {
+            "agency": "County of Santa Clara",
+            "dataset": "Parcels (ubcd-cewv)",
+            "sourceRecordId": "27451016",
+            "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "County parcel record — APN 274-51-016",
+          "excerpt": "Situs 176 WINCHESTER BL, San Jose · jurisdiction SAN JOSE · state-plane area 41314.685377032198 sq ft.",
+          "payload": {
+            "objectid": "58183",
+            "apn": "27451016",
+            "tax_rate_area": "17108",
+            "situs_house_number": "176",
+            "situs_street_direction": "N",
+            "situs_street_name": "WINCHESTER",
+            "situs_street_type": "BL",
+            "situs_city_name": "SAN JOSE",
+            "situs_state_code": "CA",
+            "situs_zip_code": "95128",
+            "number_of_situs_address": "1",
+            "shape_length_stateplane": "794.82707586215702",
+            "shape_area_stateplane": "41314.685377032198",
+            "ap_lp": "LP",
+            "jurisdiction": "SAN JOSE",
+            "shape_length": "304.93093731512232",
+            "shape_area": "6082.3340709455233"
+          }
+        }
+      ],
+      "qualification": {
+        "qualified": true,
+        "reasons": [
+          "Jurisdiction matches thesis market (San José)",
+          "Parcel size 0.95 ac inside the 0.5–10 ac window"
+        ],
+        "exclusions": [],
+        "unknowns": [
+          "Reported unit capacity unknown"
+        ]
+      },
+      "strategyFit": {
+        "type": "strategy_fit",
+        "version": "1.0.0",
+        "inputHash": "b989b692",
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ],
+        "output": {
+          "score": 75,
+          "drivers": [
+            {
+              "delta": 30,
+              "reason": "Inside thesis market (San José)"
+            },
+            {
+              "delta": 25,
+              "reason": "Parcel size inside 0.5–10 ac window"
+            },
+            {
+              "delta": 10,
+              "reason": "Resolvable location identity (APN or coordinates)"
+            },
+            {
+              "delta": 10,
+              "reason": "Sourced from an official government inventory"
+            }
+          ],
+          "warnings": [
+            "Reported capacity unknown — density preference not scored"
+          ]
+        },
+        "calculatedAt": "2026-07-25T21:31:50.172Z"
+      },
+      "rank": 5,
+      "scoutReasons": [
+        "Listed in the City of San José AB 2011 opportunity screening (Apr 2024)",
+        "Jurisdiction matches thesis market (San José)",
+        "Parcel size 0.95 ac inside the 0.5–10 ac window"
+      ]
+    },
+    {
+      "id": "sj-28211036",
+      "apn": "28211036",
+      "apnFormatted": "282-11-036",
+      "jurisdiction": "San José",
+      "county": "Santa Clara",
+      "address": "1017 BASCOM AV, San Jose",
+      "acresDerived": {
+        "value": 1.34,
+        "method": "county_parcel_stateplane_area_sqft / 43560 (GIS-derived, not a survey)",
+        "evidenceId": "ev-sccparcel-28211036"
+      },
+      "coordinates": {
+        "latitude": 37.30755616323887,
+        "longitude": -121.9323348870606,
+        "method": "county_parcel_geometry_centroid (GIS-derived)",
+        "evidenceId": "ev-sccparcel-28211036"
+      },
+      "zoningAbbr": "UV",
+      "vacant": true,
+      "cityScreens": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "YES",
+        "VACANT": "YES"
+      },
+      "evidence": [
+        {
+          "id": "ev-ab2011-28211036",
+          "source": {
+            "agency": "City of San José — Planning, Building & Code Enforcement",
+            "dataset": "AB2011Parcels2024",
+            "sourceRecordId": "3810",
+            "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "AB 2011 eligible parcel screening — APN 282-11-036",
+          "excerpt": "City screening (Apr 2024): zoning UV, vacant YES, flood NO, wetlands NO, historic NO.",
+          "payload": {
+            "OBJECTID": 3810,
+            "FACILITYID": "9351",
+            "INTID": 9351,
+            "PARCELID": "162552",
+            "APN": "28211036",
+            "ZONINGABBR": "UV",
+            "FLOOD": "NO",
+            "FARMLAND": "NO",
+            "CONSERVATI": "NO",
+            "FREEWAY500": "NO",
+            "HABITAT": "NO",
+            "HISTORICSI": "NO",
+            "WETLANDS": "NO",
+            "PRIVATEDEV": "NO",
+            "WASTESITE": "NO",
+            "STATEGEOFA": "NO",
+            "ACROSSREST": "NO",
+            "VACANT": "YES",
+            "ADJOINDEVE": "YES",
+            "URBANVILLA": "YES",
+            "LASTUPDATE": 1712188800000,
+            "LASTEDITOR": "MICHAEL.FUNG",
+            "NOTES": " ",
+            "ENTERPRISE": "PLN-ABPA-0000009351",
+            "GlobalID": "{D80DB243-D495-4694-BE21-768C3648BDCE}",
+            "Shape__Area": 58549.708984375,
+            "Shape__Length": 971.2494342018717
+          }
+        },
+        {
+          "id": "ev-sccparcel-28211036",
+          "source": {
+            "agency": "County of Santa Clara",
+            "dataset": "Parcels (ubcd-cewv)",
+            "sourceRecordId": "28211036",
+            "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "County parcel record — APN 282-11-036",
+          "excerpt": "Situs 1017 BASCOM AV, San Jose · jurisdiction SAN JOSE · state-plane area 58563.245823621102 sq ft.",
+          "payload": {
+            "objectid": "329852",
+            "apn": "28211036",
+            "tax_rate_area": "17021",
+            "situs_house_number": "1017",
+            "situs_street_direction": "S",
+            "situs_street_name": "BASCOM",
+            "situs_street_type": "AV",
+            "situs_city_name": "SAN JOSE",
+            "situs_state_code": "CA",
+            "situs_zip_code": "95128",
+            "number_of_situs_address": "1",
+            "shape_length_stateplane": "971.23738801895195",
+            "shape_area_stateplane": "58563.245823621102",
+            "ap_lp": "LP",
+            "jurisdiction": "SAN JOSE",
+            "shape_length": "372.60306265639679",
+            "shape_area": "8616.0044402340227"
+          }
+        }
+      ],
+      "qualification": {
+        "qualified": true,
+        "reasons": [
+          "Jurisdiction matches thesis market (San José)",
+          "Parcel size 1.34 ac inside the 0.5–10 ac window"
+        ],
+        "exclusions": [],
+        "unknowns": [
+          "Reported unit capacity unknown"
+        ]
+      },
+      "strategyFit": {
+        "type": "strategy_fit",
+        "version": "1.0.0",
+        "inputHash": "9c769f12",
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ],
+        "output": {
+          "score": 75,
+          "drivers": [
+            {
+              "delta": 30,
+              "reason": "Inside thesis market (San José)"
+            },
+            {
+              "delta": 25,
+              "reason": "Parcel size inside 0.5–10 ac window"
+            },
+            {
+              "delta": 10,
+              "reason": "Resolvable location identity (APN or coordinates)"
+            },
+            {
+              "delta": 10,
+              "reason": "Sourced from an official government inventory"
+            }
+          ],
+          "warnings": [
+            "Reported capacity unknown — density preference not scored"
+          ]
+        },
+        "calculatedAt": "2026-07-25T21:31:50.172Z"
+      },
+      "rank": 6,
+      "scoutReasons": [
+        "Listed in the City of San José AB 2011 opportunity screening (Apr 2024)",
+        "Jurisdiction matches thesis market (San José)",
+        "Parcel size 1.34 ac inside the 0.5–10 ac window"
+      ]
+    },
+    {
+      "id": "sj-37224033",
+      "apn": "37224033",
+      "apnFormatted": "372-24-033",
+      "jurisdiction": "San José",
+      "county": "Santa Clara",
+      "address": "7285 BARK LN, San Jose",
+      "acresDerived": {
+        "value": 0.52,
+        "method": "county_parcel_stateplane_area_sqft / 43560 (GIS-derived, not a survey)",
+        "evidenceId": "ev-sccparcel-37224033"
+      },
+      "coordinates": {
+        "latitude": 37.303485135294096,
+        "longitude": -122.0313856758211,
+        "method": "county_parcel_geometry_centroid (GIS-derived)",
+        "evidenceId": "ev-sccparcel-37224033"
+      },
+      "zoningAbbr": "CP",
+      "vacant": true,
+      "cityScreens": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "NO",
+        "VACANT": "YES"
+      },
+      "evidence": [
+        {
+          "id": "ev-ab2011-37224033",
+          "source": {
+            "agency": "City of San José — Planning, Building & Code Enforcement",
+            "dataset": "AB2011Parcels2024",
+            "sourceRecordId": "3518",
+            "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "AB 2011 eligible parcel screening — APN 372-24-033",
+          "excerpt": "City screening (Apr 2024): zoning CP, vacant YES, flood NO, wetlands NO, historic NO.",
+          "payload": {
+            "OBJECTID": 3518,
+            "FACILITYID": "9059",
+            "INTID": 9059,
+            "PARCELID": "1000006644",
+            "APN": "37224033",
+            "ZONINGABBR": "CP",
+            "FLOOD": "NO",
+            "FARMLAND": "NO",
+            "CONSERVATI": "NO",
+            "FREEWAY500": "NO",
+            "HABITAT": "NO",
+            "HISTORICSI": "NO",
+            "WETLANDS": "NO",
+            "PRIVATEDEV": "NO",
+            "WASTESITE": "NO",
+            "STATEGEOFA": "NO",
+            "ACROSSREST": "NO",
+            "VACANT": "YES",
+            "ADJOINDEVE": "YES",
+            "URBANVILLA": "NO",
+            "LASTUPDATE": 1712188800000,
+            "LASTEDITOR": "MICHAEL.FUNG",
+            "NOTES": " ",
+            "ENTERPRISE": "PLN-ABPA-0000009059",
+            "GlobalID": "{B6DF42E9-BD65-48A7-A2F6-FFC56C6AA221}",
+            "Shape__Area": 22653.455078125,
+            "Shape__Length": 712.6964534076455
+          }
+        },
+        {
+          "id": "ev-sccparcel-37224033",
+          "source": {
+            "agency": "County of Santa Clara",
+            "dataset": "Parcels (ubcd-cewv)",
+            "sourceRecordId": "37224033",
+            "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "County parcel record — APN 372-24-033",
+          "excerpt": "Situs 7285 BARK LN, San Jose · jurisdiction SAN JOSE · state-plane area 22653.034573404198 sq ft.",
+          "payload": {
+            "objectid": "160361",
+            "apn": "37224033",
+            "tax_rate_area": "17025",
+            "situs_house_number": "7285",
+            "situs_street_name": "BARK",
+            "situs_street_type": "LN",
+            "situs_city_name": "SAN JOSE",
+            "situs_state_code": "CA",
+            "situs_zip_code": "95129-3615",
+            "number_of_situs_address": "1",
+            "shape_length_stateplane": "712.7083681120082",
+            "shape_area_stateplane": "22653.034573404198",
+            "ap_lp": "LP",
+            "jurisdiction": "SAN JOSE",
+            "shape_length": "273.50503065445935",
+            "shape_area": "3332.4238671222633"
+          }
+        }
+      ],
+      "qualification": {
+        "qualified": true,
+        "reasons": [
+          "Jurisdiction matches thesis market (San José)",
+          "Parcel size 0.52 ac inside the 0.5–10 ac window"
+        ],
+        "exclusions": [],
+        "unknowns": [
+          "Reported unit capacity unknown"
+        ]
+      },
+      "strategyFit": {
+        "type": "strategy_fit",
+        "version": "1.0.0",
+        "inputHash": "c43ba19b",
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ],
+        "output": {
+          "score": 75,
+          "drivers": [
+            {
+              "delta": 30,
+              "reason": "Inside thesis market (San José)"
+            },
+            {
+              "delta": 25,
+              "reason": "Parcel size inside 0.5–10 ac window"
+            },
+            {
+              "delta": 10,
+              "reason": "Resolvable location identity (APN or coordinates)"
+            },
+            {
+              "delta": 10,
+              "reason": "Sourced from an official government inventory"
+            }
+          ],
+          "warnings": [
+            "Reported capacity unknown — density preference not scored"
+          ]
+        },
+        "calculatedAt": "2026-07-25T21:31:50.172Z"
+      },
+      "rank": 7,
+      "scoutReasons": [
+        "Listed in the City of San José AB 2011 opportunity screening (Apr 2024)",
+        "Jurisdiction matches thesis market (San José)",
+        "Parcel size 0.52 ac inside the 0.5–10 ac window"
+      ]
+    },
+    {
+      "id": "sj-37226037",
+      "apn": "37226037",
+      "apnFormatted": "372-26-037",
+      "jurisdiction": "San José",
+      "county": "Santa Clara",
+      "address": "972 DE ANZA BL, San Jose",
+      "acresDerived": {
+        "value": 0.91,
+        "method": "county_parcel_stateplane_area_sqft / 43560 (GIS-derived, not a survey)",
+        "evidenceId": "ev-sccparcel-37226037"
+      },
+      "coordinates": {
+        "latitude": 37.31146587724955,
+        "longitude": -122.03141892239978,
+        "method": "county_parcel_geometry_centroid (GIS-derived)",
+        "evidenceId": "ev-sccparcel-37226037"
+      },
+      "zoningAbbr": "CP",
+      "vacant": true,
+      "cityScreens": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "NO",
+        "VACANT": "YES"
+      },
+      "evidence": [
+        {
+          "id": "ev-ab2011-37226037",
+          "source": {
+            "agency": "City of San José — Planning, Building & Code Enforcement",
+            "dataset": "AB2011Parcels2024",
+            "sourceRecordId": "3984",
+            "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "AB 2011 eligible parcel screening — APN 372-26-037",
+          "excerpt": "City screening (Apr 2024): zoning CP, vacant YES, flood NO, wetlands NO, historic NO.",
+          "payload": {
+            "OBJECTID": 3984,
+            "FACILITYID": "9525",
+            "INTID": 9525,
+            "PARCELID": "176553",
+            "APN": "37226037",
+            "ZONINGABBR": "CP",
+            "FLOOD": "NO",
+            "FARMLAND": "NO",
+            "CONSERVATI": "NO",
+            "FREEWAY500": "NO",
+            "HABITAT": "NO",
+            "HISTORICSI": "NO",
+            "WETLANDS": "NO",
+            "PRIVATEDEV": "NO",
+            "WASTESITE": "NO",
+            "STATEGEOFA": "NO",
+            "ACROSSREST": "NO",
+            "VACANT": "YES",
+            "ADJOINDEVE": "YES",
+            "URBANVILLA": "NO",
+            "LASTUPDATE": 1712188800000,
+            "LASTEDITOR": "MICHAEL.FUNG",
+            "NOTES": " ",
+            "ENTERPRISE": "PLN-ABPA-0000009525",
+            "GlobalID": "{CFB52A25-FB73-44A6-91E6-303795E71844}",
+            "Shape__Area": 39835.6220703125,
+            "Shape__Length": 989.232747665145
+          }
+        },
+        {
+          "id": "ev-sccparcel-37226037",
+          "source": {
+            "agency": "County of Santa Clara",
+            "dataset": "Parcels (ubcd-cewv)",
+            "sourceRecordId": "37226037",
+            "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "County parcel record — APN 372-26-037",
+          "excerpt": "Situs 972 DE ANZA BL, San Jose · jurisdiction SAN JOSE · state-plane area 39835.355347903998 sq ft.",
+          "payload": {
+            "objectid": "417187",
+            "apn": "37226037",
+            "tax_rate_area": "17025",
+            "situs_house_number": "972",
+            "situs_street_direction": "S",
+            "situs_street_name": "DE ANZA",
+            "situs_street_type": "BL",
+            "situs_city_name": "SAN JOSE",
+            "situs_state_code": "CA",
+            "situs_zip_code": "95129",
+            "number_of_situs_address": "1",
+            "shape_length_stateplane": "989.20790107470293",
+            "shape_area_stateplane": "39835.355347903998",
+            "ap_lp": "LP",
+            "jurisdiction": "SAN JOSE",
+            "shape_length": "378.97092199975816",
+            "shape_area": "5861.3209172785082"
+          }
+        }
+      ],
+      "qualification": {
+        "qualified": true,
+        "reasons": [
+          "Jurisdiction matches thesis market (San José)",
+          "Parcel size 0.91 ac inside the 0.5–10 ac window"
+        ],
+        "exclusions": [],
+        "unknowns": [
+          "Reported unit capacity unknown"
+        ]
+      },
+      "strategyFit": {
+        "type": "strategy_fit",
+        "version": "1.0.0",
+        "inputHash": "d5222fce",
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ],
+        "output": {
+          "score": 75,
+          "drivers": [
+            {
+              "delta": 30,
+              "reason": "Inside thesis market (San José)"
+            },
+            {
+              "delta": 25,
+              "reason": "Parcel size inside 0.5–10 ac window"
+            },
+            {
+              "delta": 10,
+              "reason": "Resolvable location identity (APN or coordinates)"
+            },
+            {
+              "delta": 10,
+              "reason": "Sourced from an official government inventory"
+            }
+          ],
+          "warnings": [
+            "Reported capacity unknown — density preference not scored"
+          ]
+        },
+        "calculatedAt": "2026-07-25T21:31:50.172Z"
+      },
+      "rank": 8,
+      "scoutReasons": [
+        "Listed in the City of San José AB 2011 opportunity screening (Apr 2024)",
+        "Jurisdiction matches thesis market (San José)",
+        "Parcel size 0.91 ac inside the 0.5–10 ac window"
+      ]
+    },
+    {
+      "id": "sj-41224009",
+      "apn": "41224009",
+      "apnFormatted": "412-24-009",
+      "jurisdiction": "San José",
+      "county": "Santa Clara",
+      "address": "2517 BASCOM AV, San Jose",
+      "acresDerived": {
+        "value": 0.51,
+        "method": "county_parcel_stateplane_area_sqft / 43560 (GIS-derived, not a survey)",
+        "evidenceId": "ev-sccparcel-41224009"
+      },
+      "coordinates": {
+        "latitude": 37.277182604502826,
+        "longitude": -121.93266865895667,
+        "method": "county_parcel_geometry_centroid (GIS-derived)",
+        "evidenceId": "ev-sccparcel-41224009"
+      },
+      "zoningAbbr": "CP",
+      "vacant": true,
+      "cityScreens": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "NO",
+        "VACANT": "YES"
+      },
+      "evidence": [
+        {
+          "id": "ev-ab2011-41224009",
+          "source": {
+            "agency": "City of San José — Planning, Building & Code Enforcement",
+            "dataset": "AB2011Parcels2024",
+            "sourceRecordId": "3173",
+            "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "AB 2011 eligible parcel screening — APN 412-24-009",
+          "excerpt": "City screening (Apr 2024): zoning CP, vacant YES, flood NO, wetlands NO, historic NO.",
+          "payload": {
+            "OBJECTID": 3173,
+            "FACILITYID": "8714",
+            "INTID": 8714,
+            "PARCELID": "138025",
+            "APN": "41224009",
+            "ZONINGABBR": "CP",
+            "FLOOD": "NO",
+            "FARMLAND": "NO",
+            "CONSERVATI": "NO",
+            "FREEWAY500": "NO",
+            "HABITAT": "NO",
+            "HISTORICSI": "NO",
+            "WETLANDS": "NO",
+            "PRIVATEDEV": "NO",
+            "WASTESITE": "NO",
+            "STATEGEOFA": "NO",
+            "ACROSSREST": "NO",
+            "VACANT": "YES",
+            "ADJOINDEVE": "YES",
+            "URBANVILLA": "NO",
+            "LASTUPDATE": 1712188800000,
+            "LASTEDITOR": "MICHAEL.FUNG",
+            "NOTES": " ",
+            "ENTERPRISE": "PLN-ABPA-0000008714",
+            "GlobalID": "{DD15A58A-9913-4604-A1EB-93015E923E00}",
+            "Shape__Area": 22398.9814453125,
+            "Shape__Length": 605.2128830938627
+          }
+        },
+        {
+          "id": "ev-sccparcel-41224009",
+          "source": {
+            "agency": "County of Santa Clara",
+            "dataset": "Parcels (ubcd-cewv)",
+            "sourceRecordId": "41224009",
+            "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "County parcel record — APN 412-24-009",
+          "excerpt": "Situs 2517 BASCOM AV, San Jose · jurisdiction SAN JOSE · state-plane area 22411.7037115034 sq ft.",
+          "payload": {
+            "objectid": "446745",
+            "apn": "41224009",
+            "tax_rate_area": "17015",
+            "situs_house_number": "2517",
+            "situs_street_direction": "S",
+            "situs_street_name": "BASCOM",
+            "situs_street_type": "AV",
+            "situs_city_name": "SAN JOSE",
+            "situs_state_code": "CA",
+            "situs_zip_code": "95124",
+            "number_of_situs_address": "1",
+            "shape_length_stateplane": "605.22500315322736",
+            "shape_area_stateplane": "22411.7037115034",
+            "ap_lp": "LP",
+            "jurisdiction": "SAN JOSE",
+            "shape_length": "232.11648705972937",
+            "shape_area": "3294.6130637103565"
+          }
+        }
+      ],
+      "qualification": {
+        "qualified": true,
+        "reasons": [
+          "Jurisdiction matches thesis market (San José)",
+          "Parcel size 0.51 ac inside the 0.5–10 ac window"
+        ],
+        "exclusions": [],
+        "unknowns": [
+          "Reported unit capacity unknown"
+        ]
+      },
+      "strategyFit": {
+        "type": "strategy_fit",
+        "version": "1.0.0",
+        "inputHash": "dfd93972",
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ],
+        "output": {
+          "score": 75,
+          "drivers": [
+            {
+              "delta": 30,
+              "reason": "Inside thesis market (San José)"
+            },
+            {
+              "delta": 25,
+              "reason": "Parcel size inside 0.5–10 ac window"
+            },
+            {
+              "delta": 10,
+              "reason": "Resolvable location identity (APN or coordinates)"
+            },
+            {
+              "delta": 10,
+              "reason": "Sourced from an official government inventory"
+            }
+          ],
+          "warnings": [
+            "Reported capacity unknown — density preference not scored"
+          ]
+        },
+        "calculatedAt": "2026-07-25T21:31:50.172Z"
+      },
+      "rank": 9,
+      "scoutReasons": [
+        "Listed in the City of San José AB 2011 opportunity screening (Apr 2024)",
+        "Jurisdiction matches thesis market (San José)",
+        "Parcel size 0.51 ac inside the 0.5–10 ac window"
+      ]
+    },
+    {
+      "id": "sj-41225026",
+      "apn": "41225026",
+      "apnFormatted": "412-25-026",
+      "jurisdiction": "San José",
+      "county": "Santa Clara",
+      "address": "2375 BASCOM AV, San Jose",
+      "acresDerived": {
+        "value": 1.21,
+        "method": "county_parcel_stateplane_area_sqft / 43560 (GIS-derived, not a survey)",
+        "evidenceId": "ev-sccparcel-41225026"
+      },
+      "coordinates": {
+        "latitude": 37.27938141498917,
+        "longitude": -121.93246913305602,
+        "method": "county_parcel_geometry_centroid (GIS-derived)",
+        "evidenceId": "ev-sccparcel-41225026"
+      },
+      "zoningAbbr": "CP",
+      "vacant": true,
+      "cityScreens": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "NO",
+        "VACANT": "YES"
+      },
+      "evidence": [
+        {
+          "id": "ev-ab2011-41225026",
+          "source": {
+            "agency": "City of San José — Planning, Building & Code Enforcement",
+            "dataset": "AB2011Parcels2024",
+            "sourceRecordId": "3194",
+            "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "AB 2011 eligible parcel screening — APN 412-25-026",
+          "excerpt": "City screening (Apr 2024): zoning CP, vacant YES, flood NO, wetlands NO, historic NO.",
+          "payload": {
+            "OBJECTID": 3194,
+            "FACILITYID": "8735",
+            "INTID": 8735,
+            "PARCELID": "138049",
+            "APN": "41225026",
+            "ZONINGABBR": "CP",
+            "FLOOD": "NO",
+            "FARMLAND": "NO",
+            "CONSERVATI": "NO",
+            "FREEWAY500": "NO",
+            "HABITAT": "NO",
+            "HISTORICSI": "NO",
+            "WETLANDS": "NO",
+            "PRIVATEDEV": "NO",
+            "WASTESITE": "NO",
+            "STATEGEOFA": "NO",
+            "ACROSSREST": "NO",
+            "VACANT": "YES",
+            "ADJOINDEVE": "YES",
+            "URBANVILLA": "NO",
+            "LASTUPDATE": 1712188800000,
+            "LASTEDITOR": "MICHAEL.FUNG",
+            "NOTES": " ",
+            "ENTERPRISE": "PLN-ABPA-0000008735",
+            "GlobalID": "{672A222C-2B2C-4022-B7F9-638396AE876F}",
+            "Shape__Area": 53139.79296875,
+            "Shape__Length": 1059.172765521398
+          }
+        },
+        {
+          "id": "ev-sccparcel-41225026",
+          "source": {
+            "agency": "County of Santa Clara",
+            "dataset": "Parcels (ubcd-cewv)",
+            "sourceRecordId": "41225026",
+            "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "County parcel record — APN 412-25-026",
+          "excerpt": "Situs 2375 BASCOM AV, San Jose · jurisdiction SAN JOSE · state-plane area 52887.662608833998 sq ft.",
+          "payload": {
+            "objectid": "432464",
+            "apn": "41225026",
+            "tax_rate_area": "17015",
+            "situs_house_number": "2375",
+            "situs_street_direction": "S",
+            "situs_street_name": "BASCOM",
+            "situs_street_type": "AV",
+            "situs_city_name": "SAN JOSE",
+            "situs_state_code": "CA",
+            "situs_zip_code": "95124",
+            "number_of_situs_address": "1",
+            "shape_length_stateplane": "1059.0153997087898",
+            "shape_area_stateplane": "52887.662608833998",
+            "ap_lp": "LP",
+            "jurisdiction": "SAN JOSE",
+            "shape_length": "405.87974155572056",
+            "shape_area": "7775.1619284065"
+          }
+        }
+      ],
+      "qualification": {
+        "qualified": true,
+        "reasons": [
+          "Jurisdiction matches thesis market (San José)",
+          "Parcel size 1.21 ac inside the 0.5–10 ac window"
+        ],
+        "exclusions": [],
+        "unknowns": [
+          "Reported unit capacity unknown"
+        ]
+      },
+      "strategyFit": {
+        "type": "strategy_fit",
+        "version": "1.0.0",
+        "inputHash": "639f6008",
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ],
+        "output": {
+          "score": 75,
+          "drivers": [
+            {
+              "delta": 30,
+              "reason": "Inside thesis market (San José)"
+            },
+            {
+              "delta": 25,
+              "reason": "Parcel size inside 0.5–10 ac window"
+            },
+            {
+              "delta": 10,
+              "reason": "Resolvable location identity (APN or coordinates)"
+            },
+            {
+              "delta": 10,
+              "reason": "Sourced from an official government inventory"
+            }
+          ],
+          "warnings": [
+            "Reported capacity unknown — density preference not scored"
+          ]
+        },
+        "calculatedAt": "2026-07-25T21:31:50.172Z"
+      },
+      "rank": 10,
+      "scoutReasons": [
+        "Listed in the City of San José AB 2011 opportunity screening (Apr 2024)",
+        "Jurisdiction matches thesis market (San José)",
+        "Parcel size 1.21 ac inside the 0.5–10 ac window"
+      ]
+    },
+    {
+      "id": "sj-47212086",
+      "apn": "47212086",
+      "apnFormatted": "472-12-086",
+      "jurisdiction": "San José",
+      "county": "Santa Clara",
+      "address": "551 KEYES ST, San Jose",
+      "acresDerived": {
+        "value": 0.72,
+        "method": "county_parcel_stateplane_area_sqft / 43560 (GIS-derived, not a survey)",
+        "evidenceId": "ev-sccparcel-47212086"
+      },
+      "coordinates": {
+        "latitude": 37.32569478490393,
+        "longitude": -121.86641215466032,
+        "method": "county_parcel_geometry_centroid (GIS-derived)",
+        "evidenceId": "ev-sccparcel-47212086"
+      },
+      "zoningAbbr": "UR",
+      "vacant": true,
+      "cityScreens": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "NO",
+        "VACANT": "YES"
+      },
+      "evidence": [
+        {
+          "id": "ev-ab2011-47212086",
+          "source": {
+            "agency": "City of San José — Planning, Building & Code Enforcement",
+            "dataset": "AB2011Parcels2024",
+            "sourceRecordId": "1958",
+            "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "AB 2011 eligible parcel screening — APN 472-12-086",
+          "excerpt": "City screening (Apr 2024): zoning UR, vacant YES, flood NO, wetlands NO, historic NO.",
+          "payload": {
+            "OBJECTID": 1958,
+            "FACILITYID": "7499",
+            "INTID": 7499,
+            "PARCELID": "64580",
+            "APN": "47212086",
+            "ZONINGABBR": "UR",
+            "FLOOD": "NO",
+            "FARMLAND": "NO",
+            "CONSERVATI": "NO",
+            "FREEWAY500": "NO",
+            "HABITAT": "NO",
+            "HISTORICSI": "NO",
+            "WETLANDS": "NO",
+            "PRIVATEDEV": "NO",
+            "WASTESITE": "NO",
+            "STATEGEOFA": "NO",
+            "ACROSSREST": "NO",
+            "VACANT": "YES",
+            "ADJOINDEVE": "YES",
+            "URBANVILLA": "NO",
+            "LASTUPDATE": 1712188800000,
+            "LASTEDITOR": "MICHAEL.FUNG",
+            "NOTES": " ",
+            "ENTERPRISE": "PLN-ABPA-0000007499",
+            "GlobalID": "{910A4C8C-1E22-4E9C-95AF-AECF4463CD77}",
+            "Shape__Area": 31248.5390625,
+            "Shape__Length": 799.31439497651
+          }
+        },
+        {
+          "id": "ev-sccparcel-47212086",
+          "source": {
+            "agency": "County of Santa Clara",
+            "dataset": "Parcels (ubcd-cewv)",
+            "sourceRecordId": "47212086",
+            "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "County parcel record — APN 472-12-086",
+          "excerpt": "Situs 551 KEYES ST, San Jose · jurisdiction SAN JOSE · state-plane area 31247.422628869099 sq ft.",
+          "payload": {
+            "objectid": "473274",
+            "apn": "47212086",
+            "tax_rate_area": "17194",
+            "situs_house_number": "551",
+            "situs_street_name": "KEYES",
+            "situs_street_type": "ST",
+            "situs_city_name": "SAN JOSE",
+            "situs_state_code": "CA",
+            "situs_zip_code": "95112-0024",
+            "number_of_situs_address": "1",
+            "shape_length_stateplane": "799.31084722791616",
+            "shape_area_stateplane": "31247.422628869099",
+            "ap_lp": "LP",
+            "jurisdiction": "SAN JOSE",
+            "shape_length": "306.53811255092887",
+            "shape_area": "4599.4572248997083"
+          }
+        }
+      ],
+      "qualification": {
+        "qualified": true,
+        "reasons": [
+          "Jurisdiction matches thesis market (San José)",
+          "Parcel size 0.72 ac inside the 0.5–10 ac window"
+        ],
+        "exclusions": [],
+        "unknowns": [
+          "Reported unit capacity unknown"
+        ]
+      },
+      "strategyFit": {
+        "type": "strategy_fit",
+        "version": "1.0.0",
+        "inputHash": "6c64811d",
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ],
+        "output": {
+          "score": 75,
+          "drivers": [
+            {
+              "delta": 30,
+              "reason": "Inside thesis market (San José)"
+            },
+            {
+              "delta": 25,
+              "reason": "Parcel size inside 0.5–10 ac window"
+            },
+            {
+              "delta": 10,
+              "reason": "Resolvable location identity (APN or coordinates)"
+            },
+            {
+              "delta": 10,
+              "reason": "Sourced from an official government inventory"
+            }
+          ],
+          "warnings": [
+            "Reported capacity unknown — density preference not scored"
+          ]
+        },
+        "calculatedAt": "2026-07-25T21:31:50.172Z"
+      },
+      "rank": 11,
+      "scoutReasons": [
+        "Listed in the City of San José AB 2011 opportunity screening (Apr 2024)",
+        "Jurisdiction matches thesis market (San José)",
+        "Parcel size 0.72 ac inside the 0.5–10 ac window"
+      ]
+    },
+    {
+      "id": "sj-48134091",
+      "apn": "48134091",
+      "apnFormatted": "481-34-091",
+      "jurisdiction": "San José",
+      "county": "Santa Clara",
+      "address": "2195 STORY RD, San Jose",
+      "acresDerived": {
+        "value": 1.17,
+        "method": "county_parcel_stateplane_area_sqft / 43560 (GIS-derived, not a survey)",
+        "evidenceId": "ev-sccparcel-48134091"
+      },
+      "coordinates": {
+        "latitude": 37.34631841996654,
+        "longitude": -121.83433871337114,
+        "method": "county_parcel_geometry_centroid (GIS-derived)",
+        "evidenceId": "ev-sccparcel-48134091"
+      },
+      "zoningAbbr": "CN",
+      "vacant": true,
+      "cityScreens": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "NO",
+        "VACANT": "YES"
+      },
+      "evidence": [
+        {
+          "id": "ev-ab2011-48134091",
+          "source": {
+            "agency": "City of San José — Planning, Building & Code Enforcement",
+            "dataset": "AB2011Parcels2024",
+            "sourceRecordId": "226",
+            "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "AB 2011 eligible parcel screening — APN 481-34-091",
+          "excerpt": "City screening (Apr 2024): zoning CN, vacant YES, flood NO, wetlands NO, historic NO.",
+          "payload": {
+            "OBJECTID": 226,
+            "FACILITYID": "5767",
+            "INTID": 5767,
+            "PARCELID": "71917",
+            "APN": "48134091",
+            "ZONINGABBR": "CN",
+            "FLOOD": "NO",
+            "FARMLAND": "NO",
+            "CONSERVATI": "NO",
+            "FREEWAY500": "NO",
+            "HABITAT": "NO",
+            "HISTORICSI": "NO",
+            "WETLANDS": "NO",
+            "PRIVATEDEV": "NO",
+            "WASTESITE": "NO",
+            "STATEGEOFA": "NO",
+            "ACROSSREST": "NO",
+            "VACANT": "YES",
+            "ADJOINDEVE": "YES",
+            "URBANVILLA": "NO",
+            "LASTUPDATE": 1712188800000,
+            "LASTEDITOR": "MICHAEL.FUNG",
+            "NOTES": " ",
+            "ENTERPRISE": "PLN-ABPA-0000005767",
+            "GlobalID": "{9BCBCFA4-34A8-420A-A0AE-14B08AB38862}",
+            "Shape__Area": 50914.751953125,
+            "Shape__Length": 1159.0341256624952
+          }
+        },
+        {
+          "id": "ev-sccparcel-48134091",
+          "source": {
+            "agency": "County of Santa Clara",
+            "dataset": "Parcels (ubcd-cewv)",
+            "sourceRecordId": "48134091",
+            "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "County parcel record — APN 481-34-091",
+          "excerpt": "Situs 2195 STORY RD, San Jose · jurisdiction SAN JOSE · state-plane area 50912.678546187701 sq ft.",
+          "payload": {
+            "objectid": "472869",
+            "apn": "48134091",
+            "tax_rate_area": "17002",
+            "situs_house_number": "2195",
+            "situs_street_name": "STORY",
+            "situs_street_type": "RD",
+            "situs_city_name": "SAN JOSE",
+            "situs_state_code": "CA",
+            "situs_zip_code": "95122-1671",
+            "number_of_situs_address": "7",
+            "shape_length_stateplane": "1159.0389908136763",
+            "shape_area_stateplane": "50912.678546187701",
+            "ap_lp": "LP",
+            "jurisdiction": "SAN JOSE",
+            "shape_length": "444.69433271273516",
+            "shape_area": "7498.1836149743085"
+          }
+        }
+      ],
+      "qualification": {
+        "qualified": true,
+        "reasons": [
+          "Jurisdiction matches thesis market (San José)",
+          "Parcel size 1.17 ac inside the 0.5–10 ac window"
+        ],
+        "exclusions": [],
+        "unknowns": [
+          "Reported unit capacity unknown"
+        ]
+      },
+      "strategyFit": {
+        "type": "strategy_fit",
+        "version": "1.0.0",
+        "inputHash": "24005849",
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ],
+        "output": {
+          "score": 75,
+          "drivers": [
+            {
+              "delta": 30,
+              "reason": "Inside thesis market (San José)"
+            },
+            {
+              "delta": 25,
+              "reason": "Parcel size inside 0.5–10 ac window"
+            },
+            {
+              "delta": 10,
+              "reason": "Resolvable location identity (APN or coordinates)"
+            },
+            {
+              "delta": 10,
+              "reason": "Sourced from an official government inventory"
+            }
+          ],
+          "warnings": [
+            "Reported capacity unknown — density preference not scored"
+          ]
+        },
+        "calculatedAt": "2026-07-25T21:31:50.172Z"
+      },
+      "rank": 12,
+      "scoutReasons": [
+        "Listed in the City of San José AB 2011 opportunity screening (Apr 2024)",
+        "Jurisdiction matches thesis market (San José)",
+        "Parcel size 1.17 ac inside the 0.5–10 ac window"
+      ]
+    },
+    {
+      "id": "sj-48143028",
+      "apn": "48143028",
+      "apnFormatted": "481-43-028",
+      "jurisdiction": "San José",
+      "county": "Santa Clara",
+      "address": "436 KING RD, San Jose",
+      "acresDerived": {
+        "value": 1.03,
+        "method": "county_parcel_stateplane_area_sqft / 43560 (GIS-derived, not a survey)",
+        "evidenceId": "ev-sccparcel-48143028"
+      },
+      "coordinates": {
+        "latitude": 37.345349837795425,
+        "longitude": -121.84773421944271,
+        "method": "county_parcel_geometry_centroid (GIS-derived)",
+        "evidenceId": "ev-sccparcel-48143028"
+      },
+      "zoningAbbr": "CP",
+      "vacant": true,
+      "cityScreens": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "NO",
+        "VACANT": "YES"
+      },
+      "evidence": [
+        {
+          "id": "ev-ab2011-48143028",
+          "source": {
+            "agency": "City of San José — Planning, Building & Code Enforcement",
+            "dataset": "AB2011Parcels2024",
+            "sourceRecordId": "4874",
+            "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "AB 2011 eligible parcel screening — APN 481-43-028",
+          "excerpt": "City screening (Apr 2024): zoning CP, vacant YES, flood NO, wetlands NO, historic NO.",
+          "payload": {
+            "OBJECTID": 4874,
+            "FACILITYID": "10415",
+            "INTID": 10415,
+            "PARCELID": "72440",
+            "APN": "48143028",
+            "ZONINGABBR": "CP",
+            "FLOOD": "NO",
+            "FARMLAND": "NO",
+            "CONSERVATI": "NO",
+            "FREEWAY500": "NO",
+            "HABITAT": "NO",
+            "HISTORICSI": "NO",
+            "WETLANDS": "NO",
+            "PRIVATEDEV": "NO",
+            "WASTESITE": "NO",
+            "STATEGEOFA": "NO",
+            "ACROSSREST": "NO",
+            "VACANT": "YES",
+            "ADJOINDEVE": "YES",
+            "URBANVILLA": "NO",
+            "LASTUPDATE": 1712188800000,
+            "LASTEDITOR": "MICHAEL.FUNG",
+            "NOTES": " ",
+            "ENTERPRISE": "PLN-ABPA-0000010415",
+            "GlobalID": "{3E86FF24-A53A-46A5-9B18-F86981C426DB}",
+            "Shape__Area": 45044.43359375,
+            "Shape__Length": 953.971934065888
+          }
+        },
+        {
+          "id": "ev-sccparcel-48143028",
+          "source": {
+            "agency": "County of Santa Clara",
+            "dataset": "Parcels (ubcd-cewv)",
+            "sourceRecordId": "48143028",
+            "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "County parcel record — APN 481-43-028",
+          "excerpt": "Situs 436 KING RD, San Jose · jurisdiction SAN JOSE · state-plane area 45046.2762487125 sq ft.",
+          "payload": {
+            "objectid": "137593",
+            "apn": "48143028",
+            "tax_rate_area": "17162",
+            "situs_house_number": "436",
+            "situs_street_direction": "S",
+            "situs_street_name": "KING",
+            "situs_street_type": "RD",
+            "situs_city_name": "SAN JOSE",
+            "situs_state_code": "CA",
+            "situs_zip_code": "95116-3428",
+            "number_of_situs_address": "4",
+            "shape_length_stateplane": "954.00339733255839",
+            "shape_area_stateplane": "45046.2762487125",
+            "ap_lp": "LP",
+            "jurisdiction": "SAN JOSE",
+            "shape_length": "366.03990652600629",
+            "shape_area": "6634.0700941822461"
+          }
+        }
+      ],
+      "qualification": {
+        "qualified": true,
+        "reasons": [
+          "Jurisdiction matches thesis market (San José)",
+          "Parcel size 1.03 ac inside the 0.5–10 ac window"
+        ],
+        "exclusions": [],
+        "unknowns": [
+          "Reported unit capacity unknown"
+        ]
+      },
+      "strategyFit": {
+        "type": "strategy_fit",
+        "version": "1.0.0",
+        "inputHash": "810ab510",
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ],
+        "output": {
+          "score": 75,
+          "drivers": [
+            {
+              "delta": 30,
+              "reason": "Inside thesis market (San José)"
+            },
+            {
+              "delta": 25,
+              "reason": "Parcel size inside 0.5–10 ac window"
+            },
+            {
+              "delta": 10,
+              "reason": "Resolvable location identity (APN or coordinates)"
+            },
+            {
+              "delta": 10,
+              "reason": "Sourced from an official government inventory"
+            }
+          ],
+          "warnings": [
+            "Reported capacity unknown — density preference not scored"
+          ]
+        },
+        "calculatedAt": "2026-07-25T21:31:50.172Z"
+      },
+      "rank": 13,
+      "scoutReasons": [
+        "Listed in the City of San José AB 2011 opportunity screening (Apr 2024)",
+        "Jurisdiction matches thesis market (San José)",
+        "Parcel size 1.03 ac inside the 0.5–10 ac window"
+      ]
+    },
+    {
+      "id": "sj-56730015",
+      "apn": "56730015",
+      "apnFormatted": "567-30-015",
+      "jurisdiction": "San José",
+      "county": "Santa Clara",
+      "address": "BLOSSOM HILL RD, San Jose",
+      "acresDerived": {
+        "value": 1.08,
+        "method": "county_parcel_stateplane_area_sqft / 43560 (GIS-derived, not a survey)",
+        "evidenceId": "ev-sccparcel-56730015"
+      },
+      "coordinates": {
+        "latitude": 37.23794015455261,
+        "longitude": -121.90251310557832,
+        "method": "county_parcel_geometry_centroid (GIS-derived)",
+        "evidenceId": "ev-sccparcel-56730015"
+      },
+      "zoningAbbr": "MUN",
+      "vacant": true,
+      "cityScreens": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "NO",
+        "VACANT": "YES"
+      },
+      "evidence": [
+        {
+          "id": "ev-ab2011-56730015",
+          "source": {
+            "agency": "City of San José — Planning, Building & Code Enforcement",
+            "dataset": "AB2011Parcels2024",
+            "sourceRecordId": "5050",
+            "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "AB 2011 eligible parcel screening — APN 567-30-015",
+          "excerpt": "City screening (Apr 2024): zoning MUN, vacant YES, flood NO, wetlands NO, historic NO.",
+          "payload": {
+            "OBJECTID": 5050,
+            "FACILITYID": "10591",
+            "INTID": 10591,
+            "PARCELID": "236163",
+            "APN": "56730015",
+            "ZONINGABBR": "MUN",
+            "FLOOD": "NO",
+            "FARMLAND": "NO",
+            "CONSERVATI": "NO",
+            "FREEWAY500": "NO",
+            "HABITAT": "NO",
+            "HISTORICSI": "NO",
+            "WETLANDS": "NO",
+            "PRIVATEDEV": "NO",
+            "WASTESITE": "NO",
+            "STATEGEOFA": "NO",
+            "ACROSSREST": "NO",
+            "VACANT": "YES",
+            "ADJOINDEVE": "YES",
+            "URBANVILLA": "NO",
+            "LASTUPDATE": 1712188800000,
+            "LASTEDITOR": "MICHAEL.FUNG",
+            "NOTES": " ",
+            "ENTERPRISE": "PLN-ABPA-0000010591",
+            "GlobalID": "{F418475D-E4CE-4D5D-BB0F-700D6B601B79}",
+            "Shape__Area": 47077.369140625,
+            "Shape__Length": 1978.438444781118
+          }
+        },
+        {
+          "id": "ev-sccparcel-56730015",
+          "source": {
+            "agency": "County of Santa Clara",
+            "dataset": "Parcels (ubcd-cewv)",
+            "sourceRecordId": "56730015",
+            "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "County parcel record — APN 567-30-015",
+          "excerpt": "Situs BLOSSOM HILL RD, San Jose · jurisdiction SAN JOSE · state-plane area 47077.757839837199 sq ft.",
+          "payload": {
+            "objectid": "130573",
+            "apn": "56730015",
+            "tax_rate_area": "17076",
+            "situs_street_name": "BLOSSOM HILL",
+            "situs_street_type": "RD",
+            "situs_city_name": "SAN JOSE",
+            "situs_state_code": "CA",
+            "situs_zip_code": "95118",
+            "number_of_situs_address": "1",
+            "shape_length_stateplane": "1978.4419339112974",
+            "shape_area_stateplane": "47077.757839837199",
+            "ap_lp": "LP",
+            "jurisdiction": "SAN JOSE",
+            "shape_length": "758.96335874507747",
+            "shape_area": "6913.2170159816615"
+          }
+        }
+      ],
+      "qualification": {
+        "qualified": true,
+        "reasons": [
+          "Jurisdiction matches thesis market (San José)",
+          "Parcel size 1.08 ac inside the 0.5–10 ac window"
+        ],
+        "exclusions": [],
+        "unknowns": [
+          "Reported unit capacity unknown"
+        ]
+      },
+      "strategyFit": {
+        "type": "strategy_fit",
+        "version": "1.0.0",
+        "inputHash": "c8417325",
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ],
+        "output": {
+          "score": 75,
+          "drivers": [
+            {
+              "delta": 30,
+              "reason": "Inside thesis market (San José)"
+            },
+            {
+              "delta": 25,
+              "reason": "Parcel size inside 0.5–10 ac window"
+            },
+            {
+              "delta": 10,
+              "reason": "Resolvable location identity (APN or coordinates)"
+            },
+            {
+              "delta": 10,
+              "reason": "Sourced from an official government inventory"
+            }
+          ],
+          "warnings": [
+            "Reported capacity unknown — density preference not scored"
+          ]
+        },
+        "calculatedAt": "2026-07-25T21:31:50.172Z"
+      },
+      "rank": 14,
+      "scoutReasons": [
+        "Listed in the City of San José AB 2011 opportunity screening (Apr 2024)",
+        "Jurisdiction matches thesis market (San José)",
+        "Parcel size 1.08 ac inside the 0.5–10 ac window"
+      ]
+    },
+    {
+      "id": "sj-65904011",
+      "apn": "65904011",
+      "apnFormatted": "659-04-011",
+      "jurisdiction": "San José",
+      "county": "Santa Clara",
+      "address": "385 SAN FELIPE RD, San Jose",
+      "acresDerived": {
+        "value": 0.78,
+        "method": "county_parcel_stateplane_area_sqft / 43560 (GIS-derived, not a survey)",
+        "evidenceId": "ev-sccparcel-65904011"
+      },
+      "coordinates": {
+        "latitude": 37.311483871916565,
+        "longitude": -121.78697116050829,
+        "method": "county_parcel_geometry_centroid (GIS-derived)",
+        "evidenceId": "ev-sccparcel-65904011"
+      },
+      "zoningAbbr": "CP",
+      "vacant": true,
+      "cityScreens": {
+        "FLOOD": "NO",
+        "WETLANDS": "NO",
+        "HISTORICSI": "NO",
+        "HABITAT": "NO",
+        "FARMLAND": "NO",
+        "CONSERVATI": "NO",
+        "WASTESITE": "NO",
+        "FREEWAY500": "NO",
+        "URBANVILLA": "NO",
+        "VACANT": "YES"
+      },
+      "evidence": [
+        {
+          "id": "ev-ab2011-65904011",
+          "source": {
+            "agency": "City of San José — Planning, Building & Code Enforcement",
+            "dataset": "AB2011Parcels2024",
+            "sourceRecordId": "5351",
+            "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "AB 2011 eligible parcel screening — APN 659-04-011",
+          "excerpt": "City screening (Apr 2024): zoning CP, vacant YES, flood NO, wetlands NO, historic NO.",
+          "payload": {
+            "OBJECTID": 5351,
+            "FACILITYID": "10892",
+            "INTID": 10892,
+            "PARCELID": "124402",
+            "APN": "65904011",
+            "ZONINGABBR": "CP",
+            "FLOOD": "NO",
+            "FARMLAND": "NO",
+            "CONSERVATI": "NO",
+            "FREEWAY500": "NO",
+            "HABITAT": "NO",
+            "HISTORICSI": "NO",
+            "WETLANDS": "NO",
+            "PRIVATEDEV": "NO",
+            "WASTESITE": "NO",
+            "STATEGEOFA": "NO",
+            "ACROSSREST": "NO",
+            "VACANT": "YES",
+            "ADJOINDEVE": "YES",
+            "URBANVILLA": "NO",
+            "LASTUPDATE": 1712188800000,
+            "LASTEDITOR": "MICHAEL.FUNG",
+            "NOTES": " ",
+            "ENTERPRISE": "PLN-ABPA-0000010892",
+            "GlobalID": "{0D985025-B099-4C4E-A5D6-B6A9478A34CC}",
+            "Shape__Area": 30071.8125,
+            "Shape__Length": 722.8657066478092
+          }
+        },
+        {
+          "id": "ev-sccparcel-65904011",
+          "source": {
+            "agency": "County of Santa Clara",
+            "dataset": "Parcels (ubcd-cewv)",
+            "sourceRecordId": "65904011",
+            "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
+            "retrievedAt": "2026-07-25T21:31:50.172Z"
+          },
+          "title": "County parcel record — APN 659-04-011",
+          "excerpt": "Situs 385 SAN FELIPE RD, San Jose · jurisdiction SAN JOSE · state-plane area 33989.928356926597 sq ft.",
+          "payload": {
+            "objectid": "227670",
+            "apn": "65904011",
+            "tax_rate_area": "17028",
+            "situs_house_number": "385",
+            "situs_street_name": "SAN FELIPE",
+            "situs_street_type": "RD",
+            "situs_city_name": "SAN JOSE",
+            "situs_state_code": "CA",
+            "situs_zip_code": "95135",
+            "number_of_situs_address": "1",
+            "shape_length_stateplane": "739.15179121082463",
+            "shape_area_stateplane": "33989.928356926597",
+            "ap_lp": "LP",
+            "jurisdiction": "SAN JOSE",
+            "shape_length": "283.45551486051943",
+            "shape_area": "5001.2445644895533"
+          }
+        }
+      ],
+      "qualification": {
+        "qualified": true,
+        "reasons": [
+          "Jurisdiction matches thesis market (San José)",
+          "Parcel size 0.78 ac inside the 0.5–10 ac window"
+        ],
+        "exclusions": [],
+        "unknowns": [
+          "Reported unit capacity unknown"
+        ]
+      },
+      "strategyFit": {
+        "type": "strategy_fit",
+        "version": "1.0.0",
+        "inputHash": "3b085bbb",
+        "warnings": [
+          "Reported capacity unknown — density preference not scored"
+        ],
+        "output": {
+          "score": 75,
+          "drivers": [
+            {
+              "delta": 30,
+              "reason": "Inside thesis market (San José)"
+            },
+            {
+              "delta": 25,
+              "reason": "Parcel size inside 0.5–10 ac window"
+            },
+            {
+              "delta": 10,
+              "reason": "Resolvable location identity (APN or coordinates)"
+            },
+            {
+              "delta": 10,
+              "reason": "Sourced from an official government inventory"
+            }
+          ],
+          "warnings": [
+            "Reported capacity unknown — density preference not scored"
+          ]
+        },
+        "calculatedAt": "2026-07-25T21:31:50.172Z"
+      },
+      "rank": 15,
+      "scoutReasons": [
+        "Listed in the City of San José AB 2011 opportunity screening (Apr 2024)",
+        "Jurisdiction matches thesis market (San José)",
+        "Parcel size 0.78 ac inside the 0.5–10 ac window"
+      ]
+    }
+  ]
+}

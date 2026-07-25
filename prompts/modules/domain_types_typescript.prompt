@@ -1,0 +1,110 @@
+% You are an expert TypeScript engineer. Implement `domain_types`: Zod schemas and parse helpers for the frozen SiteVelocity domain types.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/domain-types.prompt</include>
+
+<pdd-reason>Provides Zod schemas and boundary parse helpers for Fact, Unknown, Conflict, Evidence, Finding, Provenance, and Diagnostic so every module validates unknown inputs the same way.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[
+  {"name":"parseFact","signature":"(input: unknown, valueSchema: z.ZodType<T>) -> ParseOk<Fact<T>> | ParseErr","returns":"ParseOk<Fact<T>> | ParseErr"},
+  {"name":"parseEvidence","signature":"(input: unknown) -> ParseOk<Evidence> | ParseErr","returns":"ParseOk<Evidence> | ParseErr"},
+  {"name":"parseFinding","signature":"(input: unknown) -> ParseOk<Finding> | ParseErr","returns":"ParseOk<Finding> | ParseErr"},
+  {"name":"parseSourceIdentity","signature":"(input: unknown) -> ParseOk<SourceIdentity> | ParseErr","returns":"ParseOk<SourceIdentity> | ParseErr"},
+  {"name":"parseConflict","signature":"(input: unknown, valueSchema: z.ZodType<T>) -> ParseOk<Conflict<T>> | ParseErr","returns":"ParseOk<Conflict<T>> | ParseErr"},
+  {"name":"parseProvenance","signature":"(input: unknown) -> ParseOk<Provenance> | ParseErr","returns":"ParseOk<Provenance> | ParseErr"},
+  {"name":"parseDiagnostic","signature":"(input: unknown) -> ParseOk<Diagnostic> | ParseErr","returns":"ParseOk<Diagnostic> | ParseErr"}
+]}}
+</pdd-interface>
+
+<responsibility>
+Provide Zod schemas and parse helpers for the frozen domain types; validate unknown boundary values; return typed values or structured SchemaIssue lists.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT fetch or store evidence.
+- DOES NOT research sites.
+- DOES NOT score candidates or sites.
+- DOES NOT compute finance outputs.
+- DOES NOT call providers or import provider SDKs.
+- DOES NOT map government source fields onto canonical candidates.
+</non_responsibilities>
+
+<vocabulary>
+known: a Fact whose status is exactly `known` and whose value is present under the value schema.
+unknown: a Fact or standalone marker whose status is exactly `unknown` with a non-blank reasonCode; never implied by omission, null, zero, or false alone.
+conflict: a Conflict whose status is `conflicting` and whose values array retains at least two source-backed entries.
+valid: an input that satisfies the corresponding Zod schema and returns `{ ok: true, value }`.
+invalid: an input that fails the corresponding Zod schema and returns `{ ok: false, issues }`.
+complete: a SourceIdentity or Evidence record that includes every required field with a well-formed value.
+safe: a diagnostic or schema-issue message that contains no credentials, secrets, API keys, bearer tokens, or password material.
+malformed: an ID, timestamp, enum, or number that fails its declared format or domain.
+finite: a number that is not NaN and not ±Infinity.
+uuid: a canonical UUID string accepted by Zod's UUID checker.
+schema issue: a structured `{ path, code, message }` describing one validation failure without inventing domain facts.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Model Fact as an explicit known|unknown discriminated union; omission, null, zero, and false MUST NOT implicitly mean unknown.
+R2 (MUST): A conflict retains at least two incompatible values, each with a SourceIdentity; reject a one-source conflict as invalid.
+R3 (MUST): Evidence retains id, source (URL and agency via SourceIdentity including retrievedAt), checksum, and payloadOrRef; reject incomplete evidence missing checksum or source.
+R4 (MUST): Finding status, evidenceLevel, impact, confidence (finite 0..1), and evidenceIds follow System Design §7.4 enums and bounds.
+R5 (MUST): Provenance and diagnostics use stable reason codes and non-empty safe messages; reject a diagnostic whose message is credential-like (contains substrings such as `api_key=`, `Bearer `, or `password=`).
+R6 (MUST): Reject malformed uuid values, malformed timestamps, non-finite numbers, invalid enums, and confidence outside 0..1 inclusive.
+R7 (MUST NOT): Import provider SDKs, expose credentials, or use provider names as domain identity.
+</contract_rules>
+
+<interface_types>
+
+Types are declared in the included `domain-types.prompt` freeze. Export exactly:
+
+```ts
+import { z } from "zod";
+
+export const SourceIdentitySchema: z.ZodType<SourceIdentity>;
+export const FactSchema: <T>(valueSchema: z.ZodType<T>) => z.ZodType<Fact<T>>;
+export const UnknownSchema: z.ZodType<Unknown>;
+export const ConflictSchema: <T>(valueSchema: z.ZodType<T>) => z.ZodType<Conflict<T>>;
+export const EvidenceSchema: z.ZodType<Evidence>;
+export const FindingSchema: z.ZodType<Finding>;
+export const ProvenanceSchema: z.ZodType<Provenance>;
+export const DiagnosticSchema: z.ZodType<Diagnostic>;
+
+export type ParseOk<T> = { ok: true; value: T };
+export type ParseErr = { ok: false; issues: SchemaIssue[] };
+export function parseSourceIdentity(input: unknown): ParseOk<SourceIdentity> | ParseErr;
+export function parseFact<T>(input: unknown, valueSchema: z.ZodType<T>): ParseOk<Fact<T>> | ParseErr;
+export function parseConflict<T>(input: unknown, valueSchema: z.ZodType<T>): ParseOk<Conflict<T>> | ParseErr;
+export function parseEvidence(input: unknown): ParseOk<Evidence> | ParseErr;
+export function parseFinding(input: unknown): ParseOk<Finding> | ParseErr;
+export function parseProvenance(input: unknown): ParseOk<Provenance> | ParseErr;
+export function parseDiagnostic(input: unknown): ParseOk<Diagnostic> | ParseErr;
+```
+
+Parse helpers MUST NOT throw for ordinary invalid input; they return `ParseErr` with safe SchemaIssue lists. Use only `zod` and local types — never `@renderinc/sdk`, `@supabase/supabase-js` as domain identity, MiniMax SDK packages, or Rtrvr SDK packages.
+
+</interface_types>
+
+<coverage>
+R1: tests/contracts/domain_types.contract.test.ts :: R1
+R2: tests/contracts/domain_types.contract.test.ts :: R2
+R3: tests/contracts/domain_types.contract.test.ts :: R3
+R4: tests/contracts/domain_types.contract.test.ts :: R4
+R5: tests/contracts/domain_types.contract.test.ts :: R5
+R6: tests/contracts/domain_types.contract.test.ts :: R6
+R7: tests/contracts/domain_types.contract.test.ts :: R7
+P1: tests/contracts/domain_types.contract.test.ts :: P1
+P2: tests/contracts/domain_types.contract.test.ts :: P2
+P3: tests/contracts/domain_types.contract.test.ts :: P3
+P4: tests/contracts/domain_types.contract.test.ts :: P4
+P5: tests/contracts/domain_types.contract.test.ts :: P5
+P6: tests/contracts/domain_types.contract.test.ts :: P6
+P7: tests/contracts/domain_types.contract.test.ts :: P7
+P8: tests/contracts/domain_types.contract.test.ts :: R7/P8
+</coverage>
+
+<deliverables>
+Generate the implementation only to `generated/` (for example `generated/domain_types.ts`).
+Do not modify tests under `tests/contracts/`.
+Acceptance: valid fixtures round-trip; invalid fixtures fail with stable safe SchemaIssue lists; no provider SDK imports.
+</deliverables>

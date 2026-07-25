@@ -1,0 +1,101 @@
+% Implement the source-adapter contract that lists rows from one Socrata resource endpoint as provenance-stamped source pages.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+
+<responsibility>
+List rows from one declared Socrata resource endpoint as provenance-stamped source pages, including batched lookups of a declared key set.
+</responsibility>
+
+<non_responsibilities>
+MUST NOT canonicalize, normalize, enrich, qualify, rank, or score a retrieved row.
+MUST NOT deduplicate, merge, or reconcile rows within a page, across pages, or across batches.
+MUST NOT read any endpoint other than the one carried by the declared source descriptor.
+MUST NOT open its own network connection; every retrieval MUST pass through the injected source transport.
+MUST NOT read a clock other than the one supplied through its declared options, which fall back to the system clock only when the caller declares none.
+MUST NOT infer an undeclared field mapping, an undeclared predicate, or an undeclared query parameter.
+MUST NOT surface provider SDK types, HTTP client types, or transport types in its declared outputs.
+</non_responsibilities>
+
+<vocabulary>
+declared: named explicitly by the caller in the module inputs, never inferred from retrieved row content
+source transport: an injected function that maps one URL to one already-parsed response body, so the module is exercised offline and deterministically
+injected clock: an injected function that supplies the retrieval instant, the module's only declared external dependency
+source page: one retrieval from one query URL carrying the source descriptor, that query URL, the retrieval timestamp, the page number, the enveloped rows in endpoint order, and a continuation flag
+short page: a retrieved row array whose length is smaller than the requested `$limit`
+page cap: the declared maximum number of pages one query or one batch may retrieve, which bounds paging when no short page arrives
+bare field name: a string matching one ASCII letter or underscore followed by ASCII letters, digits, or underscores
+declared predicate: one member of the closed predicate set the module accepts — field equals literal, field within a key set, or field is not null
+key set: an ordered list of declared string keys the caller asks to look up against one declared key field
+batch: one contiguous slice of the key set whose length is at most the declared batch size
+returned key: a requested key for which at least one retrieved row carries a value at the declared key field whose string form is character-for-character equal to that requested key, whether or not the shared source-record envelope accepted that row
+not-returned key: a requested key that is not a returned key; it records only that the endpoint returned no such row, and it never records that no such record exists
+row refusal: a returned entry naming the query URL, page number, and row position of a row the shared source-record envelope declined, retained so no row disappears without a trace
+declared failure: a returned outcome object carrying a stable failure code and a non-sensitive explanation, which the caller can tell apart from every retrieved page
+credential: URL userinfo, or a query parameter whose name denotes a token, key, secret, password, signature, or authorization
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Obtain every row through the injected source transport, from URLs built only from the declared source descriptor endpoint plus declared query parameters.
+R2 (MUST): Compose a query URL from the declared endpoint using only the Socrata parameters `$select`, `$where`, `$order`, `$limit`, and `$offset`, emitted in that fixed order.
+R3 (MUST): Request the first page at the declared `$offset` and each later page at the previous offset increased by the declared `$limit`.
+R4 (MUST): Set a page continuation flag to false on a short page and stop paging there; set it to true on any other page.
+R5 (MUST): Build `$where` only from declared predicates over bare field names; a field name that is not a bare field name is a declared failure and no transport call is made.
+R6 (MUST NOT): let any character inside a declared string key end, extend, or add a predicate term; the built `$where` MUST carry exactly one quoted literal per declared key.
+R7 (MUST): Preserve endpoint row order inside each page, and preserve retrieval order across the returned pages and batches.
+R8 (MUST): Envelope every retrieved row through the shared source-record envelope using the declared identifier fields, and record a row refusal for every row the envelope declines.
+R9 (MUST): Preserve the declared key set character-for-character in declared order, including repeated keys, and query it in contiguous batches of the declared batch size.
+R10 (MUST): Account for every requested key exactly once — one accounting entry per occurrence in the declared key set, in declared order — as either a returned key or a not-returned key.
+R11 (MUST): Represent a not-returned key as an outcome whose existence is unknown, which the caller can tell apart from an outcome carrying zero rows and from an assertion that no such record exists.
+R12 (MUST): Continue paging inside a batch until a short page or the page cap, so a key carrying more rows than one page is still accounted for.
+R13 (MUST): Emit an identical result for identical declared inputs, an identical ordered sequence of transport responses, and identical injected clock readings.
+R14 (MUST): Report a response body that is not a JSON array as a declared failure rather than as a page carrying zero rows.
+R15 (MUST): Report a rejected transport call as a declared failure naming the query URL that was attempted.
+R16 (MUST): Check the source descriptor and the query inputs before the first transport call, and refuse a descriptor endpoint that carries a query string or a credential.
+R17 (MUST NOT): place a credential in any built query URL, page, accounting entry, row refusal, or declared failure.
+R18 (MUST NOT): produce rows, record identifiers, key values, or retrieval timestamps that the transport responses and the injected clock did not supply; a continuation flag MUST be derived from the retrieved row count against the requested `$limit` and from nothing else.
+R19 (MUST NOT): let text inside a retrieved row change paging, predicates, enveloping, or the built query URL; the only use of row text is reading the declared key field to account for requested keys.
+R20 (MUST NOT): sort, filter, deduplicate, merge, or reconcile rows within a page, across pages, or across batches.
+R21 (MUST): Stop paging at the page cap and report that the cap ended retrieval, which the caller can tell apart from a retrieval that ended at a short page.
+</contract_rules>
+
+<pdd-interface>
+This module imports its shared vocabulary from the Segment 2 source-record envelope module and re-declares none of it: `JsonValue`, `SourceDescriptor`, `SourceRecord`, `SourcePage`, `SourceTransport`, `EnvelopeRefusal`, `toSourceRecord`, and `toSourcePage`.
+
+`SocrataRow` is an object whose values are `JsonValue`.
+
+`SourceClock` is a function taking no argument and returning a point in time. `SocrataAdapterOptions` carries the injected `transport` and an optional `now` clock; the clock is the module's only declared external dependency.
+
+`SocrataPredicate` is exactly one of:
+- `{ kind: "equals", field: string, value: string }`
+- `{ kind: "keyIn", field: string, values: string[] }`
+- `{ kind: "isNotNull", field: string }`
+
+`SocrataListQuery` carries `identifierFields`, `limit`, and optional `offset`, `maxPages`, `select`, `order`, and `where` predicates. `maxPages` is the page cap.
+
+`SocrataKeySetQuery` carries `identifierFields`, `keyField`, `keys`, `batchSize`, `limit`, and optional `maxPagesPerBatch`, `select`, `order`, and `additionalPredicates`. `maxPagesPerBatch` is the per-batch page cap.
+
+A declared query input of the wrong shape — a non-array where a list is declared, a non-integer where a count is declared — is a declared failure, never a thrown error.
+
+`SocrataFailure` carries a stable `code` drawn from a closed set covering a malformed descriptor, malformed query inputs, a malformed field name, a non-array response body, and a rejected transport call; the attempted `queryUrl` or null; and a non-sensitive `explanation`. No failure, refusal, page, or accounting entry carries a credential.
+
+`SocrataRowRefusal` carries `queryUrl`, `batchNumber` or null, `pageNumber`, `rowIndex`, and the `EnvelopeRefusal` list the shared envelope produced. A refused row is still counted as a returned key, because the endpoint returned it.
+
+`SocrataKeyAccount` is exactly one of:
+- `{ key, status: "returned", rowCount, batchNumbers }`
+- `{ key, status: "not_returned", existence: "unknown", explanation }`
+
+`SocrataBatchResult` carries `batchNumber`, the batch's `keys` in declared order, and the batch's `SourcePage` list in retrieval order.
+
+`listSocrataRows(descriptor, query, options)` resolves to either `{ status: "listed", pages, rowRefusals, stoppedAtPageLimit }` or `{ status: "failed", failure }`.
+
+`lookupSocrataRowsByKey(descriptor, keySetQuery, options)` resolves to either `{ status: "looked_up", batches, accounting, rowRefusals, stoppedAtPageLimit }` or `{ status: "failed", failure }`.
+
+`stoppedAtPageLimit` is true only when the page cap ended retrieval while the last retrieved page still carried a true continuation flag (R21).
+
+Neither function throws for a declared failure; both return a failure outcome instead.
+</pdd-interface>
+
+<acceptance_criteria>
+Every rule `R1` through `R21` and inherited rule `P1` through `P8` is mapped to at least one executable behavioral test before generation is accepted.
+Tests inject a stub source transport and a fixed clock and reach no network.
+</acceptance_criteria>

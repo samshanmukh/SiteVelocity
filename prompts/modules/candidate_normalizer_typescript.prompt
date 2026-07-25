@@ -1,0 +1,146 @@
+% You are an expert TypeScript engineer. Implement `candidate_normalizer`: the provider-independent normalization contract for one raw government candidate record.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/candidate_domain_types.prompt</include>
+
+<pdd-reason>Converts one mapped raw government record into a canonical candidate with provenance and explicit unknowns.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[
+  {"name":"normalizeCandidate","signature":"(input: RawCandidateNormalizationInput) -> CandidateNormalizationResult","returns":"CandidateNormalizationResult"}]}}
+</pdd-interface>
+
+<responsibility>
+Convert one raw candidate record whose source mapping has already been declared into a canonical candidate-normalization result.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT fetch source data.
+- DOES NOT infer an undeclared source schema.
+- DOES NOT enrich parcel geometry or zoning.
+- DOES NOT deduplicate, qualify, rank, or label a record as a development opportunity.
+</non_responsibilities>
+
+<vocabulary>
+- Source mapping: declares which raw-payload fields correspond to canonical fields and which transforms are allowed. A canonical field the mapping does not declare has no allowed transform.
+- Canonical jurisdiction for Alpha: `San José`.
+- Blank: a string that is empty or contains only whitespace.
+- Parseable number: a JSON number that is finite, or a string whose entire trimmed content parses as a finite decimal number. Nothing else is a parseable number.
+- In bounds: greater than or equal to the mapping's declared `min` and less than or equal to its declared `max`.
+- Malformed: a selected value that is neither missing nor blank but does not satisfy the field's declared parsing rule (for numeric fields: not a parseable number).
+- Valid source identity: `agency`, `dataset`, `sourceRecordId`, `sourceUrl`, and `retrievedAt` are all non-blank strings, `sourceUrl` is an absolute http(s) URL, and `retrievedAt` is an ISO 8601 timestamp. A source identity that fails any of these checks is invalid.
+- APN normalization: removes only declared presentation separators; it does not manufacture missing digits.
+- Complete pair: both latitude and longitude facts have status `known`.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Return exactly one result, with status `accepted` or `rejected`, for every input matching the declared input shape; never throw for such inputs.
+R2 (MUST): Copy source agency, dataset, record identifier, source URL, and retrieval timestamp into provenance and onto the candidate without semantic reinterpretation.
+R3 (MUST): Apply only field mappings and transforms declared by the input source mapping; a canonical field with no declared mapping is unknown with reason code `missing_mapping`.
+R4 (MUST): Normalize a mapped jurisdiction value that matches a declared San José alias (compared trimmed and case-insensitively) to `San José` with resolution `canonical`; retain any other non-blank jurisdiction value trimmed, with resolution `unresolved`, and emit a diagnostic.
+R5 (MUST): Normalize a mapped APN by removing only the separator characters declared in `allowedSeparators`; preserve the raw APN value in provenance.
+R6 (MUST): Set the acreage, capacity, latitude, and longitude facts to `known` only when the selected value is a parseable number that is in bounds; set the coordinates fact to `known` only for a complete pair.
+R7 (MUST): Represent a missing, blank, malformed, or out-of-bounds optional fact as unknown with reason code `missing_value`, `blank_value`, `malformed_value`, or `out_of_bounds` respectively, and emit one diagnostic per affected canonical field.
+R8 (MUST): Reject the record with reason code `invalid_source_identity` when the source identity is not a valid source identity, and with reason code `invalid_raw_payload` when `rawPayload` is not a JSON object.
+R9 (MUST): Reject the record with reason code `no_location_identity` when, after normalization, both the coordinates fact and the APN fact have status `unknown`.
+R10 (MUST): Preserve the original raw payload in provenance without mutation, and never mutate any part of the input.
+R11 (MUST): Produce identical output for structurally identical input.
+R12 (MUST NOT): Infer acreage, capacity, coordinates, zoning, ownership, entitlement status, or development potential from any field other than the field each mapping declares.
+</contract_rules>
+
+<interface_types>
+
+The shared types `JsonValue`, `SourceIdentity`, `Fact`, `CanonicalFieldName`, and `CanonicalCandidate` are declared in the included candidate-domain types and are frozen. This module additionally declares:
+
+```ts
+interface TextFieldMapping { field: string }
+interface JurisdictionFieldMapping { field: string; sanJoseAliases: string[] }
+interface ApnFieldMapping { field: string; allowedSeparators: string[] }
+interface NumericFieldMapping { field: string; min: number; max: number }
+
+/** Every selector names a top-level property of rawPayload. Undeclared fields are unknown. */
+interface SourceMapping {
+  jurisdiction?: JurisdictionFieldMapping;
+  county?: TextFieldMapping;
+  address?: TextFieldMapping;
+  apn?: ApnFieldMapping;
+  parcelAcres?: NumericFieldMapping;
+  reportedCapacity?: NumericFieldMapping;
+  latitude?: NumericFieldMapping;
+  longitude?: NumericFieldMapping;
+}
+
+interface RawCandidateNormalizationInput {
+  source: SourceIdentity;
+  rawPayload: { [key: string]: JsonValue };
+  mapping: SourceMapping;
+}
+
+type DiagnosticCode =
+  | "missing_mapping"
+  | "missing_value"
+  | "blank_value"
+  | "malformed_value"
+  | "out_of_bounds"
+  | "unresolved_jurisdiction";
+
+interface Diagnostic {
+  field: CanonicalFieldName;
+  code: DiagnosticCode;
+  message: string; // non-sensitive explanation; never contains credentials
+}
+
+type RejectionCode = "invalid_source_identity" | "invalid_raw_payload" | "no_location_identity";
+
+interface RejectionReason {
+  code: RejectionCode;
+  message: string; // non-sensitive explanation; never contains credentials
+}
+
+interface Provenance {
+  source: SourceIdentity;
+  rawPayload: { [key: string]: JsonValue };
+  /** Raw values the mapping selected for canonical fields, before any transform (e.g. the raw APN). */
+  selectedRawValues: Partial<Record<CanonicalFieldName, JsonValue>>;
+}
+
+type CandidateNormalizationResult =
+  | { status: "accepted"; candidate: CanonicalCandidate; provenance: Provenance; diagnostics: Diagnostic[] }
+  | { status: "rejected"; provenance: Provenance | null; rejectionReasons: RejectionReason[]; diagnostics: Diagnostic[] };
+```
+
+Export exactly one public function:
+
+```ts
+export function normalizeCandidate(input: RawCandidateNormalizationInput): CandidateNormalizationResult;
+```
+
+</interface_types>
+
+<coverage>
+R1: tests/contracts/candidate_normalizer.contract.test.ts :: R1
+R2: tests/contracts/candidate_normalizer.contract.test.ts :: R2
+R3: tests/contracts/candidate_normalizer.contract.test.ts :: R3
+R4: tests/contracts/candidate_normalizer.contract.test.ts :: R4
+R5: tests/contracts/candidate_normalizer.contract.test.ts :: R5
+R6: tests/contracts/candidate_normalizer.contract.test.ts :: R6
+R7: tests/contracts/candidate_normalizer.contract.test.ts :: R7
+R8: tests/contracts/candidate_normalizer.contract.test.ts :: R8
+R9: tests/contracts/candidate_normalizer.contract.test.ts :: R9
+R10: tests/contracts/candidate_normalizer.contract.test.ts :: R10
+R11: tests/contracts/candidate_normalizer.contract.test.ts :: R11
+R12: tests/contracts/candidate_normalizer.contract.test.ts :: R12 (negative)
+P1: covered by R2 test
+P2: covered by R7 test
+P3: covered by R10 test (conflicting raw fields preserved verbatim in provenance)
+P4: covered by R11 test
+P5: covered by R7 and R8 tests
+P6: tests/contracts/candidate_normalizer.contract.test.ts :: P6 (negative)
+P7: covered by R12 test
+P8: tests/contracts/candidate_normalizer.contract.test.ts :: P8 (plain-data result)
+</coverage>
+
+<deliverables>
+Generate the implementation only, as a single module exporting `normalizeCandidate`.
+Contract tests already exist at `tests/contracts/candidate_normalizer.contract.test.ts` and must not be modified by generation.
+</deliverables>

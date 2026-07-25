@@ -1,0 +1,25 @@
+% Frozen decision-layer conventions shared by the Scout ranking and finance-engine modules.
+% These declarations are the interface freeze for Segment 6 (Scout ranking and finance).
+% Changing a declaration here is an interface change and requires foundation-owner review before any module is regenerated.
+
+<decision_domain_types>
+
+```ts
+/** ISO 8601 timestamp string, e.g. "2026-07-25T22:00:00Z". Decision-layer modules never read a clock; time is always an input. */
+type IsoTimestamp = string;
+
+/**
+ * Exact decimal literal: optional leading "-", one or more digits, optionally followed by "." and one or more digits.
+ * Exponent notation, whitespace, thousands separators, and empty fraction parts are malformed.
+ */
+type DecimalString = string;
+
+/**
+ * SHA-256 hex digest (64 lowercase hex characters) of the canonical JSON serialization of the module's declared
+ * hash material. Canonical JSON: object keys sorted lexicographically by Unicode code point, array order preserved,
+ * no insignificant whitespace, strings and numbers serialized per JSON.stringify.
+ */
+type InputHash = string;
+```
+
+</decision_domain_types>

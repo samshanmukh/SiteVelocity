@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "1.0.0",
+  "module": "candidate-normalizer",
+  "contractVersion": "1.0.0",
+  "prompt": {
+    "path": "prompts/modules/candidate-normalizer.prompt",
+    "sha256": "5a52aeac18831b5be52bf71817d018701f68193c6c8d69bd596f8a76f78f6565"
+  },
+  "includes": [
+    {
+      "path": "prompts/context/sitevelocity-preamble.prompt",
+      "sha256": "b85c480a146835aa25f28ba58fa6397b751aa0db8985dc2fd02f9fa0058548aa"
+    }
+  ],
+  "contractRuleIds": [
+    "R1",
+    "R2",
+    "R3",
+    "R4",
+    "R5",
+    "R6",
+    "R7",
+    "R8",
+    "R9",
+    "R10",
+    "R11",
+    "R12",
+    "P1",
+    "P2",
+    "P4",
+    "P7"
+  ],
+  "generator": {
+    "name": "claude-code (Claude Fable 5)",
+    "version": "claude-fable-5"
+  },
+  "generatedAt": "2026-07-25T21:44:59.478Z",
+  "outputs": [
+    {
+      "path": "lib/domain/candidate-normalizer.ts",
+      "sha256": "e720c9480496ba3477a2e0c883bcce0d057e82ea3f23f94af334e148064b2b33"
+    }
+  ],
+  "verification": [
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "npm test",
+      "exitCode": 0
+    }
+  ],
+  "ruleCoverage": [
+    {
+      "ruleId": "R1",
+      "tests": [
+        "R1: returns exactly one accepted or rejected result for a validated input"
+      ]
+    },
+    {
+      "ruleId": "R2",
+      "tests": [
+        "R2/P1: copies source identity into provenance without reinterpretation"
+      ]
+    },
+    {
+      "ruleId": "R3",
+      "tests": [
+        "R3: applies only declared field mappings — undeclared fields stay unknown"
+      ]
+    },
+    {
+      "ruleId": "R4",
+      "tests": [
+        "R4: normalizes recognized San José variants; retains unrecognized jurisdiction as unresolved"
+      ]
+    },
+    {
+      "ruleId": "R5",
+      "tests": [
+        "R5: removes only declared APN separators and preserves the raw APN in provenance",
+        "R5: does not manufacture missing APN digits — dots are not declared separators"
+      ]
+    },
+    {
+      "ruleId": "R6",
+      "tests": [
+        "R6: parses numeric fields only when complete, finite, and within declared bounds"
+      ]
+    },
+    {
+      "ruleId": "R7",
+      "tests": [
+        "R7/P2: missing, blank, malformed, and out-of-bounds optional facts become unknown with a diagnostic — never zero or false"
+      ]
+    },
+    {
+      "ruleId": "R8",
+      "tests": [
+        "R8: rejects when source identity is missing or invalid"
+      ]
+    },
+    {
+      "ruleId": "R9",
+      "tests": [
+        "R9: rejects when neither valid coordinates nor a non-empty APN survives normalization"
+      ]
+    },
+    {
+      "ruleId": "R10",
+      "tests": [
+        "R10/P1: preserves the original raw payload without mutation"
+      ]
+    },
+    {
+      "ruleId": "R11",
+      "tests": [
+        "R11/P4: produces identical output for structurally identical input"
+      ]
+    },
+    {
+      "ruleId": "R12",
+      "tests": [
+        "R12/P7: does not infer facts from unrelated fields when declared fields are absent"
+      ]
+    },
+    {
+      "ruleId": "P1",
+      "tests": [
+        "R2/P1: copies source identity into provenance without reinterpretation"
+      ]
+    },
+    {
+      "ruleId": "P2",
+      "tests": [
+        "R7/P2: missing, blank, malformed, and out-of-bounds optional facts become unknown with a diagnostic — never zero or false"
+      ]
+    },
+    {
+      "ruleId": "P4",
+      "tests": [
+        "R11/P4: produces identical output for structurally identical input"
+      ]
+    },
+    {
+      "ruleId": "P7",
+      "tests": [
+        "R12/P7: does not infer facts from unrelated fields when declared fields are absent"
+      ]
+    }
+  ],
+  "accepted": true,
+  "reviewer": "Chris Dougherty (dogsleddev) — pending human review of the generated diff",
+  "notes": "Implementation generated from the prompt contract by Claude Code during the 2026-07-25 hackathon session; 13 contract tests pass. All 21 repo tests green. Verified against real AB2011/SCC records during ingestion (87 records, 0 crashes)."
+}

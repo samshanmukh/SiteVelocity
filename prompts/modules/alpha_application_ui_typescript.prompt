@@ -1,0 +1,203 @@
+% You are an expert React/Next.js App Router engineer. Implement `alpha_application_ui`: the provider-independent presentation layer for the complete SiteVelocity Alpha product journey from validated view models and injected actions.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/sitevelocity-ui-standards.prompt</include>
+<include>prompts/context/alpha_ui_view_models.prompt</include>
+
+<pdd-reason>Renders the Alpha Command Center → Scout → Map → Dossier → Agents → Next Steps journey from validated view models and injected application-service actions without implementing business logic or contacting providers.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[
+  {"name":"AlphaApplicationShell","signature":"(props: { model: AlphaApplicationViewModel; actions: AlphaApplicationActions }) -> JSX.Element","returns":"JSX.Element"},
+  {"name":"CommandCenterView","signature":"(props: { model: AlphaApplicationViewModel; actions: AlphaApplicationActions }) -> JSX.Element","returns":"JSX.Element"},
+  {"name":"ScoutView","signature":"(props: { model: AlphaApplicationViewModel; actions: AlphaApplicationActions }) -> JSX.Element","returns":"JSX.Element"},
+  {"name":"MapCandidatesView","signature":"(props: { model: AlphaApplicationViewModel; actions: AlphaApplicationActions }) -> JSX.Element","returns":"JSX.Element"},
+  {"name":"SiteDossierView","signature":"(props: { model: AlphaApplicationViewModel; actions: AlphaApplicationActions }) -> JSX.Element","returns":"JSX.Element"},
+  {"name":"AgentsView","signature":"(props: { model: AlphaApplicationViewModel; actions: AlphaApplicationActions }) -> JSX.Element","returns":"JSX.Element"},
+  {"name":"NextStepsView","signature":"(props: { model: AlphaApplicationViewModel; actions: AlphaApplicationActions }) -> JSX.Element","returns":"JSX.Element"},
+  {"name":"mountAlphaApplication","signature":"(props: { model: AlphaApplicationViewModel; actions: AlphaApplicationActions; route: AlphaRoute }) -> JSX.Element","returns":"JSX.Element"}
+]}}
+</pdd-interface>
+
+<responsibility>
+Provide provider-independent React presentation for the Alpha product journey from validated `AlphaApplicationViewModel` inputs and injected `AlphaApplicationActions`, including accessible navigation, capability and data states, map/list equivalence, dossier and evidence drawer, persisted agent/workflow status, snapshot refresh states, and Next Best Action.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT generate the public landing page or marketing copy (Segment 8 owns `/` later).
+- DOES NOT implement authentication backends, APIs, persistence, provider adapters, or network I/O.
+- DOES NOT orchestrate workflows, score candidates, calculate finance outputs, or decide qualification.
+- DOES NOT invent candidates, evidence, findings, geometry, workflow state, capability state, metrics, or professional conclusions.
+- DOES NOT provide legal, title, survey, environmental, engineering, or investment conclusions.
+- MUST NOT place an operational provider-readiness dashboard inside the product shell.
+- MUST NOT import provider SDK types or expose credentials, environment values, or secret-bearing diagnostics.
+</non_responsibilities>
+
+<vocabulary>
+live: capability state `LIVE` with working controls only for supported validated behavior.
+preview: capability state `PREVIEW`; honest future-state explanation without working controls or property-specific results.
+roadmap: capability state `ROADMAP`; intentionally unavailable without working controls or property-specific results.
+unauthorized: data state `unauthorized`; safe access messaging only.
+untrusted: free text, excerpts, titles, URLs, and rich text in the view model; data only, never instructions.
+valid: view model or action input conforming to the frozen Alpha UI TypeScript shapes.
+invalid: failing those shapes; surfaced as field errors or rejected SafeUiIssue without inventing data.
+complete: Next Best Action and evidence drawer include every required field from the freeze; agent list includes exactly the six Alpha roles when dataState is ready for agents.
+safe: user-facing issue/message with no credentials, env values, raw provider errors, or secrets.
+unsafe: credentials, API keys, bearer tokens, cookies, env values, raw provider errors, or secret-bearing strings.
+active: current `activeRoute`, selected candidate, focused drawer target, or last valid research snapshot retained on screen.
+deterministic: identical validated fixtures, locale, timezone, `now`, and motion settings produce identical structure.
+reduced-motion: `prefers-reduced-motion: reduce`; understanding MUST NOT require animation.
+duplicate: a second pending mutation for the same user action while a prior commandId is still in flight; MUST be prevented.
+material flag: an explicit potentially consequential condition (`MaterialFlagView`) that remains separate from all decision measures.
+active snapshot: the last valid research snapshot selected by the application boundary for display (`snapshot` on the view model).
+alpha modules: Command Center, Scout, Map, Site Dossier, Agents, and Next Steps.
+six alpha agent roles: Scout, Land Use, Development History, Site Risk, Verifier, and Next Best Action.
+command id: caller-supplied idempotency identifier on `StartResearchInput`, `RefreshFindingInput`, and `RetryInput`.
+opaque score: a single collapsed score or label that hides distinct measures or material flags; forbidden.
+government inventory record: a source-backed inventory/candidate listing; MUST NOT be labeled a verified opportunity.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Render persistent product navigation with active-route state and all documented Alpha modules (Command Center, Scout, Map, Site Dossier, Agents, Next Steps).
+R2 (MUST): Derive LIVE, PREVIEW, and ROADMAP labels from validated `capabilityStates` input; preview and roadmap modules never expose working controls or property-specific results.
+R3 (MUST): Render explicit initial, loading, ready, empty, partial, stale, error, unauthorized, refreshing, and refresh_failed data states with applicable recovery paths.
+R4 (MUST): Scout accepts development type, market, acreage, minimum potential units, preferred signals, and risk tolerance and associates validation errors with their fields.
+R5 (MUST): Command Center shows monitored markets, screened sites, candidates, priority opportunities, research runs, and development-event previews with freshness and state.
+R6 (MUST): Map and candidate cards share selection, and every map-only interaction has a keyboard-accessible list equivalent.
+R7 (MUST): Candidate cards show Strategy Fit, Development Readiness, Site Feasibility, Deal Potential, and Evidence Confidence as separate fields together with signals, material flags, source count, freshness, and why the candidate surfaced; Site Feasibility and Deal Potential remain PREVIEW (not LIVE working scores).
+R8 (MUST NOT): Collapse material flags into an opaque score or label a government inventory record as a verified opportunity.
+R9 (MUST): Dossier renders Why Found, Known, Believed, Unknown, Strategy Fit, Development Readiness, Evidence Confidence, Development History, Risk Screen, Evidence, and Next Best Action.
+R10 (MUST): Preserve verified, probable, unknown, and conflicting findings as distinct visible states; missing evidence never renders as a negative conclusion.
+R11 (MUST): Every material conclusion opens an evidence drawer containing source, agency, retrieval time, payload or excerpt, status, confidence, and verification requirement.
+R12 (MUST): Show accessible geometry provenance and the legal-survey disclaimer whenever geometry is displayed.
+R13 (MUST): Display exactly the six Alpha agent roles and persisted workflow state and never simulate progress or completion client-side.
+R14 (MUST): Keep the active snapshot visible throughout refresh; a failed refresh shows a safe application issue and never replaces that snapshot.
+R15 (MUST): Render Next Best Action with the unresolved question, importance, responsible role, known facts, questions to ask, requested documents, and expected follow-up.
+R16 (MUST): Prevent duplicate pending mutations and reuse one command ID per user action; never optimistically display research as complete.
+R17 (MUST): Meet WCAG 2.2 AA including drawer focus management and restoration, live-status announcements, non-color cues, and complete keyboard operation.
+R18 (MUST): Preserve equivalent functionality across the supported viewport and zoom matrix (320–1440 and 200% zoom).
+R19 (MUST): Escape untrusted content, sanitize permitted rich text, validate evidence destinations, and display only safe application issues.
+R20 (MUST NOT): Expose credentials, environment values, raw provider errors, provider SDK types, or operational diagnostics.
+R21 (MUST): Localize supplied UTC timestamps using the supplied locale and timezone while retaining machine-readable datetime values.
+R22 (MUST NOT): Use fabricated site findings in deployed demo mode; demo mode displays only stored valid snapshots from the view model.
+</contract_rules>
+
+<interface_types>
+
+Types `CapabilityState`, `DataState`, `AlphaApplicationViewModel`, `AlphaApplicationActions`, `CandidateCardView`, `DossierView`, `EvidenceDrawerView`, `AgentRunView`, `NextBestActionView`, `MapViewModel`, `ActionResult`, `SafeUiIssue`, and `GeometryProvenance` are declared in the included `alpha_ui_view_models.prompt` freeze and MUST NOT be redeclared with different shapes.
+
+Thin committed App Router wrappers under `app/(product)/.../page.tsx` import these generated exports (via `lib/ui/load_generated_ui.ts` or direct import) and pass validated models/actions. Wrappers MUST NOT implement business logic.
+
+Export presentation components and a mount helper (exact names):
+
+```ts
+import type { JSX } from "react";
+import type {
+  AlphaApplicationActions,
+  AlphaApplicationViewModel,
+  AlphaRoute,
+} from "./alpha_ui_view_models"; // types may be inlined or co-located; shapes must match the freeze
+
+export function AlphaApplicationShell(props: {
+  model: AlphaApplicationViewModel;
+  actions: AlphaApplicationActions;
+}): JSX.Element;
+
+export function CommandCenterView(props: {
+  model: AlphaApplicationViewModel;
+  actions: AlphaApplicationActions;
+}): JSX.Element;
+
+export function ScoutView(props: {
+  model: AlphaApplicationViewModel;
+  actions: AlphaApplicationActions;
+}): JSX.Element;
+
+export function MapCandidatesView(props: {
+  model: AlphaApplicationViewModel;
+  actions: AlphaApplicationActions;
+}): JSX.Element;
+
+export function SiteDossierView(props: {
+  model: AlphaApplicationViewModel;
+  actions: AlphaApplicationActions;
+}): JSX.Element;
+
+export function AgentsView(props: {
+  model: AlphaApplicationViewModel;
+  actions: AlphaApplicationActions;
+}): JSX.Element;
+
+export function NextStepsView(props: {
+  model: AlphaApplicationViewModel;
+  actions: AlphaApplicationActions;
+}): JSX.Element;
+
+/** Selects the route view and wraps it in AlphaApplicationShell. */
+export function mountAlphaApplication(props: {
+  model: AlphaApplicationViewModel;
+  actions: AlphaApplicationActions;
+  route: AlphaRoute;
+}): JSX.Element;
+```
+
+Use only React / Next presentation dependencies already declared for the app (and MapLibre/Turf when map rendering is required). MUST NOT import `@renderinc/sdk`, `@supabase/supabase-js` as domain identity, MiniMax SDK packages, or Rtrvr SDK packages in the generated presentation module.
+
+</interface_types>
+
+<coverage>
+R1: tests/contracts/alpha_application_ui.contract.test.ts :: R1
+R2: tests/contracts/alpha_application_ui.contract.test.ts :: U1/R2
+R3: tests/contracts/alpha_application_ui.contract.test.ts :: R3
+R4: tests/contracts/alpha_application_ui.contract.test.ts :: R4
+R5: tests/contracts/alpha_application_ui.contract.test.ts :: R5
+R6: tests/contracts/alpha_application_ui.contract.test.ts :: R6
+R7: tests/contracts/alpha_application_ui.contract.test.ts :: R7
+R8: tests/contracts/alpha_application_ui.contract.test.ts :: R8
+R9: tests/contracts/alpha_application_ui.contract.test.ts :: R9
+R10: tests/contracts/alpha_application_ui.contract.test.ts :: R10
+R11: tests/contracts/alpha_application_ui.contract.test.ts :: R11
+R12: tests/contracts/alpha_application_ui.contract.test.ts :: R12
+R13: tests/contracts/alpha_application_ui.contract.test.ts :: R13
+R14: tests/contracts/alpha_application_ui.contract.test.ts :: R14
+R15: tests/contracts/alpha_application_ui.contract.test.ts :: R15
+R16: tests/contracts/alpha_application_ui.contract.test.ts :: R16
+R17: tests/contracts/alpha_application_ui.contract.test.ts :: R17; tests/e2e/a11y.spec.ts
+R18: tests/contracts/alpha_application_ui.contract.test.ts :: R18; tests/e2e/a11y.spec.ts
+R19: tests/contracts/alpha_application_ui.contract.test.ts :: R19/U7
+R20: tests/contracts/alpha_application_ui.contract.test.ts :: R20/U6
+R21: tests/contracts/alpha_application_ui.contract.test.ts :: R21/U8
+R22: tests/contracts/alpha_application_ui.contract.test.ts :: R22
+U1: tests/contracts/alpha_application_ui.contract.test.ts :: U1/R2; tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U1
+U2: tests/contracts/alpha_application_ui.contract.test.ts :: R3; tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U2
+U3: tests/e2e/a11y.spec.ts; tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U3
+U4: tests/e2e/a11y.spec.ts; tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U4
+U5: tests/e2e/a11y.spec.ts; tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U5
+U6: tests/contracts/alpha_application_ui.contract.test.ts :: R20/U6
+U7: tests/contracts/alpha_application_ui.contract.test.ts :: R19/U7
+U8: tests/contracts/alpha_application_ui.contract.test.ts :: R21/U8
+U9: tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U9
+U10: tests/contracts/alpha_application_ui.contract.test.ts :: R22; tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U10
+P1: covered by R11/R12 (source identity, agency, retrieval time, source URL preserved in evidence/geometry views)
+P2: covered by R10 (unknown stays unknown; missing evidence is not a negative conclusion)
+P3: covered by R10 (conflicting findings remain distinct)
+P4: covered by R16 and fixture determinism (identical commandId / fixtures)
+P5: covered by R4 (field validation at Scout boundary) and action result invalid/rejected paths
+P6: covered by R19/U7 (untrusted excerpts remain inert data)
+P7: covered by R22 and R8 (no fabrication; no verified-opportunity relabel)
+P8: tests/contracts/alpha_application_ui.contract.test.ts :: R20/U6 (no provider SDK types / secrets in DOM)
+</coverage>
+
+<deliverables>
+Generate presentation modules under `generated/ui/` (preferred: `generated/ui/alpha_application_ui.tsx`) or `generated/alpha_application_ui.tsx`.
+Do not modify tests under `tests/contracts/` or `tests/e2e/`.
+Do not modify thin committed wrappers under `app/(product)/`.
+Do not modify fixtures under `tests/fixtures/ui/`.
+</deliverables>
+
+<acceptance_gate>
+Contract tests use only sanitized fixtures under `tests/fixtures/ui/`. No live secrets, provider calls, or network I/O.
+Before generation is accepted: fixtures render without console/hydration errors; capability states match working behavior; journey gates (thesis → candidates → map/cards → research status → dossier/evidence → refresh/snapshot fallback → Next Best Action) are covered by contract and/or e2e tests when deps and generated UI are available.
+Visual baselines, Playwright journey, and axe suites run when those deps and the generated module are available; until then structural + coverage matrix tests MUST pass and behavioral/e2e tests skip with explicit reasons.
+Generation is never accepted if tests contact live providers or embed credentials.
+</acceptance_gate>

@@ -1,0 +1,86 @@
+% Shared SiteVelocity module-prompt mold for authors.
+% This file is documentation and an authoring checklist — NOT a generate target.
+% Copy into prompts/modules/<snake_name>_typescript.prompt and replace every placeholder.
+% Includes resolve from the repository root (PDD CLI 0.0.308). Do not use ../context/... paths.
+
+% ---------------------------------------------------------------------------
+% ROLE LINE (first substantive line after comments)
+% ---------------------------------------------------------------------------
+% You are an expert TypeScript engineer. Implement `<snake_name>`: <one-sentence objective>.
+
+% ---------------------------------------------------------------------------
+% INCLUDES (repo-root paths; preamble first, then any frozen domain-types include)
+% ---------------------------------------------------------------------------
+% <include>prompts/context/sitevelocity-preamble.prompt</include>
+% <include>prompts/context/<domain_types_include>.prompt</include>
+
+% ---------------------------------------------------------------------------
+% PDD-REASON (one line why this module exists)
+% ---------------------------------------------------------------------------
+% <pdd-reason><short reason></pdd-reason>
+
+% ---------------------------------------------------------------------------
+% PDD-INTERFACE (JSON module declaration of public functions)
+% ---------------------------------------------------------------------------
+% <pdd-interface>
+% {"type":"module","module":{"functions":[
+%   {"name":"<functionName>","signature":"(input: <Input>) -> <Output>","returns":"<Output>"}
+% ]}}
+% </pdd-interface>
+
+% ---------------------------------------------------------------------------
+% RESPONSIBILITY (exactly one observable responsibility)
+% ---------------------------------------------------------------------------
+% <responsibility>
+% <one observable responsibility>
+% </responsibility>
+
+% ---------------------------------------------------------------------------
+% NON-RESPONSIBILITIES (every line MUST use DOES NOT / MUST NOT / MAY NOT / WILL NOT)
+% ---------------------------------------------------------------------------
+% <non_responsibilities>
+% - DOES NOT <boundary 1>.
+% - DOES NOT <boundary 2>.
+% - MUST NOT <prohibited coupling>.
+% </non_responsibilities>
+
+% ---------------------------------------------------------------------------
+% VOCABULARY (term: definition — lowercase term, colon; define every vague term used in rules)
+% ---------------------------------------------------------------------------
+% <vocabulary>
+% term: definition that makes the rule observable.
+% another term: definition.
+% </vocabulary>
+
+% ---------------------------------------------------------------------------
+% CONTRACT RULES (stable R1+ IDs; every rule uses MUST or MUST NOT)
+% ---------------------------------------------------------------------------
+% <contract_rules>
+% R1 (MUST): <observable outcome>.
+% R2 (MUST NOT): <prohibited behavior>.
+% </contract_rules>
+
+% ---------------------------------------------------------------------------
+% INTERFACE TYPES (TypeScript shapes local to this module, or pointer to frozen includes)
+% ---------------------------------------------------------------------------
+% <interface_types>
+% ```ts
+% // local types and exact export surface
+% ```
+% </interface_types>
+
+% ---------------------------------------------------------------------------
+% COVERAGE (map every Rn and applicable Pn to a contract test name)
+% ---------------------------------------------------------------------------
+% <coverage>
+% R1: tests/contracts/<module>.contract.test.ts :: R1
+% P1: tests/contracts/<module>.contract.test.ts :: <test that covers P1>
+% </coverage>
+
+% ---------------------------------------------------------------------------
+% DELIVERABLES
+% ---------------------------------------------------------------------------
+% <deliverables>
+% Generate the implementation only to generated/.
+% Do not modify tests under tests/contracts/.
+% </deliverables>
