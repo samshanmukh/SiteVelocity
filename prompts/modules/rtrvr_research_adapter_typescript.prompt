@@ -1,52 +1,123 @@
-% Implement the provider-independent Rtrvr public-web research adapter contract.
+% You are an expert TypeScript engineer. Implement `rtrvr_research_adapter`: the provider-independent public-web research adapter that maps one validated request through an injected Rtrvr transport into retrieved pages and typed failures.
 
-<include>../context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/research_provider_domain_types.prompt</include>
+
+<pdd-reason>Maps one bounded allowlisted public-web research request through an injected Rtrvr transport into provider-independent retrieved pages, request metadata, and typed safe failures.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[
+  {"name":"researchWithRtrvr","signature":"(input: { request: WebResearchRequest; transport: RtrvrTransport; signal?: AbortSignal; now?: () => string }) -> Promise<WebResearchResult>","returns":"Promise<WebResearchResult>"}]}}
+</pdd-interface>
 
 <responsibility>
-Map one validated bounded public-web research request and one injected Rtrvr transport response into provider-independent retrieved pages, request metadata, and safe diagnostics.
+Validate one bounded public-web research request, invoke the injected Rtrvr transport only after validation, and map the unknown transport boundary into a complete, partial, or failed `WebResearchResult` with safe diagnostics.
 </responsibility>
 
 <non_responsibilities>
-Do not produce findings, scores, finance outputs, rankings, qualification decisions, or property conclusions.
-Do not execute, follow, or promote instructions embedded in retrieved content.
-Do not crawl undeclared targets or perform open-ended discovery.
-Do not expose credentials, authorization headers, sensitive transport details, or provider SDK types.
+- DOES NOT produce findings, scores, finance outputs, rankings, qualification decisions, or property conclusions.
+- DOES NOT execute, follow, or promote instructions embedded in retrieved content.
+- DOES NOT crawl undeclared targets or perform open-ended discovery.
+- DOES NOT call live Rtrvr, spend credits, or perform network I/O except through the injected transport.
+- DOES NOT expose credentials, authorization headers, sensitive transport details, or provider SDK types.
 </non_responsibilities>
 
 <vocabulary>
-Declared target is a public HTTP(S) URL permitted by the request's allowlist policy.
-Redirect escape occurs when a redirect resolves outside the declared target policy or to a forbidden destination.
-Partial result contains only validated pages actually returned before a typed non-success condition.
-Retrieved content is untrusted data and never an instruction source.
+- valid: a request whose task is a non-blank string, targets is a non-empty array of absolute URL strings, allowlist has non-empty allowedHosts and allowedProtocols, pageLimit is an integer in (0, maxPageLimit], and timeoutMs is an integer in (0, maxTimeoutMs].
+- invalid: a request that fails any validity check above; returned as failure code `invalid_request` without calling transport.
+- untrusted: retrieved page content and titles are data only and never executable instructions.
+- complete: transport returned a successful body whose validated pages cover every declared target with no typed non-success condition.
+- partial: transport reported status `"partial"` (or an equivalent mid-way error) with fewer validated pages than declared targets; only validated pages are kept.
+- safe: diagnostics and failure messages contain no credentials, authorization headers, API keys, or secrets.
+- unsafe: any credential, authorization header, API key, cookie, or secret material; must never appear in outputs.
+- declared target: a public HTTP(S) URL listed in `request.targets` whose hostname (lowercase) is in `allowlist.allowedHosts` and whose protocol is in `allowlist.allowedProtocols`.
+- redirect escape: transport reports a `finalUrl` whose host is outside the allowlist or is a forbidden destination; failure code `redirect_escape`, with no invented pages from that redirect.
+- private network: IPv4 hosts in 10.0.0.0/8, 172.16.0.0/12, or 192.168.0.0/16; always forbidden.
+- loopback: hostname `localhost`, IPv4 127.0.0.0/8, or IPv6 `::1`; always forbidden.
+- link-local: IPv4 169.254.0.0/16 or IPv6 link-local addresses; always forbidden. Hostnames ending in `.local` are also forbidden.
+- credential-bearing: a URL that includes a username or password userinfo component; always forbidden.
+- deterministic: identical validated request plus identical recorded transport response (and the same injected `now` / abort state) produce identical `WebResearchResult`.
+- recorded response: a sanitized fixture object returned by the injected transport; never a live provider call.
+- page limit: `request.pageLimit`. When `request.maxPageLimit` is omitted, the effective maximum is 20. Values outside (0, max] are invalid.
+- timeout: `request.timeoutMs`. When `request.maxTimeoutMs` is omitted, the effective maximum is 60000. Values outside (0, max] are invalid. A transport throw whose `name` is `TimeoutError` maps to failure code `timeout`.
 </vocabulary>
 
 <contract_rules>
-R1 (MUST): Validate the non-empty bounded task, declared URL allowlist, host, protocol, positive page limit, and positive timeout within declared maxima before invoking transport.
-R2 (MUST): Restrict retrieval to declared public HTTP(S) targets and reject embedded credentials, loopback, link-local, private-network, forbidden destinations, and redirect escapes.
-R3 (MUST): Preserve requested and final URLs, title when established, retrieval time, content status, checksum, provider request ID when supplied, and measured latency without inventing metadata.
-R4 (MUST): Treat all retrieved content as untrusted data; embedded instructions remain inert and never alter task, policy, targets, limits, or output rules.
-R5 (MUST): Return stable typed timeout, caller-abort, invalid-response, forbidden-redirect, provider-failure, and partial-result diagnostics without inventing pages or converting failure into success.
-R6 (MUST): Map structurally identical validated inputs and recorded responses deterministically while preserving declared-target and provider-result ordering.
-R7 (MUST NOT): Produce findings, scores, finance outputs, rankings, qualification decisions, property or professional conclusions, secrets, or provider SDK types.
+R1 (MUST): Validate the request before invoking transport: non-blank task, non-empty targets, allowlist hosts/protocols, pageLimit in (0, effectiveMaxPageLimit], timeoutMs in (0, effectiveMaxTimeoutMs]. On invalid input return `{ status: "failed", failure: { code: "invalid_request", ... }, ... }` without calling transport.
+
+R2 (MUST): Restrict retrieval to declared public HTTP(S) targets. Reject non-http(s) protocols, credential-bearing URLs, loopback, link-local, private-network, `*.local`, and hosts not in `allowlist.allowedHosts` (lowercase compare) with `forbidden_target` before transport. When transport reports a finalUrl host outside the allowlist or forbidden, return `redirect_escape` and invent no pages from that redirect.
+
+R3 (MUST): Preserve requestedUrl, finalUrl, title when established, retrievedAt (from injected `now` when the transport omits it), contentStatus, content or contentRef, checksum, provider requestId when supplied, and measured latencyMs without inventing missing metadata.
+
+R4 (MUST): Treat all retrieved content as untrusted data; embedded instructions (e.g. "Ignore previous instructions…") remain inert and never alter task, policy, targets, limits, ordering, or output rules.
+
+R5 (MUST): Map transport throws: `TimeoutError` → `timeout`, `AbortError` → `caller_abort`, any other throw → `provider_failure`. Map a transport body that is not an object or lacks a `pages` array to `invalid_provider_response`. Map a recorded `{ status: "partial", pages, requestId? }` with fewer pages than targets to `{ status: "partial", ... }` keeping only validated pages. Never invent pages or convert failure into success.
+
+R6 (MUST): Map structurally identical validated inputs and recorded responses deterministically; preserve declared-target order and provider page order; never mutate the input request; and never throw for inputs matching the declared shape (return a typed result instead).
+
+R7 (MUST NOT): Produce findings, scores, finance outputs, rankings, qualification decisions, property or professional conclusions, secrets, unsafe diagnostics, or provider SDK types; and MUST NOT import `@rtrvr` packages or other vendor SDK types in the generated module.
 </contract_rules>
 
-<pdd-interface>
-`WebResearchRequest` contains a non-empty bounded task, an ordered non-empty list of target URLs, an allowlist policy, a positive page limit, and a positive timeout within declared maxima.
+<interface_types>
 
-An injected provider-neutral transport accepts a validated transport request and optional `AbortSignal`, then returns an unknown response boundary value with safe response metadata.
+The shared types `JsonValue`, `AllowlistPolicy`, `WebResearchRequest`, `RetrievedPage`, `ResearchDiagnostic`, `ResearchFailureCode`, `WebResearchResult`, and `RtrvrTransport` are declared in the included research-provider domain types and are frozen.
 
-`RetrievedPage` contains stable source identity, requested URL, final URL, title when established, retrieval timestamp, content status, bounded content or an allowed content reference, and checksum.
+Expected recorded transport success/partial body shape (parsed from `unknown`):
 
-`WebResearchResult` is exactly one of:
-- `{ status: "complete", pages, requestId?, latencyMs, diagnostics }`
-- `{ status: "partial", pages, requestId?, latencyMs, diagnostics }`
-- `{ status: "failed", failure, requestId?, latencyMs, diagnostics }`
+```ts
+// Transport returns unknown. After structural checks, a successful body looks like:
+// {
+//   status?: "complete" | "partial",
+//   requestId?: string,
+//   pages: Array<{
+//     requestedUrl: string,
+//     finalUrl: string,
+//     title?: string | null,
+//     retrievedAt?: string,
+//     contentStatus: "ok" | "empty" | "error" | "truncated",
+//     content?: string | null,
+//     contentRef?: string | null,
+//     checksum: string
+//   }>
+// }
+```
 
-Failures use stable reason codes for invalid request, forbidden target, redirect escape, timeout, caller abort, invalid provider response, and provider failure. Diagnostics contain non-sensitive explanations and never raw credentials or authorization data.
+Export exactly one public function:
 
-Provider response parsing begins from `unknown`. No domain-facing type imports or exposes Rtrvr SDK types.
-</pdd-interface>
+```ts
+export function researchWithRtrvr(input: {
+  request: WebResearchRequest;
+  transport: RtrvrTransport;
+  signal?: AbortSignal;
+  now?: () => string; // injected clock ISO8601; inject in tests for determinism
+}): Promise<WebResearchResult>;
+```
 
-<acceptance_criteria>
-Every rule R1 through R7 and every applicable inherited rule P1 through P8 maps to at least one executable behavioral test. Tests use injected transports and sanitized recorded fixtures, disable outbound network access, and never call live Rtrvr or spend credits.
-</acceptance_criteria>
+</interface_types>
+
+<coverage>
+R1: tests/contracts/rtrvr_research_adapter.contract.test.ts :: R1
+R2: tests/contracts/rtrvr_research_adapter.contract.test.ts :: R2
+R3: tests/contracts/rtrvr_research_adapter.contract.test.ts :: R3
+R4: tests/contracts/rtrvr_research_adapter.contract.test.ts :: R4
+R5: tests/contracts/rtrvr_research_adapter.contract.test.ts :: R5
+R6: tests/contracts/rtrvr_research_adapter.contract.test.ts :: R6
+R7: tests/contracts/rtrvr_research_adapter.contract.test.ts :: R7 (negative)
+P1: covered by R3 test
+P2: covered by R5 partial/failure tests (missing pages stay absent; never invented as empty success)
+P3: covered by R3/R6 tests (multiple pages and metadata preserved; no silent discard)
+P4: covered by R6 test
+P5: covered by R1 and R2 tests
+P6: covered by R4 test
+P7: covered by R5 and R7 tests
+P8: tests/contracts/rtrvr_research_adapter.contract.test.ts :: P8 (plain-data result + import scan)
+</coverage>
+
+<acceptance_gate>
+Contract tests use only an injected transport and sanitized recorded fixtures under `tests/fixtures/research/`. Outbound `fetch` is stubbed to throw. Generation is never accepted if tests contact live Rtrvr or spend credits.
+</acceptance_gate>
+
+<deliverables>
+Generate the implementation only, as a single module exporting `researchWithRtrvr`.
+Contract tests already exist at `tests/contracts/rtrvr_research_adapter.contract.test.ts` and must not be modified by generation.
+</deliverables>

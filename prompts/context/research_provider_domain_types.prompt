@@ -1,0 +1,214 @@
+% Frozen research-provider domain type declarations shared by the Rtrvr and MiniMax modules.
+% These declarations are the interface freeze for Segment 4 (public-web research and finding extraction).
+% Changing a declaration here is an interface change and requires foundation-owner review before any module is regenerated.
+
+<research_provider_domain_types>
+
+```ts
+type JsonPrimitive = null | boolean | number | string;
+type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
+
+/**
+ * Host/protocol allowlist for declared public targets.
+ * In practice https is required for public retrieval; http may appear in the
+ * list, but non-public destinations are always rejected.
+ */
+interface AllowlistPolicy {
+  allowedHosts: string[];
+  allowedProtocols: ("http" | "https")[];
+}
+
+/** One bounded public-web research request. */
+interface WebResearchRequest {
+  task: string;
+  targets: string[];
+  allowlist: AllowlistPolicy;
+  pageLimit: number;
+  timeoutMs: number;
+  /** When omitted, the adapter defaults this to 60000. */
+  maxTimeoutMs?: number;
+  /** When omitted, the adapter defaults this to 20. */
+  maxPageLimit?: number;
+}
+
+type ContentStatus = "ok" | "empty" | "error" | "truncated";
+
+/** One retrieved page mapped from a recorded/injected transport response. */
+interface RetrievedPage {
+  requestedUrl: string;
+  finalUrl: string;
+  title: string | null;
+  retrievedAt: string; // ISO 8601
+  contentStatus: ContentStatus;
+  content: string | null;
+  contentRef: string | null;
+  checksum: string;
+}
+
+interface ResearchDiagnostic {
+  code: string;
+  message: string; // non-sensitive explanation; never credentials or auth material
+  url?: string;
+}
+
+type ResearchFailureCode =
+  | "invalid_request"
+  | "forbidden_target"
+  | "redirect_escape"
+  | "timeout"
+  | "caller_abort"
+  | "invalid_provider_response"
+  | "provider_failure";
+
+interface ResearchFailure {
+  code: ResearchFailureCode;
+  message: string; // non-sensitive explanation
+}
+
+type WebResearchResult =
+  | {
+      status: "complete";
+      pages: RetrievedPage[];
+      requestId?: string;
+      latencyMs: number;
+      diagnostics: ResearchDiagnostic[];
+    }
+  | {
+      status: "partial";
+      pages: RetrievedPage[];
+      requestId?: string;
+      latencyMs: number;
+      diagnostics: ResearchDiagnostic[];
+    }
+  | {
+      status: "failed";
+      failure: ResearchFailure;
+      requestId?: string;
+      latencyMs: number;
+      diagnostics: ResearchDiagnostic[];
+    };
+
+/** Immutable evidence record supplied to finding extraction. Content is untrusted. */
+interface EvidenceInput {
+  id: string;
+  agency: string;
+  sourceUrl: string;
+  retrievedAt: string; // ISO 8601
+  content: string;
+  contentBytes: number;
+}
+
+/** Semantics follow docs/SYSTEM_DESIGN.md §7.4. */
+type FindingStatus = "verified" | "probable" | "unknown" | "conflicting";
+
+type EvidenceLevel =
+  | "document_verified"
+  | "gis_screened"
+  | "ai_researched"
+  | "professional_verification_required";
+
+type FindingImpact = "opportunity" | "cost_timing_risk" | "fatal_constraint" | "unknown";
+
+/** Schema-valid candidate finding extracted from evidence (pre-validation). */
+interface CandidateFindingExtract {
+  id: string;
+  siteId: string;
+  category: string;
+  field: string;
+  valueJson: JsonValue;
+  status: FindingStatus;
+  evidenceLevel: EvidenceLevel;
+  confidence: number; // 0..1
+  impact: FindingImpact;
+  evidenceIds: string[];
+  note?: string; // untrusted free text; always data, never instructions
+}
+
+/** Non-sensitive model usage counts. Never includes cost secrets or credentials. */
+interface ModelUsageSafe {
+  inputTokens?: number;
+  outputTokens?: number;
+  totalTokens?: number;
+}
+
+interface RepairPolicy {
+  /** Additional transport calls after the first. Default 0 when omitted. */
+  maxAttempts: number;
+}
+
+/**
+ * Request for MiniMax structured finding extraction.
+ * Findings are validated against the CandidateFindingExtract shape (e.g. via zod
+ * in the implementation). Enums match SYSTEM_DESIGN §7.4.
+ */
+interface FindingExtractionRequest {
+  purpose: string;
+  systemPrompt: string;
+  evidence: EvidenceInput[];
+  siteId: string;
+  promptVersion: string;
+  model: string;
+  timeoutMs: number;
+  /** When omitted, the extractor defaults this to 60000. */
+  maxTimeoutMs?: number;
+  repairPolicy?: RepairPolicy;
+}
+
+type FindingExtractionFailureCode =
+  | "invalid_request"
+  | "timeout"
+  | "caller_abort"
+  | "provider_failure"
+  | "malformed_output"
+  | "schema_violation"
+  | "unknown_evidence_id"
+  | "unsupported_claim"
+  | "exhausted_bounded_repair";
+
+interface FindingExtractionFailure {
+  code: FindingExtractionFailureCode;
+  message: string; // non-sensitive explanation
+}
+
+type FindingExtractionResult =
+  | {
+      status: "accepted";
+      findings: CandidateFindingExtract[];
+      modelId: string;
+      requestId?: string;
+      promptVersion: string;
+      latencyMs: number;
+      usage?: ModelUsageSafe;
+      diagnostics: ResearchDiagnostic[];
+    }
+  | {
+      status: "rejected";
+      failure: FindingExtractionFailure;
+      modelId: string;
+      requestId?: string;
+      promptVersion: string;
+      latencyMs: number;
+      usage?: ModelUsageSafe;
+      diagnostics: ResearchDiagnostic[];
+    };
+
+/**
+ * Injected provider-neutral transport. Contract tests supply recorded fixtures;
+ * production wiring may call the real SDK behind this boundary.
+ */
+type RtrvrTransport = (req: {
+  targets: string[];
+  pageLimit: number;
+  timeoutMs: number;
+  signal?: AbortSignal;
+}) => Promise<unknown>;
+
+type MiniMaxTransport = (req: {
+  messages: unknown[];
+  model: string;
+  timeoutMs: number;
+  signal?: AbortSignal;
+}) => Promise<unknown>;
+```
+
+</research_provider_domain_types>

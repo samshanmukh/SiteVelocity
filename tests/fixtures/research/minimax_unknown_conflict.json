@@ -1,0 +1,38 @@
+{
+  "requestId": "minimax-req-unknown-conflict-001",
+  "usage": {
+    "inputTokens": 900,
+    "outputTokens": 280,
+    "totalTokens": 1180
+  },
+  "findings": [
+    {
+      "id": "finding-flood-unknown",
+      "siteId": "site-alpha-001",
+      "category": "site_risk",
+      "field": "flood_zone",
+      "valueJson": null,
+      "status": "unknown",
+      "evidenceLevel": "professional_verification_required",
+      "confidence": 0.2,
+      "impact": "unknown",
+      "evidenceIds": ["ev-planning-001"],
+      "note": "Evidence does not establish flood zone."
+    },
+    {
+      "id": "finding-zoning-conflict",
+      "siteId": "site-alpha-001",
+      "category": "land_use",
+      "field": "zoning",
+      "valueJson": {
+        "values": ["R-M", "CP"]
+      },
+      "status": "conflicting",
+      "evidenceLevel": "ai_researched",
+      "confidence": 0.55,
+      "impact": "cost_timing_risk",
+      "evidenceIds": ["ev-planning-001", "ev-hearing-001"],
+      "note": "Sources state incompatible zoning labels."
+    }
+  ]
+}

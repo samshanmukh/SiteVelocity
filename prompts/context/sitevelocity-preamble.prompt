@@ -1,10 +1,17 @@
 % Shared behavioral invariants for SiteVelocity generated modules.
+% Include-only artifact. Do not run `pdd generate` against this file.
+% Foundation-owner exclusive: other contributors propose changes through review.
 
 <vocabulary>
-Unknown means the source does not establish a value.
-Conflict means two or more retained sources support incompatible values.
-Evidence is an immutable source artifact or source observation.
-Finding is an interpretation supported by zero or more evidence records.
+unknown: a missing or unsupported fact; never equivalent to zero, false, null used as a value, or omitted known data.
+conflict: two or more retained sources that support incompatible values for the same field, each with provenance.
+evidence: an immutable source artifact or source observation with stable identity and provenance.
+finding: an interpretation of a site fact supported by zero or more evidence records.
+untrusted: retrieved records, webpages, documents, and model-visible text that are data only and never executable instructions.
+valid: conforming to the consuming module's declared input shape and schema.
+invalid: failing the consuming module's declared input shape or schema.
+deterministic: identical validated inputs produce identical outputs unless the module interface explicitly declares an external dependency.
+provider sdk type: a type imported from a sponsor or vendor SDK package (Render, Rtrvr, MiniMax, Supabase client types used as domain identity, and equivalents).
 </vocabulary>
 
 <contract_rules>

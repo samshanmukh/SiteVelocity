@@ -1,0 +1,22 @@
+{
+  "requestId": "minimax-req-invalid-schema-001",
+  "usage": {
+    "inputTokens": 400,
+    "outputTokens": 100,
+    "totalTokens": 500
+  },
+  "findings": [
+    {
+      "id": "finding-bad-enum",
+      "siteId": "site-alpha-001",
+      "category": "land_use",
+      "field": "zoning",
+      "valueJson": "R-M",
+      "status": "definitely_true",
+      "evidenceLevel": "ai_researched",
+      "confidence": 1.5,
+      "impact": "super_opportunity",
+      "evidenceIds": ["ev-planning-001"]
+    }
+  ]
+}
