@@ -1,0 +1,75 @@
+% Implement the San José jurisdiction adapter that declares the city's public-record sources and its local parcel-identifier and terminology rules.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+
+<responsibility>
+Declare San José's public-record source descriptors by record category, and apply the jurisdiction-specific parcel-identifier and terminology rules for San José, California.
+</responsibility>
+
+<non_responsibilities>
+MUST NOT fetch, request, stream, or open a network connection to any source endpoint.
+MUST NOT read, parse, or interpret the contents of any government record.
+MUST NOT normalize, enrich, deduplicate, qualify, or rank candidate sites.
+MUST NOT decide whether a parcel identifier refers to a parcel that exists.
+MUST NOT expose provider SDK types or vendor response shapes through its interface.
+MUST NOT declare sources for a jurisdiction other than San José, California.
+MUST NOT present a federal or statewide overlay dataset as a record published by this jurisdiction.
+</non_responsibilities>
+
+<vocabulary>
+declared source: a public-record endpoint recorded in the SiteVelocity source registry with an agency name, a dataset name, and an endpoint URL.
+record category: exactly one of parcel, zoning, planning case, permit, code, or agenda-and-hearing.
+undeclared category: a record category for which this module records no declared source.
+coverage status: the reported state of a record category, either declared or undeclared.
+presentation separator: the hyphen character or the space character, as printed inside San José parcel identifiers.
+canonical parcel identifier shape: exactly eight ASCII decimal digits and no other character.
+unrecognized parcel identifier: an input whose text, after every presentation separator is removed, does not match the canonical parcel identifier shape.
+canonical term: a SiteVelocity vocabulary key listed in this module's canonical term set.
+local term: the exact wording the City of San José or the County of Santa Clara publishes for a canonical term.
+attestation: a machine-checkable citation naming the declared source and the field or published field name where a local term appears verbatim.
+jurisdiction authority: an agency whose records govern land use inside San José, limited to the City of San José and the County of Santa Clara.
+source url policy: the research URL admission check exported by the security layer, which admits a URL or throws.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Return, from each record-category accessor, only descriptors whose agency, dataset name, endpoint URL, and landing page are recorded verbatim by the SiteVelocity source registry.
+R2 (MUST): Return an empty descriptor list for an undeclared category, and report that category's coverage status together with the statement that its coverage is unknown.
+R3 (MUST NOT): report an empty descriptor list as support for the claim that this jurisdiction publishes no record of that category.
+R4 (MUST): Carry on every returned descriptor a non-blank agency, a non-blank dataset name, and an endpoint URL that the source url policy admits.
+R5 (MUST): Carry a landing page on a descriptor only when the source registry records one, and carry null otherwise to denote that no landing page is recorded.
+R6 (MUST): Name a jurisdiction authority as the agency of every returned descriptor.
+R7 (MUST): Remove only presentation separators when normalizing a parcel identifier, and return the remaining digits when they match the canonical parcel identifier shape.
+R8 (MUST NOT): pad, truncate, reorder, substitute, or otherwise manufacture digits in a parcel identifier.
+R9 (MUST): Return an unrecognized parcel identifier as the caller supplied it, and report it as unrecognized with a stable reason code and an explanation that repeats no input text.
+R10 (MUST): Map each canonical term to a local term, and carry for every mapped term an attestation naming the declared source where that local term appears verbatim.
+R11 (MUST NOT): map a canonical term to a term that no declared source publishes.
+R12 (MUST): Produce equal results for repeated calls with equal arguments, and return frozen descriptors and a freshly built list on each call so a caller cannot mutate this module's declarations.
+R13 (MUST NOT): read the network, the file system, the clock, or a random source.
+R14 (MUST): Reject a source declaration at construction when its agency, dataset, endpoint URL, or landing page does not satisfy the declared descriptor schema, is not served over https, names an agency that is not a jurisdiction authority, or carries a URL the source url policy does not admit.
+</contract_rules>
+
+<pdd-interface>
+This module imports the frozen Segment 2 vocabulary from `lib/adapters/sources/source-record.ts` and the recorded endpoints from `lib/adapters/sources/registry.ts`. It defines no source type of its own.
+
+`RecordCategory` is one of `"parcel"`, `"zoning"`, `"planningCase"`, `"permit"`, `"code"`, `"agendaHearing"`.
+
+`JurisdictionAdapter` exposes `getParcelSources`, `getZoningSources`, `getPlanningCaseSources`, `getPermitSources`, `getCodeSources`, and `getAgendaHearingSources`, each returning `SourceDescriptor[]`; `normalizeParcelId(raw: string): string`; and `terminology(): Record<string, string>`.
+
+`getSourceCoverage(category: RecordCategory): SourceCoverage` reports one category's coverage. `SourceCoverage` is exactly one of:
+- `{ category, status: "declared", descriptors: SourceDescriptor[] }`
+- `{ category, status: "undeclared", descriptors: [], meaning: "unknown", note: string }`
+
+`normalizeParcelIdentifier(raw: string): ParcelIdNormalization` is the full-fidelity normalizer; the port's `normalizeParcelId` delegates to it and returns its `value`, so an unrecognized identifier comes back unchanged. `ParcelIdNormalization` is exactly one of:
+- `{ status: "normalized", raw: string, value: string }` where `value` is eight decimal digits
+- `{ status: "unrecognized", raw: string, value: string, reasonCode: ParcelIdReasonCode, explanation: string }` where `value` equals `raw`
+
+`ParcelIdReasonCode` is one of `"blank_input"`, `"non_digit_character"`, `"unexpected_digit_count"`.
+
+`TerminologyAttestation` carries the canonical term, the local term, and a citation that is either `{ kind: "source_descriptor", dataset, field: "agency" | "dataset" | "description" }` or `{ kind: "source_field", dataset, fieldName }`.
+
+`declareSourceDescriptor(input): SourceDescriptor` validates one declaration at the module boundary and throws on refusal, applying the descriptor schema, the https requirement, the jurisdiction authority check, and the source url policy. It calls the policy with an empty environment allowlist so admission is deterministic and reads no environment. `isJurisdictionAuthority(agency: string): boolean` decides R6 from the vocabulary definition, not from the set of agencies the registry happens to hold. No exported value carries credentials, personal data, or vendor response shapes.
+</pdd-interface>
+
+<acceptance_criteria>
+Every rule `R1` through `R14` and inherited rule `P1` through `P8` is mapped to at least one executable behavioral test before generation is accepted. No test opens a network connection.
+</acceptance_criteria>
