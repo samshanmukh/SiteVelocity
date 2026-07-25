@@ -1,0 +1,92 @@
+% Implement the paged listing contract for one ArcGIS REST feature/map-service layer as provenance-stamped source pages.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+
+<responsibility>
+List features from one declared ArcGIS REST layer as provenance-stamped source pages, following pagination until a declared record limit, and report every outcome the endpoint declares.
+</responsibility>
+
+<non_responsibilities>
+MUST NOT normalize, canonicalize, map, or translate attributes into domain fields.
+MUST NOT deduplicate features within a page, across pages, or across datasets.
+MUST NOT qualify, score, rank, or label a parcel as a development opportunity.
+MUST NOT reach the network other than through the injected transport.
+MUST NOT read environment variables, credentials, or files.
+MUST NOT query more than one layer per listing call.
+MUST NOT persist, cache, or memoize responses between calls.
+MUST NOT expose ArcGIS response shapes, transport internals, or provider SDK types in returned values.
+</non_responsibilities>
+
+<vocabulary>
+layer: one ArcGIS REST feature-service or map-service layer, addressed by the descriptor endpoint URL carrying no query string and no fragment.
+query response: the parsed JSON body that one layer query request resolves with.
+endpoint error object: a member named error inside a query response holding any value other than null and other than false, delivered by ArcGIS under HTTP status 200, whose numeric code and whose message are read when the member carries them and are reported as unknown when it does not.
+listing: a returned result whose status is listed, carrying zero or more source pages, a record count, a stop reason, and the refused features.
+failed listing: a returned result whose status is failed, carrying one failure code, the endpoint error code and message when the endpoint supplied them, and the pages retrieved before the failure.
+declared record limit: the total feature count the caller passes as maxRecordCount.
+declared page bound: the maximum number of pages the caller passes as maxPages.
+declared retry bound: the number of additional transport calls per page the caller passes as retryLimit, whose default is zero.
+declared identifier fields: the ordered attribute names the caller passes as identifierFields, from which the shared envelope selects a source record identifier.
+stop reason: a stable code naming why pagination ended, being exhausted, record_limit_reached, or page_limit_reached.
+exhausted stop reason: the stop reason emitted only when a query response set exceededTransferLimit to a value other than true.
+refused feature: a feature whose attributes object the shared envelope declined to envelope, reported with its page number, its index within that page, and its refusal codes.
+injected clock: a caller-supplied function returning the retrieval timestamp as an ISO-8601 string carrying a UTC offset.
+injected transport: a caller-supplied function that takes one URL and resolves with the parsed JSON body of that URL.
+verbatim: copied character for character, with nothing added, removed, reordered, or reformatted.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Build each request URL from the descriptor endpoint URL, the `/query` path, and only the declared query input, expressed as the parameters where, outFields, f, returnGeometry, resultOffset, and resultRecordCount, where the default where is `1=1`, the default outFields is `*`, and f is always `json`.
+R2 (MUST NOT): place a credential, token, caller identity, or any parameter the caller did not declare into a request URL.
+R3 (MUST): Use the exact request URL of a page as that page query URL and as the source URL of every record enveloped from that page.
+R4 (MUST): Stamp each page and each record enveloped from it with the retrieval timestamp the injected clock returned for that page.
+R5 (MUST): Report a query response carrying an endpoint error object as a failed listing that carries the endpoint error code and message verbatim.
+R6 (MUST NOT): report a query response carrying an endpoint error object as a listing, as an empty page, as a zero record count, or under the exhausted stop reason.
+R7 (MUST): Report a query response carrying neither an endpoint error object nor a features array as a failed listing under a malformed-response failure code.
+R8 (MUST): Derive a page hasMore from the response field exceededTransferLimit alone, and request the following page at the result offset advanced by the number of features the endpoint returned.
+R9 (MUST): Stop pagination once the declared record limit or the declared page bound is reached, and report the stop reason together with whether the endpoint still declared further records.
+R10 (MUST NOT): report a listing stopped by the declared record limit or the declared page bound under the exhausted stop reason.
+R11 (MUST): Preserve endpoint feature order within each page and page order across the listing.
+R12 (MUST): Envelope each feature attributes object through the shared source-record envelope using the declared identifier fields in the declared priority order.
+R13 (MUST): Report each refused feature with its page number, its index within that page, and the refusal codes the shared envelope returned.
+R14 (MUST NOT): add, rename, remove, reorder, coerce, or reinterpret any attribute key or attribute value, and MUST NOT copy feature geometry into an enveloped attributes object.
+R15 (MUST): Return an identical listing for an identical sequence of transport outcomes and an identical injected clock.
+R16 (MUST NOT): issue more transport calls for one page than one plus the declared retry bound.
+R17 (MUST): Report a transport rejection as a failed listing that carries the pages retrieved before that rejection.
+R18 (MUST): Reject a listing request whose descriptor, endpoint URL, identifier fields, record limit, page size, page bound, or retry bound falls outside the declared input constraints, before issuing any transport call.
+R19 (MUST): Retain every feature a retrieved page carried, including the features an endpoint returned beyond the declared record limit, and report that listing under the record limit stop reason.
+</contract_rules>
+
+<pdd-interface>
+This module extends the Segment 2 source vocabulary declared by `lib/adapters/sources/source-record.ts`. It imports `JsonValue`, `SourceDescriptor`, `SourceRecord`, `SourcePage`, `SourceTransport`, `EnvelopeRefusal`, `toSourceRecord`, and `toSourcePage` from that module and redefines none of them.
+
+`ArcgisAttributes` is an object whose keys are attribute names and whose values are `JsonValue`.
+
+`ArcgisListQuery` declares the query input: an optional `where` string defaulting to `1=1`, an optional `outFields` string defaulting to `*`, an optional `returnGeometry` boolean defaulting to false, an optional `pageSize` positive integer, an optional `startOffset` non-negative integer defaulting to zero, and a required `maxRecordCount` positive integer that is the declared record limit.
+
+`ArcgisListOptions` declares the injected dependencies: a required `transport` of type `SourceTransport`, a required `now` injected clock returning an ISO-8601 string carrying a UTC offset, a required non-empty `identifierFields` array of attribute names in priority order, an optional `maxPages` positive integer that is the declared page bound, and an optional `retryLimit` non-negative integer that is the declared retry bound.
+
+`ArcgisStopReason` is one of `exhausted`, `record_limit_reached`, or `page_limit_reached`.
+
+`ArcgisFailureCode` is one of `rejected_request`, `endpoint_error`, `malformed_response`, or `transport_rejected`.
+
+`ArcgisFailure` carries the failure code, a non-sensitive explanation authored by this module, the request URL when a request was issued, the one-based page number under attempt, the endpoint error code as a number or unknown, and the endpoint error message as a string or unknown.
+
+`ArcgisRefusedFeature` carries the one-based page number, the zero-based feature index within that page, and the `EnvelopeRefusal` array the shared envelope returned.
+
+`ArcgisListResult` is exactly one of:
+- `{ status: "listed", pages, recordCount, stopReason, moreRecordsRemain, refusedFeatures, requestCount }`
+- `{ status: "failed", failure, pages, recordCount, refusedFeatures, requestCount }`
+
+`pages` is an array of `SourcePage<ArcgisAttributes>`. `recordCount` is the number of enveloped records across those pages. `moreRecordsRemain` restates whether the last retrieved page declared exceededTransferLimit. `requestCount` is the number of transport calls issued.
+
+The default page size is `ARCGIS_DEFAULT_PAGE_SIZE`, being 1000 features, and the default page bound is `ARCGIS_DEFAULT_MAX_PAGES`, being 100 pages; both are exported so a caller can state the bound it is accepting. `buildArcgisQueryUrl(endpointUrl, query, resultOffset, resultRecordCount)` is exported so a caller can reproduce a page request URL as evidence, and issues no transport call. `ArcgisSourcePage` and `ArcgisSourceRecord` alias `SourcePage<ArcgisAttributes>` and `SourceRecord<ArcgisAttributes>`.
+
+`listArcgisFeatures(descriptor, query, options)` resolves with an `ArcgisListResult` and rejects with nothing: every declared outcome, including an endpoint error object and a transport rejection, is reported inside the result. No returned value, explanation, or failure carries credentials, tokens, or personal data.
+
+The pre-existing single-shot helpers `queryArcgis`, `ArcgisFeature`, `ArcgisFeatureSchema`, and `ArcgisQueryOptions` remain exported unchanged for callers that already depend on them.
+</pdd-interface>
+
+<acceptance_criteria>
+Every rule `R1` through `R19` and inherited rule `P1` through `P8` is mapped to at least one executable behavioral test before generation is accepted. Every test injects a stub transport and a fixed clock, so no test performs network access.
+</acceptance_criteria>

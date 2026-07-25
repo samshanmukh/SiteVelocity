@@ -9,7 +9,9 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test \"tests/unit/**/*.test.ts\" \"tests/contracts/**/*.test.ts\"",
     "pdd:check": "bash scripts/pdd-check.sh",
-    "pdd:estimate": "bash scripts/pdd-estimate.sh"
+    "pdd:estimate": "bash scripts/pdd-estimate.sh",
+    "ingest": "tsx scripts/ingest-candidates.ts",
+    "research": "tsx scripts/run-research.ts"
   },
   "dependencies": {
     "@renderinc/sdk": "0.6.0",

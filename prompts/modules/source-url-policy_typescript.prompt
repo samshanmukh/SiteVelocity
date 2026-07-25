@@ -1,0 +1,90 @@
+% Implement the outbound source-URL admission policy that guards every government ingestion fetch.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+
+<responsibility>
+Decide whether one outbound URL may be fetched as a public-records source, returning the parsed URL or a refusal.
+</responsibility>
+
+<non_responsibilities>
+MUST NOT fetch, open, stream, or read the resource named by the URL.
+MUST NOT resolve a hostname to an IP address.
+MUST NOT follow, inspect, or re-check redirects.
+MUST NOT rewrite, canonicalize, sign, or shorten the URL beyond parsing it.
+MUST NOT parse, interpret, or store any endpoint response body.
+MUST NOT choose which agency, dataset, or query an adapter issues.
+MUST NOT persist, cache, or log its decisions.
+MUST NOT enforce rate limits, quotas, budgets, or retry policy.
+</non_responsibilities>
+
+<vocabulary>
+decision: the single returned value that either admits the parsed URL or refuses it with one refusal.
+admitted: the decision state in which the caller may fetch the parsed URL.
+refused: the decision state in which the caller may not fetch the URL.
+refusal: a record carrying a stable code, the parsed host or null, and an explanation.
+stable code: a fixed string drawn from a closed set declared by the module interface.
+malformed: rejected by the WHATWG URL parser, or not a string.
+malformed url: an input that the WHATWG URL parser rejects, or an input that is not a string.
+credential-bearing url: a URL whose parsed username component or password component is a non-empty string.
+credential component: the username and password components of the input URL.
+host: the parsed hostname component without port, compared after lowercasing and after removing a single trailing dot, so that the rooted form of a name is the same host as the unrooted form.
+private destination: a host that is the name `localhost`, a name ending in `.localhost`, or an IP literal inside 0.0.0.0/8, 10.0.0.0/8, 100.64.0.0/10, 127.0.0.0/8, 169.254.0.0/16, 172.16.0.0/12, 192.168.0.0/16, 224.0.0.0/4, 240.0.0.0/4, `::`, `::1`, fc00::/7, fe80::/10, fec0::/10, or an IPv4-mapped or IPv4-compatible IPv6 address whose embedded IPv4 address is itself a private destination.
+static allowlist: the host set declared literally in this module's own source.
+environment allowlist: the comma-separated host list read from the RESEARCH_URL_ALLOWLIST environment variable, or the host list supplied explicitly by the caller in place of it.
+declared allowlists: the static allowlist together with the environment allowlist.
+blank entry: an allowlist entry that is empty or contains only whitespace.
+retrieved source content: bytes obtained from a government endpoint, webpage, document, or prior response body.
+fixed order: parse, then scheme, then credential, then private destination, then allowlist.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Return exactly one decision for every input: admitted with the parsed URL, or refused with exactly one refusal.
+R2 (MUST): Refuse a malformed url and report its host as null.
+R3 (MUST): Admit only a URL whose scheme is `https`.
+R4 (MUST NOT): admit a credential-bearing url, including one whose host is on a declared allowlist.
+R5 (MUST NOT): admit a URL whose host is a private destination, including an IPv6 unique-local or IPv6 link-local address.
+R6 (MUST NOT): admit a private destination because it appears on an environment allowlist.
+R7 (MUST): Admit only a URL whose host appears on the static allowlist or on the environment allowlist, matching hosts without regard to letter case.
+R8 (MUST): Ignore a blank entry in an allowlist rather than treating it as a host that admits any URL.
+R9 (MUST): Evaluate the checks in the fixed order and report the first refusing check as the refusal's stable code.
+R10 (MUST): Name the parsed host in a refusal whenever a host was parsed.
+R11 (MUST NOT): place the path, query string, fragment, or credential component of the input into a refusal, an error message, or any other emitted text.
+R12 (MUST): Return the parsed URL with its host, port, path, query string, and fragment unchanged when the decision is admitted.
+R13 (MUST NOT): perform DNS resolution, open a socket, or make any other network call to reach a decision.
+R14 (MUST NOT): admit a host on the strength of a claim carried in retrieved source content; admission depends only on the declared allowlists.
+R15 (MUST): Return the same decision for the same input and the same declared allowlists.
+R16 (MUST): Expose the static allowlist for diagnostics without letting a caller mutate it.
+R17 (MUST NOT): throw when the caller supplies an environment allowlist that is neither a comma-separated string nor an array; treat such a value as contributing no hosts and still return one decision.
+</contract_rules>
+
+<pdd-interface>
+Declared external dependency: the `RESEARCH_URL_ALLOWLIST` environment variable, read at decision time. A caller may supply that host list explicitly instead, which makes the decision depend only on its arguments.
+
+`SourceUrlRefusalCode` is one of the string literals `malformed_url`, `scheme_not_https`, `credentials_present`, `private_destination`, `host_not_allowlisted`.
+
+`SourceUrlRefusal` contains:
+- `code`: a `SourceUrlRefusalCode`
+- `host`: the parsed host as a lowercased string, or `null` when no host was parsed
+- `explanation`: a non-sensitive sentence naming the host and the reason, and nothing else from the input
+
+`SourceUrlDecision` is exactly one of:
+- `{ status: "admitted", url: URL }`
+- `{ status: "refused", refusal: SourceUrlRefusal }`
+
+`UrlPolicyOptions` contains an optional `environmentAllowlist`, either a comma-separated string or a read-only array of host strings; when absent the environment variable supplies it. A value of any other shape, and an entry of any other shape inside the array, contributes no hosts.
+
+`checkSourceUrl(rawUrl: string, options?: UrlPolicyOptions): SourceUrlDecision` returns synchronously and never rejects, throws, or awaits.
+
+`assertAllowedSourceUrl(rawUrl: string, options?: UrlPolicyOptions): URL` returns the admitted `URL` or throws `SourceUrlPolicyError`, an `Error` subclass carrying the same `SourceUrlRefusal` on a `refusal` property. This signature is depended upon by `lib/adapters/sources/http-json.ts` and does not change.
+
+`listAllowedSourceHosts(): readonly string[]` returns the static allowlist in a stable order.
+
+The interface uses only the platform `URL` type and plain data; no provider SDK type appears in it.
+</pdd-interface>
+
+<acceptance_criteria>
+Every rule `R1` through `R17` is mapped to at least one executable behavioral test before generation is accepted, and every `MUST NOT` rule is mapped to a test proving the prohibited outcome does not occur.
+Inherited rules `P1`, `P2`, `P4`, `P5`, `P6`, `P7`, and `P8` are each mapped to at least one executable behavioral test.
+Inherited rule `P3` has no observable surface in this module: the module evaluates one URL against declared allowlists and never merges or reconciles source values.
+Tests reach every decision without any network access, using no credentials and no personal data.
+</acceptance_criteria>

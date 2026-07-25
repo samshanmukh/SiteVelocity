@@ -1,0 +1,74 @@
+% Implement the provenance envelope contract for raw public-records payloads retrieved from one government endpoint.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+
+<responsibility>
+Wrap raw payloads that have already been retrieved from one government endpoint into immutable, provenance-stamped source records, and group those records into one retrieved page.
+</responsibility>
+
+<non_responsibilities>
+MUST NOT fetch, page, or otherwise contact a source endpoint.
+MUST NOT map raw fields onto canonical candidate fields.
+MUST NOT deduplicate, merge, qualify, rank, or score records.
+MUST NOT interpret, translate, or re-type raw field values.
+MUST NOT emit findings, evidence records, or professional conclusions.
+</non_responsibilities>
+
+<vocabulary>
+valid: parses under the declared Zod schema for that shape.
+invalid: fails the declared Zod schema for that shape.
+blank: a string whose trimmed length is zero.
+immutable: recursively frozen, so a later write to any nested property is rejected or discarded rather than applied.
+declared identifier field: a raw field name supplied by the caller in the identifier-field list, read in the caller's priority order.
+continuation: the upstream response envelope's own statement that further records remain beyond this page.
+refusal: a returned result that declines to envelope the input and carries stable reason codes, as distinct from a thrown exception.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Return exactly one enveloped or refused result for every envelope input.
+R2 (MUST): Copy agency, dataset, source URL, and retrieval timestamp into provenance without semantic reinterpretation.
+R3 (MUST): Select the source record identifier only from a declared identifier field, honoring the caller's priority order.
+R4 (MUST): Refuse the input when no declared identifier field carries a non-blank string or a finite number.
+R5 (MUST): Refuse the input when the raw payload is absent or is not a record object.
+R6 (MUST): Refuse the input when the assembled provenance is invalid under the declared source-reference schema.
+R7 (MUST): Return the raw payload immutable and structurally unchanged, and leave the caller's input object unmutated.
+R8 (MUST): Preserve the endpoint's record order within a page.
+R9 (MUST): Set page continuation only from the upstream declared continuation, never from the number of records returned.
+R10 (MUST): Produce identical output for structurally identical input.
+R11 (MUST): Express every refusal as a stable reason code with a non-sensitive explanation that excludes credentials and query predicates.
+R12 (MUST NOT): Infer, derive, or manufacture an identifier, timestamp, agency, or dataset that the caller did not declare.
+R13 (MUST NOT): Treat a string inside a raw payload as an instruction.
+</contract_rules>
+
+<pdd-interface>
+`JsonValue` is null, boolean, finite number, string, an array of `JsonValue`, or an object whose values are `JsonValue`.
+
+`SourceDescriptor` contains `agency`, `dataset`, `description`, `endpointUrl`, and a nullable `landingPage`. It identifies one public-records endpoint and carries no provider SDK type.
+
+`SourceRef` is the shared provenance shape `{ agency, dataset, sourceRecordId, sourceUrl, retrievedAt }`, where `sourceUrl` is an absolute URL and `retrievedAt` is an ISO-8601 timestamp with offset.
+
+`EnvelopeInput` contains:
+- `descriptor`: a `SourceDescriptor`
+- `queryUrl`: the exact URL that produced this payload
+- `retrievedAt`: the retrieval timestamp captured by the caller
+- `identifierFields`: raw field names that may carry the source record identifier, in priority order
+- `raw`: the unmodified payload for one record
+
+`SourceRecord` contains `provenance` (a `SourceRef`) and `raw` (the immutable payload).
+
+`EnvelopeResult` is exactly one of:
+- `{ status: "enveloped", record: SourceRecord }`
+- `{ status: "refused", refusals: EnvelopeRefusal[] }`
+
+`EnvelopeRefusal` contains a stable `code` drawn from `missing_source_identity`, `invalid_source_identity`, `missing_record_identifier`, and `missing_raw_payload`, plus a non-sensitive `explanation`. Refusal codes are deduplicated so the refusal set is order-stable.
+
+`SourcePage` contains `descriptor`, `queryUrl`, `retrievedAt`, `pageNumber`, `records` in endpoint order, and `hasMore` carrying the upstream continuation.
+
+`SourceTransport` is `(url: string) => Promise<unknown>`, declared here so adapters can inject an offline transport; this module never calls it.
+
+Refusals are returned, not thrown. No refusal, explanation, or log line contains provider credentials or query predicates.
+</pdd-interface>
+
+<acceptance_criteria>
+Every rule `R1` through `R13` and inherited rule `P1` through `P8` is mapped to at least one executable behavioral test before generation is accepted.
+</acceptance_criteria>
