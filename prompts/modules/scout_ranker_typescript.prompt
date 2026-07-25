@@ -1,0 +1,239 @@
+% You are an expert TypeScript engineer. Implement `scout_ranker`: deterministically rank qualified candidates using one approved versioned scoring policy.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/candidate_domain_types.prompt</include>
+<include>prompts/context/evidence_domain_types.prompt</include>
+<include>prompts/context/decision_domain_types.prompt</include>
+
+<pdd-reason>Deterministically ranks qualified candidates under one approved scoring policy with traceable, evidence-aware reasons.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[
+  {"name":"rankCandidates","signature":"(input: ScoutRankingInput) -> ScoutRankingResult","returns":"ScoutRankingResult"}]}}
+</pdd-interface>
+
+<pdd-dependency>candidate_qualification_typescript.prompt</pdd-dependency>
+<pdd-dependency>finding_evidence_validator_typescript.prompt</pdd-dependency>
+
+<responsibility>
+Rank one batch of qualified candidates against one supplied approved scoring policy and return component scores, material flags, traceable reasons, warnings, and a reproducibility record.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT qualify, disqualify, or re-evaluate qualification decisions; it consumes them.
+- DOES NOT validate findings or evidence; it consumes findings already accepted upstream.
+- DOES NOT define scoring policy, weights, caps, or tie-breakers; it applies only the supplied approved policy.
+- DOES NOT calculate financial metrics, and DOES NOT assert buildability, entitlement certainty, or investment quality.
+- DOES NOT fetch data, read a clock, or persist anything.
+</non_responsibilities>
+
+<vocabulary>
+- Qualified candidate: a candidate input whose qualification state is exactly `qualified`.
+- Approved policy: a scoring policy input whose `status` is `"approved"`. Approval is asserted by the caller; this module never promotes a draft policy.
+- Valid policy: contains exactly one component policy for each of `strategy_fit`, `development_readiness`, and `evidence_confidence`; component weights are each >= 0 and sum to 1 within 1e-9; caps are within [0, 100]; feature IDs are unique across the whole policy; feature weights are > 0; all declared points are within [0, 1]; bands are pairwise disjoint; tie-breakers are non-empty, contain no duplicates, and end with `candidate_id_asc`.
+- Band match: a band matches a numeric value when `min <= value <= max` (inclusive).
+- Matched finding: exactly one finding of the candidate whose `category` and `field` both equal the feature source's declared category and field.
+- Unscorable feature input, with its warning code:
+  - `unknown_fact`: a `numeric_fact` source whose fact has status `unknown`;
+  - `out_of_bands`: a known numeric value matched by no declared band;
+  - `missing_finding`: a `finding` source with zero matching findings;
+  - `ambiguous_finding_match`: a `finding` source with more than one matching finding;
+  - `conflicting_finding`: a matched finding whose status is `conflicting`;
+  - `unknown_finding_status`: `status_points` scoring whose matched finding has status `unknown`.
+- `evidence_level_points` scoring reads the matched finding's `evidenceLevel` regardless of its status, except that a `conflicting` status is always unscorable.
+- `onUnscorable` handling: `omit_and_warn` excludes the feature from both numerator and denominator; `zero_and_warn` retains the feature with 0 points. Both emit exactly one warning naming the candidate, component, feature, and code.
+- Retained feature: a feature whose outcome is `scored` or `zeroed`.
+- Component raw score: sum over retained features, in declared feature order, of `weight * points`, divided by the sum of retained feature weights; 0 when the retained weight is 0 (emit warning `component_not_scorable`).
+- Component score: `min(raw * 100, cap)`. Component scores are computed for every component, including components whose weight is 0, so tie-breakers can read them.
+- Total score: sum over components, in declared component order, of `componentWeight * componentScore`.
+- Ranking order: descending total score; ties broken by the declared tie-breakers in order (`component_score` compares that component's score descending; `candidate_id_asc` compares candidate IDs ascending by Unicode code point).
+- Material finding: an input finding whose impact is `fatal_constraint` or `cost_timing_risk`.
+- Hash material: the object `{ candidates, policy, suppliedAt, thesisRef }` serialized per the shared canonical-JSON convention.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Return exactly one `ranked` or `rejected` result for every input matching the declared shape and never throw for such inputs; reject the whole request with stable error codes when any candidate is not a qualified candidate, when candidate IDs repeat, or when the policy is not approved or not valid.
+R2 (MUST): Apply only the weights, caps, feature scoring mappings, and tie-breakers declared by the supplied approved policy, computing component scores, total scores, and ranking order exactly as defined in the vocabulary.
+R3 (MUST): Handle every unscorable feature input exactly per that feature's declared `onUnscorable` policy and emit one warning per unscorable feature input; never treat an unknown value as zero unless the feature declares `zero_and_warn`.
+R4 (MUST): Report every material finding as a per-candidate material flag, and never let a material flag alter any component score, total score, or rank.
+R5 (MUST): Trace every feature contribution and every reason to its declared source — the fact field or the matched finding IDs — using only identifiers present in the input, with exactly one reason per `scored` contribution.
+R6 (MUST): Produce identical output — including ranking order, reason order, warnings, and input hash — for structurally identical input; ranks are dense, 1-based, unique, and totally ordered by total score and the declared tie-breakers.
+R7 (MUST NOT): Mutate the input; modify or restate facts, findings, or evidence beyond echoing their identifiers; infer buildability, entitlement certainty, or investment quality; or compute any financial metric.
+</contract_rules>
+
+<interface_types>
+
+The shared types `Fact`, `CanonicalCandidate` (candidate-domain freeze), `CandidateFinding`, `FindingStatus`, `EvidenceLevel`, `FindingImpact` (evidence-domain freeze), and `IsoTimestamp`, `InputHash` (decision-domain freeze) are frozen. This module additionally declares:
+
+```ts
+type ComponentName = "strategy_fit" | "development_readiness" | "evidence_confidence";
+
+type OnUnscorable = "omit_and_warn" | "zero_and_warn";
+
+interface ScoreBand { min: number; max: number; points: number }
+
+type FeaturePolicy =
+  | {
+      featureId: string;
+      weight: number;
+      onUnscorable: OnUnscorable;
+      source: { kind: "numeric_fact"; field: "parcelAcres" | "reportedCapacity" };
+      scoring: { kind: "bands"; bands: ScoreBand[] };
+    }
+  | {
+      featureId: string;
+      weight: number;
+      onUnscorable: OnUnscorable;
+      source: { kind: "finding"; category: string; field: string };
+      scoring:
+        | { kind: "status_points"; points: { verified: number; probable: number } }
+        | { kind: "evidence_level_points"; points: Record<EvidenceLevel, number> };
+    };
+
+interface ComponentPolicy {
+  component: ComponentName;
+  weight: number; // >= 0; component weights sum to 1
+  cap: number;    // [0, 100]
+  features: FeaturePolicy[];
+}
+
+type TieBreaker =
+  | { kind: "component_score"; component: ComponentName }
+  | { kind: "candidate_id_asc" };
+
+interface ScoringPolicy {
+  policyVersion: string;        // non-blank identifier of the approved policy
+  status: "approved" | "draft";
+  components: ComponentPolicy[];
+  tieBreakers: TieBreaker[];    // must end with candidate_id_asc
+}
+
+interface RankingCandidateInput {
+  candidateId: string;
+  qualification: { state: "qualified" | "disqualified" | "needs_review"; ruleSetVersion: string };
+  facts: CanonicalCandidate;
+  findings: CandidateFinding[]; // already validated upstream; immutable input
+}
+
+interface ScoutRankingInput {
+  candidates: RankingCandidateInput[];
+  thesisRef: { thesisId: string; thesisVersion: string };
+  policy: ScoringPolicy;
+  suppliedAt: IsoTimestamp;
+}
+
+type RankingWarningCode =
+  | "unknown_fact"
+  | "out_of_bands"
+  | "missing_finding"
+  | "ambiguous_finding_match"
+  | "conflicting_finding"
+  | "unknown_finding_status"
+  | "component_not_scorable";
+
+interface RankingWarning {
+  code: RankingWarningCode;
+  candidateId: string;
+  component: ComponentName;
+  featureId: string | null; // null only for component_not_scorable
+  findingIds: string[];     // the finding IDs involved, when any
+}
+
+interface FeatureContribution {
+  featureId: string;
+  source: FeaturePolicy["source"];
+  findingIds: string[];             // finding sources: the matched finding; numeric_fact sources: empty
+  outcome: "scored" | "zeroed" | "omitted";
+  points: number | null;            // null exactly when omitted
+  weight: number;
+  weightedPoints: number | null;    // weight * points; null exactly when omitted
+}
+
+interface ComponentScore {
+  component: ComponentName;
+  weight: number;
+  cap: number;
+  score: number;
+  contributions: FeatureContribution[]; // one per declared feature, in declared order
+}
+
+interface RankingReason {
+  featureId: string;
+  component: ComponentName;
+  findingIds: string[];                                        // subset of input finding IDs
+  factField: "parcelAcres" | "reportedCapacity" | null;        // set for numeric_fact sources
+  summary: string; // non-sensitive; references only supplied values and identifiers
+}
+
+interface MaterialFlag {
+  findingId: string;
+  category: string;
+  field: string;
+  impact: "fatal_constraint" | "cost_timing_risk";
+}
+
+interface RankedCandidate {
+  candidateId: string;
+  rank: number; // 1-based, dense, unique
+  totalScore: number;
+  components: ComponentScore[]; // one per component, in declared policy order
+  materialFlags: MaterialFlag[];
+  reasons: RankingReason[];
+}
+
+type PolicyErrorDetail =
+  | "missing_component"
+  | "duplicate_component"
+  | "duplicate_feature_id"
+  | "invalid_weight"
+  | "weights_not_normalized"
+  | "cap_out_of_range"
+  | "points_out_of_range"
+  | "overlapping_bands"
+  | "invalid_tie_breakers";
+
+type RankingError =
+  | { code: "unapproved_policy"; message: string }
+  | { code: "invalid_policy"; detail: PolicyErrorDetail; message: string }
+  | { code: "unqualified_candidate"; candidateId: string; message: string }
+  | { code: "duplicate_candidate_id"; candidateId: string; message: string };
+
+type ScoutRankingResult =
+  | {
+      status: "ranked";
+      policyVersion: string;
+      thesisRef: { thesisId: string; thesisVersion: string };
+      suppliedAt: IsoTimestamp;   // echoed from input, never a clock read
+      inputHash: InputHash;       // SHA-256 of the declared hash material
+      ranking: RankedCandidate[]; // in rank order
+      warnings: RankingWarning[];
+    }
+  | { status: "rejected"; errors: RankingError[] };
+```
+
+Export exactly one public function:
+
+```ts
+export function rankCandidates(input: ScoutRankingInput): ScoutRankingResult;
+```
+
+</interface_types>
+
+<coverage>
+R1: tests/contracts/scout_ranker.contract.test.ts :: R1
+R2: tests/contracts/scout_ranker.contract.test.ts :: R2
+R3: tests/contracts/scout_ranker.contract.test.ts :: R3
+R4: tests/contracts/scout_ranker.contract.test.ts :: R4
+R5: tests/contracts/scout_ranker.contract.test.ts :: R5
+R6: tests/contracts/scout_ranker.contract.test.ts :: R6
+R7: tests/contracts/scout_ranker.contract.test.ts :: R7 (negative)
+</coverage>
+
+<acceptance_gate>
+Interface draft. Generation is not accepted until the team approves the Strategy Fit, Development Readiness, and Evidence Confidence weights, caps, feature mappings, and tie-breakers as a versioned policy artifact. Contract tests exercise module behavior with clearly labeled test-fixture policies; they do not encode approved business weights.
+</acceptance_gate>
+
+<deliverables>
+Generate the implementation only, as a single module exporting `rankCandidates`.
+Contract tests already exist at `tests/contracts/scout_ranker.contract.test.ts` and must not be modified by generation.
+</deliverables>
