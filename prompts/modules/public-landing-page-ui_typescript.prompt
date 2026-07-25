@@ -1,7 +1,7 @@
 % Generate the public marketing page that explains SiteVelocity's audience, Alpha workflow, differentiators, evidence model, and honest capability state, then directs visitors into the real product.
 
 <include>prompts/context/sitevelocity-preamble.prompt</include>
-<include>prompts/context/sitevelocity-ui-standards.prompt</include>
+<include>prompts/context/sitevelocity-public-ui-standards.prompt</include>
 
 <responsibility>
 Render the server-side public landing page at the root route, presenting approved brand copy, the five-stage workflow, differentiators, the evidence model, labeled real Alpha-run figures, and the application's capability states, with working calls to action into the product.

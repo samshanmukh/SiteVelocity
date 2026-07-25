@@ -1,0 +1,44 @@
+{
+  "activeRoute": "command-center",
+  "capabilityStates": {
+    "commandCenter": "LIVE",
+    "scout": "LIVE",
+    "map": "LIVE",
+    "siteDossier": "LIVE",
+    "agents": "LIVE",
+    "nextSteps": "LIVE"
+  },
+  "thesis": {
+    "developmentType": "multifamily",
+    "market": "San Jose, CA",
+    "acreageMin": 0.5,
+    "acreageMax": 5,
+    "minimumPotentialUnits": 20,
+    "preferredSignals": [
+      "transit",
+      "underutilized"
+    ],
+    "riskTolerance": "moderate"
+  },
+  "commandCenter": null,
+  "candidates": [],
+  "selectedCandidateId": null,
+  "map": null,
+  "dossier": null,
+  "agents": [],
+  "workflow": null,
+  "snapshot": null,
+  "refresh": {
+    "state": "idle"
+  },
+  "demoMode": true,
+  "liveResearch": false,
+  "dataState": "unauthorized",
+  "safeIssue": {
+    "code": "unauthorized",
+    "message": "You do not have access to this workspace."
+  },
+  "locale": "en-US",
+  "timeZone": "America/Los_Angeles",
+  "now": "2026-07-25T18:00:00.000Z"
+}

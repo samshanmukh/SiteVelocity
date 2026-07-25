@@ -1,0 +1,362 @@
+{
+  "activeRoute": "command-center",
+  "capabilityStates": {
+    "commandCenter": "LIVE",
+    "scout": "LIVE",
+    "map": "LIVE",
+    "siteDossier": "LIVE",
+    "agents": "ROADMAP",
+    "nextSteps": "PREVIEW"
+  },
+  "thesis": {
+    "developmentType": "multifamily",
+    "market": "San Jose, CA",
+    "acreageMin": 0.5,
+    "acreageMax": 5,
+    "minimumPotentialUnits": 20,
+    "preferredSignals": [
+      "transit",
+      "underutilized"
+    ],
+    "riskTolerance": "moderate"
+  },
+  "commandCenter": {
+    "marketsMonitored": 1,
+    "sitesScreened": 42,
+    "candidatesCount": 2,
+    "priorityOpportunities": 1,
+    "researchRuns": 3,
+    "developmentEventPreviews": [
+      {
+        "id": "evt-preview-001",
+        "label": "Entitlement timeline estimator",
+        "capabilityState": "PREVIEW",
+        "freshnessLabel": "preview"
+      },
+      {
+        "id": "evt-roadmap-001",
+        "label": "Automated underwriting pack",
+        "capabilityState": "ROADMAP",
+        "freshnessLabel": "roadmap"
+      }
+    ],
+    "freshnessLabel": "snapshot 2026-07-25"
+  },
+  "candidates": [
+    {
+      "siteId": "11111111-1111-4111-8111-111111111111",
+      "title": "Synthetic Parcel A",
+      "subtitle": "San Jose inventory listing",
+      "strategyFit": {
+        "key": "strategyFit",
+        "label": "Strategy Fit",
+        "value": 78,
+        "capabilityState": "LIVE",
+        "unit": "score_0_100"
+      },
+      "developmentReadiness": {
+        "key": "developmentReadiness",
+        "label": "Development Readiness",
+        "value": 64,
+        "capabilityState": "LIVE",
+        "unit": "score_0_100"
+      },
+      "evidenceConfidence": {
+        "key": "evidenceConfidence",
+        "label": "Evidence Confidence",
+        "value": 71,
+        "capabilityState": "LIVE",
+        "unit": "score_0_100"
+      },
+      "siteFeasibility": {
+        "key": "siteFeasibility",
+        "label": "Site Feasibility",
+        "value": null,
+        "capabilityState": "PREVIEW",
+        "unit": "score_0_100"
+      },
+      "dealPotential": {
+        "key": "dealPotential",
+        "label": "Deal Potential",
+        "value": null,
+        "capabilityState": "PREVIEW",
+        "unit": "score_0_100"
+      },
+      "signals": [
+        "transit",
+        "underutilized"
+      ],
+      "materialFlags": [
+        {
+          "id": "flag-floodplain-screen",
+          "label": "Floodplain screen required",
+          "severity": "warning",
+          "kind": "material_flag"
+        }
+      ],
+      "sourceCount": 4,
+      "freshnessLabel": "retrieved 2026-07-25",
+      "whySurfaced": "Matched thesis acreage and transit signal from government inventory.",
+      "coordinates": {
+        "lat": 37.3382,
+        "lng": -121.8863
+      },
+      "geometryProvenance": {
+        "sourceAgency": "City of San Jose",
+        "sourceDataset": "Synthetic Parcel Inventory",
+        "sourceUrl": "https://www.sanjoseca.gov/planning/example-parcel-a",
+        "retrievedAt": "2026-07-25T12:00:00.000Z",
+        "disclaimer": "Geometry is for screening only and is not a legal survey."
+      }
+    },
+    {
+      "siteId": "22222222-2222-4222-8222-222222222222",
+      "title": "Synthetic Parcel B",
+      "strategyFit": {
+        "key": "strategyFit",
+        "label": "Strategy Fit",
+        "value": 55,
+        "capabilityState": "LIVE",
+        "unit": "score_0_100"
+      },
+      "developmentReadiness": {
+        "key": "developmentReadiness",
+        "label": "Development Readiness",
+        "value": 48,
+        "capabilityState": "LIVE",
+        "unit": "score_0_100"
+      },
+      "evidenceConfidence": {
+        "key": "evidenceConfidence",
+        "label": "Evidence Confidence",
+        "value": 40,
+        "capabilityState": "LIVE",
+        "unit": "score_0_100"
+      },
+      "siteFeasibility": {
+        "key": "siteFeasibility",
+        "label": "Site Feasibility",
+        "value": null,
+        "capabilityState": "PREVIEW",
+        "unit": "score_0_100"
+      },
+      "dealPotential": {
+        "key": "dealPotential",
+        "label": "Deal Potential",
+        "value": null,
+        "capabilityState": "PREVIEW",
+        "unit": "score_0_100"
+      },
+      "signals": [
+        "infill"
+      ],
+      "materialFlags": [],
+      "sourceCount": 2,
+      "freshnessLabel": "retrieved 2026-07-24",
+      "whySurfaced": "Within market and acreage band.",
+      "coordinates": {
+        "lat": 37.34,
+        "lng": -121.89
+      }
+    }
+  ],
+  "selectedCandidateId": "11111111-1111-4111-8111-111111111111",
+  "map": {
+    "selectedSiteId": "11111111-1111-4111-8111-111111111111",
+    "candidates": [
+      {
+        "siteId": "11111111-1111-4111-8111-111111111111",
+        "lat": 37.3382,
+        "lng": -121.8863,
+        "label": "Synthetic Parcel A"
+      },
+      {
+        "siteId": "22222222-2222-4222-8222-222222222222",
+        "lat": 37.34,
+        "lng": -121.89,
+        "label": "Synthetic Parcel B"
+      }
+    ],
+    "geometryProvenanceBySiteId": {
+      "11111111-1111-4111-8111-111111111111": {
+        "sourceAgency": "City of San Jose",
+        "sourceDataset": "Synthetic Parcel Inventory",
+        "sourceUrl": "https://www.sanjoseca.gov/planning/example-parcel-a",
+        "retrievedAt": "2026-07-25T12:00:00.000Z",
+        "disclaimer": "Geometry is for screening only and is not a legal survey."
+      }
+    }
+  },
+  "dossier": {
+    "siteId": "11111111-1111-4111-8111-111111111111",
+    "title": "Synthetic Parcel A",
+    "whyFound": "Matched thesis signals from the government inventory listing.",
+    "known": [
+      "Zoning designation present in source extract"
+    ],
+    "believed": [
+      "Transit access is likely supportive"
+    ],
+    "unknown": [
+      "Title exceptions not researched"
+    ],
+    "strategyFit": {
+      "key": "strategyFit",
+      "label": "Strategy Fit",
+      "value": 78,
+      "capabilityState": "LIVE",
+      "unit": "score_0_100"
+    },
+    "developmentReadiness": {
+      "key": "developmentReadiness",
+      "label": "Development Readiness",
+      "value": 64,
+      "capabilityState": "LIVE",
+      "unit": "score_0_100"
+    },
+    "evidenceConfidence": {
+      "key": "evidenceConfidence",
+      "label": "Evidence Confidence",
+      "value": 71,
+      "capabilityState": "LIVE",
+      "unit": "score_0_100"
+    },
+    "developmentHistory": [
+      "No recorded redevelopment event in snapshot"
+    ],
+    "riskScreen": [
+      "Floodplain screen required"
+    ],
+    "findings": [
+      {
+        "id": "finding-zoning-001",
+        "field": "zoning",
+        "label": "Zoning",
+        "valueSummary": "R-M",
+        "status": "verified",
+        "evidenceLevel": "document_verified",
+        "confidence": 0.9,
+        "impact": "opportunity",
+        "evidenceDrawer": {
+          "open": false,
+          "sourceAgency": "City of San Jose",
+          "sourceName": "Zoning extract",
+          "sourceUrl": "https://www.sanjoseca.gov/planning/example-zoning",
+          "retrievedAt": "2026-07-25T12:00:00.000Z",
+          "payloadOrExcerpt": "Parcel is zoned R-M.",
+          "status": "verified",
+          "confidence": 0.9,
+          "verificationRequirement": "Confirm on official zoning map"
+        }
+      },
+      {
+        "id": "finding-units-001",
+        "field": "potential_units",
+        "label": "Potential units",
+        "valueSummary": "Unknown — insufficient source support",
+        "status": "unknown",
+        "evidenceLevel": "ai_researched",
+        "confidence": null,
+        "impact": "unknown",
+        "evidenceDrawer": {
+          "open": false,
+          "sourceAgency": "City of San Jose",
+          "sourceName": "Capacity note",
+          "sourceUrl": "https://www.sanjoseca.gov/planning/example-capacity",
+          "retrievedAt": "2026-07-25T12:00:01.000Z",
+          "payloadOrExcerpt": "Capacity not established in source.",
+          "status": "unknown",
+          "confidence": null,
+          "verificationRequirement": "Professional verification required"
+        }
+      }
+    ],
+    "evidence": [],
+    "timelineEvents": [
+      {
+        "id": "tl-001",
+        "occurredAt": "2026-07-25T12:00:00.000Z",
+        "label": "Snapshot created"
+      }
+    ],
+    "nextBestAction": {
+      "unresolvedQuestion": "Is the floodplain constraint fatal for the thesis?",
+      "importance": "high",
+      "responsibleRole": "Site Risk",
+      "knownFacts": [
+        "Floodplain screen flagged"
+      ],
+      "questionsToAsk": [
+        "What FEMA panel applies?"
+      ],
+      "requestedDocuments": [
+        "Floodplain determination letter"
+      ],
+      "expectedFollowUp": "Update risk screen after document review"
+    },
+    "geometryProvenance": {
+      "sourceAgency": "City of San Jose",
+      "sourceDataset": "Synthetic Parcel Inventory",
+      "sourceUrl": "https://www.sanjoseca.gov/planning/example-parcel-a",
+      "retrievedAt": "2026-07-25T12:00:00.000Z",
+      "disclaimer": "Geometry is for screening only and is not a legal survey."
+    }
+  },
+  "agents": [
+    {
+      "role": "Scout",
+      "status": "succeeded",
+      "workflowId": "wf-001",
+      "updatedAt": "2026-07-25T12:01:00.000Z"
+    },
+    {
+      "role": "Land Use",
+      "status": "succeeded",
+      "workflowId": "wf-001",
+      "updatedAt": "2026-07-25T12:02:00.000Z"
+    },
+    {
+      "role": "Development History",
+      "status": "succeeded",
+      "workflowId": "wf-001",
+      "updatedAt": "2026-07-25T12:03:00.000Z"
+    },
+    {
+      "role": "Site Risk",
+      "status": "running",
+      "workflowId": "wf-001",
+      "updatedAt": "2026-07-25T12:04:00.000Z"
+    },
+    {
+      "role": "Verifier",
+      "status": "pending",
+      "workflowId": "wf-001"
+    },
+    {
+      "role": "Next Best Action",
+      "status": "pending",
+      "workflowId": "wf-001"
+    }
+  ],
+  "workflow": {
+    "workflowId": "wf-001",
+    "status": "running",
+    "updatedAt": "2026-07-25T12:04:00.000Z"
+  },
+  "snapshot": {
+    "snapshotId": "snap-ready-001",
+    "status": "complete",
+    "createdAt": "2026-07-25T12:00:00.000Z",
+    "label": "Ready snapshot"
+  },
+  "refresh": {
+    "state": "idle"
+  },
+  "demoMode": true,
+  "liveResearch": false,
+  "dataState": "ready",
+  "safeIssue": null,
+  "locale": "en-US",
+  "timeZone": "America/Los_Angeles",
+  "now": "2026-07-25T18:00:00.000Z"
+}
