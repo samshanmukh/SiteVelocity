@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "1.0.0",
+  "module": "render_alpha_deployment",
+  "contractVersion": "1.0.0",
+  "prompt": {
+    "path": "prompts/modules/render-alpha-deployment_typescript.prompt",
+    "sha256": "c1e032c6d32db5fc81ccfbe8dbd5dd75db8a948290ebff1513b09dbc3bfe5663"
+  },
+  "includes": [
+    {
+      "path": "prompts/context/sitevelocity-preamble.prompt",
+      "sha256": "b85c480a146835aa25f28ba58fa6397b751aa0db8985dc2fd02f9fa0058548aa"
+    }
+  ],
+  "contractRuleIds": [
+    "R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10",
+    "R11", "R12", "R13", "R14", "R15", "R16"
+  ],
+  "generator": {
+    "name": "handwritten",
+    "version": "n/a"
+  },
+  "generatedAt": "2026-07-25T23:59:00Z",
+  "outputs": [
+    { "path": "lib/config/deployment-env.ts", "sha256": "a97b4f51b4c0bf4d9ca20af12d95447a09d44563f157763dd32de3da112f6290" },
+    { "path": "lib/config/deployment-probes.ts", "sha256": "d81cb65d5102d3f3f0e90db48c1db8f559a5e76f19325f24f63e9b63dbffa36f" },
+    { "path": "app/api/health/live/route.ts", "sha256": "adb0e52b42142533fba6da34cbeed0987ea69adf27ffdf2c2946ffcbcc867fa5" },
+    { "path": "app/api/health/ready/route.ts", "sha256": "eea51b93443391da5bbd496197ca3c35d42dc867f1a75b6fe2a570a9ced71520" },
+    { "path": "scripts/deployment-check.ts", "sha256": "b8bce26e876dfced667baa4b2e525e9560e107878ffd703ef4ff293e2c5f88d0" },
+    { "path": "scripts/db-migrate.ts", "sha256": "434ec842a86c738d992cc50fcfec69bde3e1a301bb9f56d449b147b25bce6471" },
+    { "path": "scripts/workflow-entrypoint.ts", "sha256": "9c83ad45042ee949b49414fd72fb75fc43c91bdfc25254838383942df2970e88" },
+    { "path": "scripts/test-contracts.mjs", "sha256": "4409f43875ebd468b9da0b2f01629cd3e62cab6f157dacf2a09be1ed18de7314" },
+    { "path": "render.yaml", "sha256": "bffde17ff60c625f8147f448ee0a7bea3b8c9b689db721cc97a37f2adcb121de" },
+    { "path": ".node-version", "sha256": "177d20030d4dcc37eae9ef92865ec54dadce60e8f19e9a34a5d4f37502195a36" },
+    { "path": ".github/workflows/ci.yml", "sha256": "ebd417f96da827638cce030e330ca37489997d5830e454a73a5a8d3abd4d884f" },
+    { "path": "docs/runbooks/render-deployment.md", "sha256": "ed82c4f70bd02ba779c732ada2fdeae99474f3a7a97e79d4011230588c56772c" },
+    { "path": "docs/runbooks/render-rollback.md", "sha256": "f5e7a2a9c48f1b4a998055c2fc19afaf203af4a4e0f3aed7129cf64e1d8f63a0" }
+  ],
+  "verification": [
+    { "command": "npm ci", "exitCode": 0 },
+    { "command": "npm run typecheck", "exitCode": 0 },
+    { "command": "npm run lint", "exitCode": 0 },
+    { "command": "npm test", "exitCode": 0 },
+    { "command": "npm run test:contracts -- render-alpha-deployment", "exitCode": 0 },
+    { "command": "npm run build", "exitCode": 0 },
+    { "command": "npm audit --audit-level=high", "exitCode": 0 },
+    { "command": "npm run deployment:check -- --target=render --static", "exitCode": 0 }
+  ],
+  "ruleCoverage": [
+    { "ruleId": "R1", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R1"] },
+    { "ruleId": "R2", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R2"] },
+    { "ruleId": "R3", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R3"] },
+    { "ruleId": "R4", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R4"] },
+    { "ruleId": "R5", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R5"] },
+    { "ruleId": "R6", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R6"] },
+    { "ruleId": "R7", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R7"] },
+    { "ruleId": "R8", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R8"] },
+    { "ruleId": "R9", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R9"] },
+    { "ruleId": "R10", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R10"] },
+    { "ruleId": "R11", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R11"] },
+    { "ruleId": "R12", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R12"] },
+    { "ruleId": "R13", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R13"] },
+    { "ruleId": "R14", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R14"] },
+    { "ruleId": "R15", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R15"] },
+    { "ruleId": "R16", "tests": ["tests/contracts/render-alpha-deployment.contract.test.ts::R16"] }
+  ],
+  "accepted": true,
+  "reviewer": "Chris Dougherty (dogsleddev)",
+  "notes": "Implementation authored directly against the contract (no pdd generate step available in this pass); all 16 rules pass the strict contract check and the full recorded verification command sequence."
+}
