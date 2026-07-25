@@ -1,0 +1,197 @@
+% You are an expert TypeScript platform engineer. Implement `render_alpha_deployment`: the deterministic deployment-readiness contract that releases one already-implemented SiteVelocity Alpha version to Render.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+
+<pdd-reason>Generates and verifies the declarative artifacts required to release one already-implemented SiteVelocity Alpha version to Render without provisioning accounts or implementing application and domain behavior.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[
+  {"name":"parseDeploymentEnv","signature":"(source: Record<string, string | undefined>) -> DeploymentEnvParseResult","returns":"DeploymentEnvParseResult"},
+  {"name":"evaluateReadiness","signature":"(parsed: DeploymentEnvParseResult, probe: DependencyProbe) -> DeploymentReadinessResult","returns":"DeploymentReadinessResult"},
+  {"name":"readinessHttpStatus","signature":"(result: DeploymentReadinessResult) -> 200 | 503","returns":"200 | 503"},
+  {"name":"planRollback","signature":"(state: ReleaseState) -> RollbackPlan","returns":"RollbackPlan"},
+  {"name":"filterPendingMigrations","signature":"(files: string[], journal: string[]) -> MigrationSelection","returns":"MigrationSelection"},
+  {"name":"scanForSecretLeaks","signature":"(files: ScannedFile[], secretNames: string[]) -> SecretScanFinding[]","returns":"SecretScanFinding[]"}]}}
+</pdd-interface>
+
+<responsibility>
+Evaluate one deployment environment and one dependency probe into exactly one deployment-readiness decision, and provide the deterministic helper decisions (rollback planning, pending-migration selection, secret-leak scanning) that the Render release pipeline and its declarative artifacts rely on.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT provision external accounts, databases, domains, certificates, or secret values.
+- DOES NOT design schemas or generate migration SQL.
+- DOES NOT implement application, provider, workflow, scoring, finance, or UI behavior.
+- DOES NOT execute destructive database rollback or cancel in-flight workflow runs.
+- DOES NOT spend live provider credit inside deterministic contract tests.
+- DOES NOT create or configure any hosting target other than Render.
+</non_responsibilities>
+
+<vocabulary>
+- valid: a value that satisfies the declared type and format for its variable — a URL variable parses as an absolute http or https URL; a boolean variable is exactly "true" or "false".
+- invalid: a value that is present but not valid.
+- required variable: a variable the active mode declares mandatory in the mode-dependent variable matrix below.
+- presence-only: checked for existence and non-blankness only; the value itself is never copied into any output.
+- ready: a dependency probe entry whose state is "ready", or a readiness result whose state is "ready".
+- blocked: a readiness result whose state is "blocked"; it carries at least one stable reason code.
+- stable reason code: one member of the closed ReasonCode union; codes are never invented at runtime.
+- mode: the pair of booleans DEMO_MODE and LIVE_RESEARCH after validation.
+- mode conflict: the state where DEMO_MODE and LIVE_RESEARCH are both false.
+- required dependency: in demo mode, persistence and the stored snapshot; when live research is enabled, the Render, Rtrvr, and MiniMax providers.
+- optional provider: any probe entry outside the required dependencies for the active mode.
+- down migration: a migration file whose name contains the marker ".down." before its extension.
+- pending migration: a migration file not recorded in the applied journal and not a down migration.
+- last known good release: the release identifier recorded in LAST_KNOWN_GOOD_RELEASE_ID.
+- active snapshot: the stored Research Snapshot identified by DEMO_SNAPSHOT_ID that the running release serves.
+- secret name: a variable name in the declared secret-name map; its value is presence-only.
+- leak: a secret name carrying a non-blank value inside a declarative artifact, or a NEXT_PUBLIC_-prefixed variable whose name embeds a secret name.
+- deterministic: producing structurally identical output for structurally identical input, with no clock, randomness, network, or filesystem reads.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Produce structurally identical outputs for structurally identical inputs; no function in this module reads the clock, randomness, the network, or the filesystem.
+R2 (MUST): Accept only Node major 22 as the pinned runtime: the repository pins 22 in `.node-version`, `package.json` engines, `render.yaml` NODE_VERSION, and CI uses the `.node-version` file, and the recorded install command is `npm ci`.
+R3 (MUST): Gate promotion, in order, on typecheck, lint, unit tests, contract tests, production build, and a high-severity dependency audit, as encoded in `.github/workflows/ci.yml` without modifying `pdd-secrets-dispatch.yml`.
+R4 (MUST): Deploy the web and workflow services from the same repository and branch in one Blueprint so both resolve to the same release commit, and record that release identifier in the readiness result.
+R5 (MUST): Use `/api/health/live` as the only platform health-check path; the liveness route performs no database, provider, or network access and responds with Cache-Control "no-store".
+R6 (MUST): Return readiness state "ready" (HTTP 200) only when the environment parses with zero issues and every required dependency is ready; otherwise return "blocked" (HTTP 503) carrying stable reason codes and the missing variable names.
+R7 (MUST): Treat persistence plus the stored snapshot as required dependencies in demo mode, and the Render, Rtrvr, and MiniMax providers as required dependencies when live research is enabled; an optional provider state never changes the readiness state.
+R8 (MUST): Reject invalid URL values, invalid boolean values, missing required variables, a production APP_BASE_URL that is not https, and a mode conflict, each with its own stable reason code and, where applicable, the variable name.
+R9 (MUST NOT): Copy any secret value into parse results, readiness results, rollback plans, scan findings, diagnostics, logs, generated manifests, or NEXT_PUBLIC_ variables; secret names are presence-only.
+R10 (MUST): Select every pending migration exactly once, in lexical order, and treat any migration failure as blocking promotion.
+R11 (MUST NOT): Select a down migration for automatic execution, and a rollback plan never schedules a database migration.
+R12 (MUST): Bound post-deploy smoke verification to the liveness and readiness routes with finite timeouts, and treat a smoke failure as blocking acceptance of the release.
+R13 (MUST): On build, migration, readiness, or smoke failure, plan rollback to the last known good release when one is recorded, and otherwise hold, in both cases preserving the active snapshot.
+R14 (MUST): Declare in every rollback plan that existing workflow runs are preserved; a rollback plan never duplicates or cancels work.
+R15 (MUST NOT): Use `/api/integrations` as a platform health path, and a readiness response never embeds provider diagnostic messages, latencies, or URLs — only stable reason codes and variable names.
+R16 (MUST NOT): Emit instructions or artifacts that provision secrets, accounts, domains, databases, or an alternate hosting target.
+</contract_rules>
+
+<interface_types>
+
+The module declares and exports these types. No provider SDK type appears in the interface.
+
+```ts
+export type ReasonCode =
+  | "missing_required_variable"
+  | "invalid_url"
+  | "invalid_boolean"
+  | "insecure_production_url"
+  | "mode_conflict"
+  | "persistence_unready"
+  | "snapshot_unready"
+  | "render_unready"
+  | "rtrvr_unready"
+  | "minimax_unready";
+
+export interface DeploymentEnvIssue {
+  code: ReasonCode;
+  variable?: string; // name only, never a value
+}
+
+export interface DeploymentEnv {
+  appBaseUrl: string;
+  demoMode: boolean;
+  liveResearch: boolean;
+  nodeEnv: "production" | "development" | "test";
+  releaseId: string | null;            // RELEASE_SHA ?? RENDER_GIT_COMMIT ?? null
+  demoSnapshotId: string | null;       // required in demo mode
+  lastKnownGoodReleaseId: string | null;
+  presentSecretNames: string[];        // names only, presence-only check
+}
+
+export type DeploymentEnvParseResult =
+  | { status: "parsed"; env: DeploymentEnv }
+  | { status: "rejected"; issues: DeploymentEnvIssue[] };
+
+export type DependencyState = "ready" | "unready" | "skipped";
+
+export interface DependencyProbe {
+  persistence: DependencyState;
+  storedSnapshot: DependencyState;
+  render: DependencyState;
+  rtrvr: DependencyState;
+  minimax: DependencyState;
+  optional?: Record<string, DependencyState>; // never gates readiness
+}
+
+export interface DeploymentReadinessResult {
+  state: "ready" | "blocked";
+  reasonCodes: ReasonCode[];   // deduplicated, sorted, stable
+  missingVariables: string[];  // names only
+  releaseId: string | null;
+  diagnostics: {
+    demoMode: boolean | null;
+    liveResearch: boolean | null;
+    checkedDependencies: string[];
+  };
+}
+
+export interface ReleaseState {
+  candidateReleaseId: string;
+  lastKnownGoodReleaseId: string | null;
+  activeSnapshotId: string | null;
+  failure: "build" | "migration" | "readiness" | "smoke" | null;
+}
+
+export interface RollbackPlan {
+  action: "promote" | "rollback" | "hold";
+  targetReleaseId: string | null;
+  runsDatabaseMigration: false;
+  preservesActiveSnapshot: true;
+  preservedActiveSnapshotId: string | null;
+  preservesWorkflowRuns: true;
+}
+
+export interface MigrationSelection {
+  pending: string[];  // lexical order, each file at most once
+  refusedDownMigrations: string[];
+}
+
+export interface ScannedFile {
+  path: string;
+  content: string;
+}
+
+export interface SecretScanFinding {
+  file: string;
+  code: "secret_value_present" | "public_secret_name";
+  variable: string; // name only
+}
+```
+
+Mode-dependent variable matrix for `parseDeploymentEnv`:
+
+- Always required: `APP_BASE_URL` (URL), `DEMO_MODE` (boolean), `LIVE_RESEARCH` (boolean).
+- Demo mode additionally requires: `DEMO_SNAPSHOT_ID`, plus presence-only `SUPABASE_URL` and one of `SUPABASE_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_PUBLISHABLE_KEY`.
+- Live research additionally requires presence-only: `RENDER_API_KEY`, `RENDER_WORKFLOW_TASK_SLUG`, `RTRVR_API_KEY`, `MINIMAX_API_KEY`.
+- Read but never required: `NODE_ENV`, `RELEASE_SHA`, `RENDER_GIT_COMMIT`, `LAST_KNOWN_GOOD_RELEASE_ID`.
+
+Export exactly the six public functions declared in the pdd-interface.
+
+</interface_types>
+
+<coverage>
+R1: tests/contracts/render-alpha-deployment.contract.test.ts :: R1
+R2: tests/contracts/render-alpha-deployment.contract.test.ts :: R2 (static)
+R3: tests/contracts/render-alpha-deployment.contract.test.ts :: R3 (static)
+R4: tests/contracts/render-alpha-deployment.contract.test.ts :: R4 (static)
+R5: tests/contracts/render-alpha-deployment.contract.test.ts :: R5
+R6: tests/contracts/render-alpha-deployment.contract.test.ts :: R6
+R7: tests/contracts/render-alpha-deployment.contract.test.ts :: R7
+R8: tests/contracts/render-alpha-deployment.contract.test.ts :: R8
+R9: tests/contracts/render-alpha-deployment.contract.test.ts :: R9 (negative)
+R10: tests/contracts/render-alpha-deployment.contract.test.ts :: R10
+R11: tests/contracts/render-alpha-deployment.contract.test.ts :: R11 (negative)
+R12: tests/contracts/render-alpha-deployment.contract.test.ts :: R12
+R13: tests/contracts/render-alpha-deployment.contract.test.ts :: R13
+R14: tests/contracts/render-alpha-deployment.contract.test.ts :: R14
+R15: tests/contracts/render-alpha-deployment.contract.test.ts :: R15 (negative)
+R16: tests/contracts/render-alpha-deployment.contract.test.ts :: R16 (negative, static)
+</coverage>
+
+<deliverables>
+Generate the implementation as a single module at `lib/config/deployment-env.ts` exporting exactly the six declared functions and their types.
+The declarative artifacts governed by rules R2–R5 and R15–R16 are maintained at their repository paths (`render.yaml`, `.node-version`, `.github/workflows/ci.yml`, `app/api/health/live/route.ts`, `app/api/health/ready/route.ts`, `scripts/deployment-check.ts`, `docs/runbooks/`) and are verified statically by the contract tests.
+Contract tests already exist at `tests/contracts/render-alpha-deployment.contract.test.ts` and must not be modified by generation.
+</deliverables>

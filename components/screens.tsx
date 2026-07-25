@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import {
   agentLabel,
-  barColor,
   runStatusColor,
   siteStatus,
   type AppData,
@@ -270,6 +269,7 @@ export function OpportunityMap({ data, ui, patch, openPane }: { data: AppData; u
 
 /* ------------------------------------------------------------------ */
 export function SitesList({ data, patch, openPane }: { data: AppData; patch: Patch; openPane: OpenPane }) {
+  void openPane;
   const sites = data.candidates?.sites ?? [];
   return (
     <div>

@@ -129,6 +129,7 @@ async function main(): Promise<void> {
     let parcelCandidate = null;
     if (parcel) {
       const { the_geom: _geom, ...parcelAttributes } = parcel;
+      void _geom;
       const parcelResult = normalizeCandidate({
         source: {
           agency: SCC_PARCELS.agency,

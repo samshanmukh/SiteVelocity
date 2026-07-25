@@ -1,0 +1,99 @@
+# Render Blueprint for the SiteVelocity Alpha.
+# Render is the exclusive hosting target; web and workflow services deploy from
+# the same repository and branch, so both resolve to the same release commit.
+# Secrets are presence-only here (sync: false) — values live in the Render
+# dashboard environment, never in this file.
+# Platform health checks use the liveness route, never the provider-diagnostics route.
+
+services:
+  - type: web
+    name: sitevelocity-web
+    runtime: node
+    plan: starter
+    region: oregon
+    branch: master
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    preDeployCommand: npm run db:migrate
+    healthCheckPath: /api/health/live
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 22.16.0
+      - key: NODE_ENV
+        value: production
+      - key: DEMO_MODE
+        value: "true"
+      - key: LIVE_RESEARCH
+        value: "false"
+      - key: APP_BASE_URL
+        sync: false
+      - key: DEMO_SNAPSHOT_ID
+        sync: false
+      - key: LAST_KNOWN_GOOD_RELEASE_ID
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: RENDER_API_KEY
+        sync: false
+      - key: RENDER_WORKFLOW_TASK_SLUG
+        sync: false
+      - key: RTRVR_API_KEY
+        sync: false
+      - key: MINIMAX_API_KEY
+        sync: false
+      - key: MINIMAX_MODEL
+        value: MiniMax-M2.7
+      - key: RESEARCH_URL_ALLOWLIST
+        sync: false
+      - key: WEBHOOK_SIGNING_SECRET
+        sync: false
+
+  - type: worker
+    name: sitevelocity-workflow
+    runtime: node
+    plan: starter
+    region: oregon
+    branch: master
+    buildCommand: npm ci
+    startCommand: npm run workflow:start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 22.16.0
+      - key: NODE_ENV
+        value: production
+      - key: DEMO_MODE
+        value: "true"
+      - key: LIVE_RESEARCH
+        value: "false"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: RENDER_API_KEY
+        sync: false
+      - key: RENDER_WORKFLOW_TASK_SLUG
+        sync: false
+      - key: RTRVR_API_KEY
+        sync: false
+      - key: MINIMAX_API_KEY
+        sync: false
+      - key: MINIMAX_MODEL
+        value: MiniMax-M2.7
+      - key: RESEARCH_URL_ALLOWLIST
+        sync: false
+      - key: WEBHOOK_SIGNING_SECRET
+        sync: false

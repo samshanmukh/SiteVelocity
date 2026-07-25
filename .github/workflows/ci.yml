@@ -1,0 +1,49 @@
+# Promotion gate for the Render Alpha (render-alpha-deployment R3).
+# Order is contractual: typecheck -> lint -> unit tests -> contract tests ->
+# production build -> high-severity dependency audit.
+# pdd-secrets-dispatch.yml is managed by the PDD GitHub App and is not touched here.
+
+name: CI
+
+on:
+  push:
+    branches: [master, "pdd/**", "chris/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Contract tests
+        run: npm run test:contracts
+
+      - name: Production build
+        run: npm run build
+
+      - name: Dependency audit (high severity)
+        run: npm audit --audit-level=high
+
+      - name: Deployment artifact check (static)
+        run: npm run deployment:check -- --target=render --static

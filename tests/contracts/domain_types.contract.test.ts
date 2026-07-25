@@ -159,6 +159,7 @@ test("R3: evidence metadata round-trip; missing checksum/source fails", opts, as
 
   assertErr(mod.parseEvidence(validEvidence({ checksum: undefined })));
   const { source: _drop, ...withoutSource } = validEvidence();
+  void _drop;
   assertErr(mod.parseEvidence(withoutSource));
 });
 

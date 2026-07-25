@@ -40,6 +40,7 @@ export function PaneContent({ data, site, snapshot, ui, patch, openPane }: {
 }
 
 function OverviewPane({ data, site, snapshot, patch, openPane }: { data: AppData; site: CandidateSite; snapshot: SnapshotView | undefined; patch: Patch; openPane: OpenPane }) {
+  void data;
   const status = siteStatus(site, snapshot);
   const topTimeline = snapshot?.timeline[0];
   return (

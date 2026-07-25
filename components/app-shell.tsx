@@ -4,7 +4,6 @@ import { useCallback, useMemo, useState } from "react";
 import {
   NAV_GROUPS,
   type AppData,
-  type ModuleId,
   type NavItem,
   type PaneMode,
   type UiState,

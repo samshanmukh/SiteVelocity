@@ -61,6 +61,7 @@ export function Dossier({ data, site, snapshot, ui, patch, openPane }: {
   patch: Patch;
   openPane: OpenPane;
 }) {
+  void data;
   const status = siteStatus(site, snapshot);
   const openEvidence = (evidenceId: string | null, from: PaneMode = "overview") =>
     openPane("evidence", { evidenceId, prevMode: from });

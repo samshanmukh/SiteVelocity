@@ -2,12 +2,20 @@
   "name": "sitevelocity",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
     "test": "node --import tsx --test \"tests/unit/**/*.test.ts\" \"tests/contracts/**/*.test.ts\"",
+    "test:contracts": "node scripts/test-contracts.mjs",
+    "db:migrate": "tsx scripts/db-migrate.ts",
+    "workflow:start": "tsx scripts/workflow-entrypoint.ts",
+    "deployment:check": "tsx scripts/deployment-check.ts",
     "pdd:check": "bash scripts/pdd-check.sh",
     "pdd:estimate": "bash scripts/pdd-estimate.sh",
     "ingest": "tsx scripts/ingest-candidates.ts",
@@ -35,16 +43,20 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "eslint": "^9.0.0",
     "autoprefixer": "10.4.27",
     "jsdom": "28.1.0",
     "playwright": "1.58.2",
     "postcss": "8.5.23",
     "tailwindcss": "3.4.19",
     "tsx": "^4.0.0",
-    "typescript": "5.9.3"
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.0.0",
+    "yaml": "^2.0.0"
   },
   "overrides": {
     "postcss": "8.5.23",
-    "sharp": "0.35.3"
+    "sharp": "0.35.3",
+    "brace-expansion": "5.0.8"
   }
 }

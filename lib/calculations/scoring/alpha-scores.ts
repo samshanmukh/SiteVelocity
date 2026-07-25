@@ -106,7 +106,7 @@ export const developmentReadiness = registerCalculation<ReadinessInput, ScoreOut
   execute(input) {
     const drivers: ScoreDriver[] = [];
     const warnings: string[] = [];
-    let base = 20; // every candidate starts with baseline friction assumed
+    const base = 20; // every candidate starts with baseline friction assumed
 
     switch (input.zoningStatus) {
       case "residential_supported":
