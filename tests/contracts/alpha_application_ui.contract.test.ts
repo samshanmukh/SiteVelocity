@@ -19,7 +19,10 @@ const genOpts = modulePath ? {} : { skip: skipReason(MODULE) };
 
 const FIXTURE_DIR = path.resolve(process.cwd(), "tests/fixtures/ui");
 const PRODUCT_ROUTES = [
-  "app/(product)/command-center/page.tsx",
+  // Segment 8 already owns the production Command Center route outside the
+  // route group; keep that full implementation instead of mounting a stub at
+  // the same URL through app/(product).
+  "app/command-center/page.tsx",
   "app/(product)/scout/page.tsx",
   "app/(product)/map/page.tsx",
   "app/(product)/sites/[siteId]/page.tsx",
