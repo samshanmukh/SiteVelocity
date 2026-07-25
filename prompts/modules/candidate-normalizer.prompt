@@ -1,22 +1,26 @@
 % Implement the provider-independent normalization contract for one raw government candidate record.
+% Legacy hyphenated path. Segment 3 superseding path is `candidate_normalizer_typescript.prompt` when that lands — do not create both long-term.
 
-<include>../context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/sitevelocity-preamble.prompt</include>
 
 <responsibility>
 Convert one raw candidate record whose source mapping has already been declared into a canonical candidate-normalization result.
 </responsibility>
 
 <non_responsibilities>
-Do not fetch source data.
-Do not infer an undeclared source schema.
-Do not enrich parcel geometry or zoning.
-Do not deduplicate, qualify, rank, or label a record as a development opportunity.
+- DOES NOT fetch source data.
+- DOES NOT infer an undeclared source schema.
+- DOES NOT enrich parcel geometry or zoning.
+- DOES NOT deduplicate, qualify, rank, or label a record as a development opportunity.
 </non_responsibilities>
 
 <vocabulary>
-Source mapping identifies which raw fields correspond to canonical fields and which transforms are allowed.
-Canonical jurisdiction for Alpha is San José, California.
-APN normalization removes declared presentation separators but does not manufacture missing digits.
+source mapping: identifies which raw fields correspond to canonical fields and which transforms are allowed.
+canonical jurisdiction: for Alpha is San José, California.
+apn normalization: removes declared presentation separators but does not manufacture missing digits.
+valid: conforming to the declared source-identity and numeric domain checks in this module.
+invalid: failing a required source-identity field, raw payload shape, or post-normalization location identity check.
+complete: a numeric field value that is present in full, finite, and within its declared domain bounds.
 </vocabulary>
 
 <contract_rules>

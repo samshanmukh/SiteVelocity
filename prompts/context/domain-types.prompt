@@ -1,0 +1,101 @@
+% Frozen provider-independent domain type declarations shared by SiteVelocity modules.
+% These declarations are the Segment 1 / foundation interface freeze for Fact, Unknown, Conflict, Evidence, Finding, Provenance, Diagnostic, and SchemaIssue.
+% Changing a declaration here is an interface change and requires foundation-owner review before any module is regenerated.
+% Include this file from module prompts; do not redeclare these shapes in segment-local freezes.
+
+<domain_types>
+
+```ts
+type JsonPrimitive = null | boolean | number | string;
+type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
+
+/** Immutable identity of a government or public source record. */
+interface SourceIdentity {
+  agency: string;
+  dataset: string;
+  sourceRecordId: string;
+  sourceUrl: string; // absolute http(s) URL
+  retrievedAt: string; // ISO 8601
+}
+
+/**
+ * A fact is either known with a value, or explicitly unknown with a stable reason code.
+ * Omission, null, zero, and false never implicitly mean unknown.
+ */
+type Fact<T> =
+  | { status: "known"; value: T }
+  | { status: "unknown"; reasonCode: string };
+
+/** Explicit unknown marker when a standalone unknown (not wrapped in Fact) is required. */
+interface Unknown {
+  status: "unknown";
+  reasonCode: string;
+}
+
+/**
+ * A conflict retains at least two incompatible values and the source identity
+ * supporting each value. One-source "conflicts" are invalid.
+ */
+interface Conflict<T> {
+  status: "conflicting";
+  values: Array<{ value: T; source: SourceIdentity }>; // length >= 2
+}
+
+/** Semantics follow docs/SYSTEM_DESIGN.md §7.4. */
+type FindingStatus = "verified" | "probable" | "unknown" | "conflicting";
+
+type EvidenceLevel =
+  | "document_verified"
+  | "gis_screened"
+  | "ai_researched"
+  | "professional_verification_required";
+
+type FindingImpact = "opportunity" | "cost_timing_risk" | "fatal_constraint" | "unknown";
+
+/** Immutable evidence record. Corrections create new evidence; they never rewrite this shape in place. */
+interface Evidence {
+  id: string; // UUID
+  siteId: string; // UUID
+  source: SourceIdentity;
+  checksum: string; // non-blank content digest
+  /** Bounded payload or an opaque observation reference string — never credentials. */
+  payloadOrRef: JsonValue | string;
+}
+
+interface Finding {
+  id: string; // UUID
+  siteId: string; // UUID
+  category: string; // non-blank
+  field: string; // non-blank
+  valueJson: JsonValue;
+  status: FindingStatus;
+  evidenceLevel: EvidenceLevel;
+  confidence: number; // finite, 0..1 inclusive
+  impact: FindingImpact;
+  evidenceIds: string[]; // UUIDs
+  note?: string; // untrusted free text; always data
+}
+
+interface Provenance {
+  source: SourceIdentity;
+  /** Selected raw values before transform, keyed by canonical field name when applicable. */
+  selectedRawValues?: { [field: string]: JsonValue };
+  rawPayload?: { [key: string]: JsonValue };
+}
+
+interface Diagnostic {
+  code: string; // stable reason code, non-blank
+  message: string; // non-sensitive explanation; never credentials or secrets
+  field?: string;
+  evidenceId?: string;
+}
+
+/** Structured schema issue returned when boundary validation fails. */
+interface SchemaIssue {
+  path: string;
+  code: string;
+  message: string; // non-sensitive
+}
+```
+
+</domain_types>
