@@ -1,0 +1,129 @@
+% You are an expert TypeScript engineer. Implement `research_snapshot_selector`: select the read snapshot for one site without mutating snapshot history.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/evidence_domain_types.prompt</include>
+
+<pdd-reason>Selects the latest trustworthy Research Snapshot for reads, with explicit partial fallback and visible staleness.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[
+  {"name":"selectResearchSnapshot","signature":"(input: SnapshotSelectionInput) -> SnapshotSelectionResult","returns":"SnapshotSelectionResult"}]}}
+</pdd-interface>
+
+<responsibility>
+Choose exactly one snapshot manifest (or none) to serve reads for one site, from immutable snapshot history, an explicit partial policy, a freshness policy, and a read timestamp.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT create, refresh, repair, merge, or delete snapshots or their contents.
+- DOES NOT load or validate the findings, evidence, or events a snapshot references.
+- DOES NOT define partial or freshness policy; it applies only the supplied policies.
+- DOES NOT schedule refreshes or decide whether a refresh should run.
+</non_responsibilities>
+
+<vocabulary>
+- Blank: a string that is empty or contains only whitespace.
+- Valid manifest: non-blank `id` and `siteId`; `createdAt` and `sourceCutoff` parse as ISO 8601 timestamps with `sourceCutoff` <= `createdAt`; `runIds` non-empty with no blank entry; category names non-blank and unique; `status` one of the declared statuses; and a `complete` manifest has every category entry with status `complete`.
+- Invalid: a manifest that fails any valid-manifest condition.
+- Matching manifest: a valid manifest whose `siteId` equals the input `siteId`.
+- Eligible complete snapshot: a matching manifest with status `complete`.
+- Eligible partial snapshot: a matching manifest with status `partial`, where `partialPolicy.allowPartial` is true, every category in `partialPolicy.requiredCategories` has status `complete`, and the count of non-`complete` category entries is at most `partialPolicy.maxMissingCategories`. A partial manifest failing any of these is incomplete beyond policy.
+- Recency order: greater `sourceCutoff` first (compared as epoch milliseconds), then greater `createdAt`, then greater `id` by code-unit order. Latest = first in recency order. This is the approved deterministic tie-breaker.
+- Effective category date: the category entry's `sourceDate`, or the manifest's `sourceCutoff` when `sourceDate` is null.
+- Stale category: a category whose effective date is more than its max age in days before `readAt`; max age is `freshnessPolicy.maxAgeDaysByCategory[category]`, falling back to `defaultMaxAgeDays`; a null fallback means never stale.
+- Missing categories: category entries with status `missing` or `failed`.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Select the latest eligible complete snapshot with reason code `latest_complete` whenever at least one exists, even when a partial, failed, or invalid manifest precedes it in the recency order.
+R2 (MUST): Select the latest eligible partial snapshot with reason code `partial_fallback` only when no eligible complete snapshot exists.
+R3 (MUST): Never select a manifest that is failed, rejected, invalid, non-matching, or incomplete beyond policy.
+R4 (MUST): Return the same selection whether or not the input additionally contains manifests excluded by R3 — a newer failed refresh never displaces the previously selectable valid snapshot.
+R5 (MUST): Report the selected snapshot's ID, status, `sourceCutoff`, `createdAt`, `runIds`, stale categories, and missing categories exactly as derived from that one manifest and the freshness policy, never hiding staleness.
+
+R6 (MUST): Order candidates only by the recency order, resolving equal timestamps with its declared tie-breaker; derive every field of the result from the single selected manifest and never merge fields across manifests; and, for every input matching the declared shape, produce identical output for structurally identical input, never mutate the input, and never throw.
+
+R7 (MUST): Return `selection: "none"` with reason code `no_snapshots` when the manifest list is empty, and `no_eligible_snapshot` when manifests exist but none is eligible.
+</contract_rules>
+
+<interface_types>
+
+The shared types `SnapshotStatus`, `SnapshotCategoryStatus`, and `SnapshotManifest` are declared in the included evidence-domain types and are frozen. This module additionally declares:
+
+```ts
+interface PartialPolicy {
+  allowPartial: boolean;
+  requiredCategories: string[];
+  maxMissingCategories: number;
+}
+
+interface FreshnessPolicy {
+  maxAgeDaysByCategory: { [category: string]: number };
+  defaultMaxAgeDays: number | null; // null = never stale by default
+}
+
+interface SnapshotSelectionInput {
+  siteId: string;
+  manifests: SnapshotManifest[];
+  partialPolicy: PartialPolicy;
+  freshnessPolicy: FreshnessPolicy;
+  readAt: string; // ISO 8601
+}
+
+type SelectedReasonCode = "latest_complete" | "partial_fallback";
+type NoneReasonCode = "no_snapshots" | "no_eligible_snapshot";
+
+interface SelectedSnapshot {
+  selection: "complete" | "partial"; // mirrors the selected manifest's status
+  snapshotId: string;
+  status: "complete" | "partial";
+  sourceCutoff: string;
+  createdAt: string;
+  runIds: string[];
+  staleCategories: string[];   // stale category names, in the manifest's category order
+  missingCategories: string[]; // missing/failed category names, in the manifest's category order
+  reasonCode: SelectedReasonCode;
+}
+
+interface NoSnapshot {
+  selection: "none";
+  reasonCode: NoneReasonCode;
+}
+
+type SnapshotSelectionResult = SelectedSnapshot | NoSnapshot;
+```
+
+Export exactly one public function:
+
+```ts
+export function selectResearchSnapshot(input: SnapshotSelectionInput): SnapshotSelectionResult;
+```
+
+</interface_types>
+
+<coverage>
+R1: tests/contracts/research_snapshot_selector.contract.test.ts :: R1
+R2: tests/contracts/research_snapshot_selector.contract.test.ts :: R2
+R3: tests/contracts/research_snapshot_selector.contract.test.ts :: R3
+R4: tests/contracts/research_snapshot_selector.contract.test.ts :: R4
+R5: tests/contracts/research_snapshot_selector.contract.test.ts :: R5
+R6: tests/contracts/research_snapshot_selector.contract.test.ts :: R6
+R7: tests/contracts/research_snapshot_selector.contract.test.ts :: R7
+P1: covered by R5 test (cutoff, creation time, and run IDs preserved without reinterpretation)
+P2: covered by R5 test (staleness and missing categories reported, never hidden)
+P3: covered by R6 test (no cross-manifest merging; competing manifests preserved as-is)
+P4: covered by R6 test
+P5: covered by R3 test (invalid manifests are excluded, not repaired)
+P6: tests/contracts/research_snapshot_selector.contract.test.ts :: P6 (negative)
+P7: covered by R5 and R6 tests (result contains only data from one input manifest)
+P8: tests/contracts/research_snapshot_selector.contract.test.ts :: P8 (plain-data result)
+</coverage>
+
+<acceptance_gate>
+Complete, permitted partial, validity, recency ordering, and tie-break definitions above are explicit and fixture-backed before generation is accepted.
+</acceptance_gate>
+
+<deliverables>
+Generate the implementation only, as a single module exporting `selectResearchSnapshot`.
+Contract tests already exist at `tests/contracts/research_snapshot_selector.contract.test.ts` and must not be modified by generation.
+</deliverables>

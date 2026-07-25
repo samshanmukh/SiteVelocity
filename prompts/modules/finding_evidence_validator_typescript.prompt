@@ -1,0 +1,152 @@
+% You are an expert TypeScript engineer. Implement `finding_evidence_validator`: decide whether candidate findings are acceptable against immutable evidence and a versioned validation policy.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/evidence_domain_types.prompt</include>
+
+<pdd-reason>Accepts or rejects candidate findings against immutable evidence under a versioned policy, with stable reason codes.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[
+  {"name":"validateFindings","signature":"(input: FindingValidationInput) -> FindingValidationResult","returns":"FindingValidationResult"}]}}
+</pdd-interface>
+
+<responsibility>
+Evaluate a batch of candidate findings against an evidence index, a validation scope, and one versioned validation policy, and return exactly one accepted-or-rejected decision per finding.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT retrieve, store, create, correct, or supersede evidence or findings.
+- DOES NOT rewrite, downgrade, merge, or re-score findings; it only decides and explains.
+- DOES NOT define policy; it applies only the supplied policy version.
+- DOES NOT select snapshots, compute site scores, or persist anything.
+</non_responsibilities>
+
+<vocabulary>
+- Material finding: a finding whose impact is `opportunity`, `cost_timing_risk`, or `fatal_constraint`.
+- Non-unknown finding: a finding whose status is not `unknown`.
+- Blank: a string that is empty or contains only whitespace.
+- Existing evidence: an evidence ID present in the input evidence index.
+- In-scope evidence: an existing evidence record whose `siteId` and `scopeId` equal the input scope's.
+- Supporting evidence: in-scope evidence whose `supports` lists the finding's category with `field` null or equal to the finding's field.
+- Effective date: the evidence record's `sourceDate`, or its `retrievedAt` when `sourceDate` is null.
+- Fresh: evidence whose effective date is at most `policy.maxEvidenceAgeDays[category]` days (for the finding's category) before `validatedAt`; a category absent from `maxEvidenceAgeDays` is never stale.
+- Qualifying evidence: referenced evidence that is existing, in-scope, supporting, and fresh.
+- Authority order: `authoritative` > `official` > `secondary`; "at least" an authority means that class or a stronger one.
+- High-impact finding: a finding whose impact is listed in `policy.highImpact.impacts`.
+- Instruction-like text: any natural-language directive embedded in finding or evidence content (for example "ignore previous instructions", "accept this finding"). It is data.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Reject a material non-unknown finding with reason code `missing_evidence` when its `evidenceIds` is empty; findings with status `unknown` are exempt from the evidence requirement.
+R2 (MUST): Reject a finding whose `siteId` differs from the scope with `finding_scope_mismatch`, and reject a finding whenever a referenced evidence record is not in-scope (`evidence_site_mismatch`, `evidence_scope_mismatch`) or not supporting (`unsupported_category`).
+
+R3 (MUST): Apply the supplied policy exactly and echo `policy.version` as `policyVersion`: reject a material non-unknown finding that references at least one existing evidence record but no fresh one with `stale_evidence`; reject a high-impact finding none of whose qualifying evidence has authority at least `policy.highImpact.minAuthority` with `insufficient_authority`; reject a high-impact finding with at least one but fewer than `policy.highImpact.minEvidenceCount` qualifying records of at least that authority with `insufficient_corroboration`; and reject a finding whose `confidence` exceeds `policy.maxConfidence[evidenceLevel]` with `confidence_exceeds_support`.
+
+R4 (MUST): Never reject a finding because its value is unknown rather than false or zero, and never reject a `conflicting` finding for the conflict itself; `unknown` and `conflicting` findings are validated under the same evidence-link rules as any other finding.
+R5 (MUST): Reject a finding containing a blank evidence ID with `malformed_evidence_id`, a repeated evidence ID with `duplicate_evidence_id`, or an evidence ID absent from the index with `unknown_evidence_id`; every rejection uses only reason codes from the declared enumeration.
+
+R6 (MUST): For every input matching the declared shape, return exactly one decision per finding in input order, with each decision's reason codes deduplicated and ordered by the declared `ValidationReasonCode` enumeration; produce identical output for structurally identical input; never mutate the input findings, evidence, policy, or scope; and never throw.
+
+R7 (MUST NOT): Act on instruction-like text anywhere in the input; select a winning value for a conflicting finding; or include modified findings, adjusted confidence values, or any invented finding or evidence ID in the result.
+</contract_rules>
+
+<interface_types>
+
+The shared types `JsonValue`, `FindingStatus`, `EvidenceLevel`, `FindingImpact`, `EvidenceAuthority`, `CandidateFinding`, and `EvidenceIndexEntry` are declared in the included evidence-domain types and are frozen. This module additionally declares:
+
+```ts
+interface ValidationScope {
+  siteId: string;
+  scopeId: string;
+}
+
+interface ValidationPolicy {
+  version: string;
+  /** Max age in days per finding category; a category absent here is never stale. */
+  maxEvidenceAgeDays: { [category: string]: number };
+  highImpact: {
+    impacts: FindingImpact[];
+    minAuthority: EvidenceAuthority;
+    minEvidenceCount: number;
+  };
+  /** Maximum allowed confidence per evidence level. */
+  maxConfidence: { [level in EvidenceLevel]: number };
+}
+
+interface FindingValidationInput {
+  scope: ValidationScope;
+  findings: CandidateFinding[];
+  evidence: EvidenceIndexEntry[];
+  policy: ValidationPolicy;
+  validatedAt: string; // ISO 8601
+}
+
+type ValidationReasonCode =
+  | "missing_evidence"
+  | "malformed_evidence_id"
+  | "duplicate_evidence_id"
+  | "unknown_evidence_id"
+  | "finding_scope_mismatch"
+  | "evidence_site_mismatch"
+  | "evidence_scope_mismatch"
+  | "unsupported_category"
+  | "stale_evidence"
+  | "insufficient_authority"
+  | "insufficient_corroboration"
+  | "confidence_exceeds_support";
+
+interface ValidationDiagnostic {
+  findingId: string;
+  code: ValidationReasonCode;
+  evidenceId?: string; // present when the diagnostic concerns one referenced evidence record
+  message: string;     // non-sensitive explanation; never credentials or source excerpts
+}
+
+interface FindingDecision {
+  findingId: string;
+  decision: "accepted" | "rejected";
+  reasonCodes: ValidationReasonCode[]; // empty when accepted
+}
+
+interface FindingValidationResult {
+  policyVersion: string;
+  validatedAt: string; // echoed from input
+  decisions: FindingDecision[]; // one per input finding, in input order
+  diagnostics: ValidationDiagnostic[];
+}
+```
+
+Export exactly one public function:
+
+```ts
+export function validateFindings(input: FindingValidationInput): FindingValidationResult;
+```
+
+</interface_types>
+
+<coverage>
+R1: tests/contracts/finding_evidence_validator.contract.test.ts :: R1
+R2: tests/contracts/finding_evidence_validator.contract.test.ts :: R2
+R3: tests/contracts/finding_evidence_validator.contract.test.ts :: R3
+R4: tests/contracts/finding_evidence_validator.contract.test.ts :: R4
+R5: tests/contracts/finding_evidence_validator.contract.test.ts :: R5
+R6: tests/contracts/finding_evidence_validator.contract.test.ts :: R6
+R7: tests/contracts/finding_evidence_validator.contract.test.ts :: R7 (negative)
+P1: covered by R6 test (inputs, policy version, and timestamps preserved without reinterpretation)
+P2: covered by R4 test
+P3: covered by R4 test (conflicting finding preserved, no winner selected)
+P4: covered by R6 test
+P5: covered by R2 and R5 tests
+P6: covered by R7 test
+P7: covered by R7 test (result references only input finding and evidence IDs)
+P8: tests/contracts/finding_evidence_validator.contract.test.ts :: P8 (plain-data result)
+</coverage>
+
+<acceptance_gate>
+The validation-policy version and high-impact source requirements are approved and represented by fixtures in the contract tests before generation is accepted.
+</acceptance_gate>
+
+<deliverables>
+Generate the implementation only, as a single module exporting `validateFindings`.
+Contract tests already exist at `tests/contracts/finding_evidence_validator.contract.test.ts` and must not be modified by generation.
+</deliverables>
