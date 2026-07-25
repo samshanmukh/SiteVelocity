@@ -165,8 +165,8 @@ Do not regenerate unrelated modules. Review generated diffs with the same care a
 ## 11. Module sequence
 
 1. Domain types (foundation Zod / parse helpers) — `prompts/modules/domain_types_typescript.prompt`
-2. Candidate normalizer (legacy path `candidate-normalizer.prompt`; Segment 3 migrates to `candidate_normalizer_typescript.prompt`)
-3. Candidate qualification filter
+2. Candidate normalizer — `prompts/modules/candidate_normalizer_typescript.prompt`
+3. Candidate qualification filter — `prompts/modules/candidate_qualification_typescript.prompt`
 4. Finding/evidence validator
 5. Research Snapshot selector and fallback
 6. Government and sponsor provider adapters

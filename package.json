@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test tests/unit/**/*.test.ts tests/contracts/**/*.test.ts",
+    "test": "node --import tsx --test \"tests/unit/**/*.test.ts\" \"tests/contracts/**/*.test.ts\"",
     "pdd:check": "bash scripts/pdd-check.sh",
     "pdd:estimate": "bash scripts/pdd-estimate.sh"
   },

@@ -6,9 +6,6 @@ cd "$root"
 
 shopt -s nullglob
 prompts=(prompts/modules/*_typescript.prompt)
-if [[ -f prompts/modules/candidate-normalizer.prompt ]]; then
-  prompts+=(prompts/modules/candidate-normalizer.prompt)
-fi
 
 if [[ ${#prompts[@]} -eq 0 ]]; then
   echo "pdd-check: no module prompts found" >&2
