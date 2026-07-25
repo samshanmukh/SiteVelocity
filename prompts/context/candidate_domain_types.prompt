@@ -1,0 +1,49 @@
+% Frozen candidate-domain type declarations shared by the candidate-pipeline modules.
+% These declarations are the interface freeze for Segment 3 (candidate normalization and qualification).
+% Changing a declaration here is an interface change and requires foundation-owner review before any module is regenerated.
+
+<candidate_domain_types>
+
+```ts
+type JsonPrimitive = null | boolean | number | string;
+type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue };
+
+/** Immutable identity of the government source a record came from. */
+interface SourceIdentity {
+  agency: string;         // issuing agency, e.g. "California HCD"
+  dataset: string;        // dataset name or slug
+  sourceRecordId: string; // record identifier within the dataset
+  sourceUrl: string;      // absolute http(s) URL of the source record
+  retrievedAt: string;    // ISO 8601 retrieval timestamp
+}
+
+/** A fact is either known with a value, or explicitly unknown with a stable reason code. */
+type Fact<T> =
+  | { status: "known"; value: T }
+  | { status: "unknown"; reasonCode: string };
+
+type CanonicalFieldName =
+  | "jurisdiction"
+  | "county"
+  | "address"
+  | "apn"
+  | "parcelAcres"
+  | "reportedCapacity"
+  | "latitude"
+  | "longitude"
+  | "coordinates";
+
+/** Canonical candidate produced by the normalizer and consumed by qualification. */
+interface CanonicalCandidate {
+  source: SourceIdentity;
+  jurisdiction: Fact<{ value: string; resolution: "canonical" | "unresolved" }>;
+  county: Fact<string>;
+  address: Fact<string>;
+  apn: Fact<string>;
+  parcelAcres: Fact<number>;
+  reportedCapacity: Fact<number>;
+  coordinates: Fact<{ latitude: number; longitude: number }>;
+}
+```
+
+</candidate_domain_types>

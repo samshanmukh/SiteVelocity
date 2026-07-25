@@ -181,8 +181,10 @@ workflows/
 prompts/
   context/
     sitevelocity-preamble.prompt
+    candidate_domain_types.prompt
   modules/
-    candidate-normalizer.prompt
+    candidate_normalizer_typescript.prompt
+    candidate_qualification_typescript.prompt
 generated/
 pdd/
   evidence/

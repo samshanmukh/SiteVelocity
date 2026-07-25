@@ -118,4 +118,4 @@ Manifests prove engineering provenance; they are not application telemetry and d
 6. Scout ranker after score approval
 7. Finance engine after formula approval
 
-The first contract is `prompts/modules/candidate-normalizer.prompt`. Its executable implementation and tests are intentionally deferred until the TypeScript application toolchain and contract-test runner are established.
+The first contracts are `prompts/modules/candidate_normalizer_typescript.prompt` and `prompts/modules/candidate_qualification_typescript.prompt`, with rule-mapped behavioral tests in `tests/contracts/`. The contract tests skip until the corresponding module is generated into `generated/`, then act as the verification gate for every regeneration.

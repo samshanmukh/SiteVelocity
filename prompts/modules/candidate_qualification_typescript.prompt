@@ -1,0 +1,127 @@
+% You are an expert TypeScript engineer. Implement `candidate_qualification`: apply one declared qualification rule set to one canonical candidate and return exactly one decision.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/candidate_domain_types.prompt</include>
+
+<pdd-reason>Applies an approved buy-box rule set to one canonical candidate and returns a single explained decision.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[
+  {"name":"qualifyCandidate","signature":"(input: QualificationInput) -> QualificationResult","returns":"QualificationResult"}]}}
+</pdd-interface>
+
+<pdd-dependency>candidate_normalizer_typescript.prompt</pdd-dependency>
+
+<responsibility>
+Evaluate one accepted canonical candidate against one declared qualification rule set and return exactly one decision with per-rule reasons.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT normalize, deduplicate, or enrich candidate records.
+- DOES NOT score, rank, prioritize, or order candidates.
+- DOES NOT define qualification criteria; it applies only the declared rule set.
+- DOES NOT label a candidate a development opportunity or assert buildability, entitlement, or investment quality.
+</non_responsibilities>
+
+<vocabulary>
+- Rule set: a versioned list of approved qualification rules. Rules not present in the rule set do not exist for this module.
+- Required fact: the candidate fact a rule's declared condition reads (`jurisdiction_canonical` reads `jurisdiction`; `county_equals` reads `county`; `numeric_range` reads its declared field; `location_identity_present` reads `coordinates` and `apn`).
+- Satisfied: every required fact is known and meets the rule's declared condition. `location_identity_present` is satisfied when the coordinates fact or the APN fact has status `known`.
+- Violated: every required fact is known and a known value fails the rule's declared condition. `location_identity_present` can never be violated, only satisfied or unknown.
+- Unknown outcome: a rule whose required fact has status `unknown`, or a `jurisdiction_canonical` rule whose jurisdiction has resolution `unresolved`.
+- Text comparison: `county_equals` compares trimmed and case-insensitively.
+- Invalid rule set: has no rules, repeats a rule id, or declares a numeric range whose `min` exceeds its `max`. A rule set that is not invalid is valid.
+- Inverted bounds: a declared numeric range whose `min` exceeds its `max`.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Return exactly one result for every input matching the declared input shape — either a decision whose state is exactly one of `qualified`, `disqualified`, or `needs_review`, or a rule-set error; never throw for such inputs.
+R2 (MUST): Return a rule-set error with stable code `empty_rule_set`, `duplicate_rule_id`, or `inverted_bounds` when the rule set is invalid, and make no decision.
+R3 (MUST): Evaluate every declared rule exactly once and emit exactly one reason entry per rule containing that rule's id and an outcome of `satisfied`, `violated`, or `unknown`.
+R4 (MUST): Produce outcome `violated` only when every required fact of the rule is known and a known value fails the rule's declared condition.
+R5 (MUST): Produce an unknown outcome when any required fact of the rule has status `unknown`, or when a `jurisdiction_canonical` rule reads a jurisdiction with resolution `unresolved`.
+R6 (MUST): Return state `disqualified` exactly when at least one outcome is `violated`, or an unknown outcome belongs to a rule that declares `onUnknown: "disqualify"`.
+R7 (MUST): Return state `needs_review` exactly when the candidate is not disqualified under R6 and at least one outcome is `unknown`.
+R8 (MUST): Return state `qualified` exactly when every outcome is `satisfied`, and include the rule-set version in every decision.
+R9 (MUST): Produce identical output for structurally identical input.
+R10 (MUST NOT): Compute scores, ranks, priorities, or any ordering, or compare the candidate to any other candidate.
+R11 (MUST NOT): Mutate the input, substitute default values for unknown facts, or treat an unknown outcome as disqualifying unless that rule declares `onUnknown: "disqualify"`.
+</contract_rules>
+
+<interface_types>
+
+The shared types `SourceIdentity`, `Fact`, and `CanonicalCandidate` are declared in the included candidate-domain types and are frozen. This module additionally declares:
+
+```ts
+type OnUnknown = "needs_review" | "disqualify"; // omitted means "needs_review"
+
+type QualificationRule =
+  | { id: string; kind: "jurisdiction_canonical"; onUnknown?: OnUnknown }
+  | { id: string; kind: "county_equals"; value: string; onUnknown?: OnUnknown }
+  | { id: string; kind: "numeric_range"; field: "parcelAcres" | "reportedCapacity"; min: number; max: number; onUnknown?: OnUnknown }
+  | { id: string; kind: "location_identity_present"; onUnknown?: OnUnknown };
+
+interface QualificationRuleSet {
+  version: string; // non-blank identifier of the approved rule set
+  rules: QualificationRule[];
+}
+
+interface QualificationInput {
+  candidate: CanonicalCandidate;
+  ruleSet: QualificationRuleSet;
+}
+
+type RuleOutcome = "satisfied" | "violated" | "unknown";
+
+interface QualificationReason {
+  ruleId: string;
+  outcome: RuleOutcome;
+}
+
+type QualificationState = "qualified" | "disqualified" | "needs_review";
+
+interface QualificationDecision {
+  state: QualificationState;
+  ruleSetVersion: string;
+  reasons: QualificationReason[]; // exactly one entry per declared rule, in rule-set order
+}
+
+type RuleSetErrorCode = "empty_rule_set" | "duplicate_rule_id" | "inverted_bounds";
+
+interface RuleSetError {
+  code: RuleSetErrorCode;
+  ruleId?: string; // present for duplicate_rule_id and inverted_bounds
+  message: string; // non-sensitive explanation; never contains credentials
+}
+
+type QualificationResult =
+  | { status: "decided"; decision: QualificationDecision }
+  | { status: "invalid_rule_set"; errors: RuleSetError[] };
+```
+
+Export exactly one public function:
+
+```ts
+export function qualifyCandidate(input: QualificationInput): QualificationResult;
+```
+
+</interface_types>
+
+<coverage>
+R1: tests/contracts/candidate_qualification.contract.test.ts :: R1
+R2: tests/contracts/candidate_qualification.contract.test.ts :: R2
+R3: tests/contracts/candidate_qualification.contract.test.ts :: R3
+R4: tests/contracts/candidate_qualification.contract.test.ts :: R4
+R5: tests/contracts/candidate_qualification.contract.test.ts :: R5
+R6: tests/contracts/candidate_qualification.contract.test.ts :: R6
+R7: tests/contracts/candidate_qualification.contract.test.ts :: R7
+R8: tests/contracts/candidate_qualification.contract.test.ts :: R8
+R9: tests/contracts/candidate_qualification.contract.test.ts :: R9
+R10: tests/contracts/candidate_qualification.contract.test.ts :: R10 (negative)
+R11: tests/contracts/candidate_qualification.contract.test.ts :: R11 (negative)
+</coverage>
+
+<deliverables>
+Generate the implementation only, as a single module exporting `qualifyCandidate`.
+Contract tests already exist at `tests/contracts/candidate_qualification.contract.test.ts` and must not be modified by generation.
+</deliverables>
