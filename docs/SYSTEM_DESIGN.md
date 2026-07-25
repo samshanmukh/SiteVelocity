@@ -179,16 +179,18 @@ workflows/
   refresh-finding.ts
   ingest-candidates.ts
 prompts/
-  product/
-  agents/
-  workflows/
-  data/
-  scoring/
+  context/
+    sitevelocity-preamble.prompt
+  modules/
+    candidate-normalizer.prompt
 generated/
+pdd/
+  evidence/
+  evidence-manifest.schema.json
 docs/
 tests/
-  unit/
   contracts/
+  unit/
   integration/
   e2e/
   fixtures/
@@ -842,48 +844,93 @@ Timeouts, retries, and circuit breakers are provider-specific adapter configurat
 
 ## 21. PDD implementation model
 
-Each source prompt/spec contains:
+PDD is a build discipline for stable, testable behavior. It is not the source of product strategy or an excuse to generate the entire application from a monolithic prompt.
+
+### 21.1 Authority boundaries
+
+| Artifact | Owns | Does not own |
+| --- | --- | --- |
+| PRD | Product scope, personas, workflows, outcomes, capability state | Module implementation |
+| System Design | Architecture, domain model, trust boundaries, provider ports | Generated behavior details |
+| Shared prompt include | Cross-cutting vocabulary and invariants | Module-specific behavior |
+| Module prompt | One module's interface and behavioral contract | Product-wide architecture |
+| Contract tests | Observable proof per rule | Product intent |
+| Evidence manifest | Generation inputs, outputs, and verification record | Runtime property evidence |
+
+When documents conflict, implementation pauses until the owning artifact is corrected. A generated module never silently resolves a product or architecture ambiguity.
+
+### 21.2 Generation-ready mold
+
+Every module prompt must contain:
+
+- one responsibility and explicit non-responsibilities;
+- a declared input/output interface;
+- stable `R<n>` contract rules using `MUST` or `MUST NOT`;
+- only the curated includes required by that module;
+- observable failure behavior;
+- at least one behavioral contract test mapped to every rule.
+
+State facts once. Shared evidence, uncertainty, provenance, security, and provider-independence rules live in `prompts/context/sitevelocity-preamble.prompt`; module prompts include them rather than repeating them. Prompts specify interfaces, invariants, and outcomes—not implementation steps.
+
+### 21.3 Module suitability and sequence
+
+Strong initial PDD modules:
+
+1. candidate normalization;
+2. candidate qualification;
+3. finding and evidence validation;
+4. Research Snapshot selection and fallback;
+5. source/provider adapters with recorded fixtures;
+6. deterministic Scout ranking after weights are approved;
+7. deterministic finance after formulas are approved;
+8. stable API application services.
+
+Exploratory visual design, novel orchestration, and behavior with hidden coupling stay conventionally maintained until their interfaces and verification strategy are stable. UI components may move under PDD later when their accessibility, state, and visual-regression contracts are measurable.
+
+### 21.4 Hybrid development loop
 
 ```text
-Purpose
-Inputs
-Output schema
-Invariants
-Evidence requirements
-Security requirements
-Failure behavior
-Acceptance criteria
-Test cases
-Generation target
+explore -> prompt + interface + contract tests -> generate -> verify
+              ^                                      |
+              | failure: revise prompt/tests         | pass
+              +--------------------------------------+-> manifest -> accept
 ```
 
-Minimum prompt/spec modules:
+Generated files are replaceable and must be labeled or isolated so ownership is unambiguous. A manual patch to generated behavior is temporary diagnostic work only; the accepted correction must be back-propagated to the prompt or test and regenerated.
 
-- application shell;
-- candidate ingestion;
-- Scout;
-- Land Use;
-- Development History;
-- Site Risk;
-- Verifier;
-- Next Best Action;
-- Research Snapshot;
-- dossier;
-- evidence drawer;
-- demo mode.
+### 21.5 Evidence manifest
 
-For at least one important module, preserve the hackathon evidence chain:
+Every accepted generation writes a manifest validated by `pdd/evidence-manifest.schema.json`. It records:
+
+- module and contract version;
+- prompt path and content digest;
+- included file paths and content digests;
+- declared contract rule IDs;
+- generator name and version;
+- generation timestamp and output paths/digests;
+- verification commands and exit status;
+- test-to-rule coverage;
+- acceptance status.
+
+This engineering evidence is distinct from SiteVelocity property evidence. Never store provider secrets, raw private source content, or personal data in a generation manifest.
+
+### 21.6 Initial proof
+
+Candidate normalization is the first demonstrable PDD cycle:
 
 ```text
-prompt version A
-generated implementation A
-test/evaluation result
-prompt version B
-regenerated implementation B
-passing result
+candidate-normalizer prompt v1
+contract tests mapped to R1..Rn
+generated implementation v1
+failing or incomplete verification evidence
+prompt/test correction
+generated implementation v2
+passing verification evidence and accepted manifest
 ```
 
-Generated files include provenance where the PDD tool supports it. Manual fixes to generated behavior are reflected back into the controlling prompt/spec before regeneration.
+The repository currently contains the prompt contract and manifest schema only. Generation commands, `.pddrc`, language-specific prompt suffixes, and generated outputs are added after the installed PDD release and configuration format are verified.
+
+See `docs/PDD_WORKFLOW.md` for the operating procedure.
 
 ## 22. Testing strategy
 
@@ -897,6 +944,8 @@ Generated files include provenance where the PDD tool supports it. Manual fixes 
 - Financial formulas
 - URL and content security policies
 - Snapshot selection and fallback
+
+For a PDD-managed module, each unit or contract test references at least one stable prompt rule ID. A rule is not generation-ready when it lacks observable verification.
 
 ### 22.2 Contract tests
 
@@ -1011,9 +1060,12 @@ Browser-exposed variables are limited to explicitly public configuration. Servic
 ### Phase 0 — Repository and intent
 
 1. Establish strict TypeScript/Next.js project.
-2. Add prompts/specs, domain schemas, provider ports, migrations, and `.env.example`.
-3. Add `HACKATHON_STATUS.md`.
-4. Configure formatting, linting, testing, and CI.
+2. Verify and pin the PDD CLI version before adding `.pddrc` or generation scripts.
+3. Add prompts/specs, domain schemas, provider ports, migrations, and `.env.example`.
+4. Implement executable candidate-normalizer tests mapped to prompt rules.
+5. Generate and verify the first module, then commit its evidence manifest.
+6. Add `HACKATHON_STATUS.md`.
+7. Configure formatting, linting, testing, and CI.
 
 ### Phase 1 — Static product proof
 

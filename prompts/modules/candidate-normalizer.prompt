@@ -1,0 +1,70 @@
+% Implement the provider-independent normalization contract for one raw government candidate record.
+
+<include>../context/sitevelocity-preamble.prompt</include>
+
+<responsibility>
+Convert one raw candidate record whose source mapping has already been declared into a canonical candidate-normalization result.
+</responsibility>
+
+<non_responsibilities>
+Do not fetch source data.
+Do not infer an undeclared source schema.
+Do not enrich parcel geometry or zoning.
+Do not deduplicate, qualify, rank, or label a record as a development opportunity.
+</non_responsibilities>
+
+<vocabulary>
+Source mapping identifies which raw fields correspond to canonical fields and which transforms are allowed.
+Canonical jurisdiction for Alpha is San José, California.
+APN normalization removes declared presentation separators but does not manufacture missing digits.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Return exactly one accepted or rejected result for every validated raw-record input.
+R2 (MUST): Copy source agency, dataset, record identifier, source URL, and retrieval timestamp into provenance without semantic reinterpretation.
+R3 (MUST): Apply only field mappings and transforms declared by the input source mapping.
+R4 (MUST): Normalize recognized San José jurisdiction variants to `San José`; retain an unrecognized non-empty jurisdiction value and mark it unresolved.
+R5 (MUST): Normalize a declared APN by removing only declared presentation separators; preserve the raw APN in provenance.
+R6 (MUST): Parse declared acreage, capacity, latitude, and longitude fields only when their complete values are finite and within their declared domain bounds.
+R7 (MUST): Represent a missing, blank, malformed, or out-of-bounds optional fact as unknown and emit a field diagnostic.
+R8 (MUST): Reject the record when source agency, dataset, source record identifier, source URL, retrieval timestamp, or raw payload is missing or invalid.
+R9 (MUST): Reject the record when neither valid coordinates nor a non-empty APN is available after normalization.
+R10 (MUST): Preserve the original raw payload without mutation.
+R11 (MUST): Produce identical output for structurally identical input.
+R12 (MUST NOT): infer acreage, capacity, coordinates, zoning, ownership, entitlement status, or development potential from unrelated fields.
+</contract_rules>
+
+<pdd-interface>
+`JsonValue` is null, boolean, finite number, string, an array of `JsonValue`, or an object whose values are `JsonValue`.
+
+`RawCandidateNormalizationInput` contains:
+- `source`: `{ agency, dataset, sourceRecordId, sourceUrl, retrievedAt }`
+- `rawPayload`: a `JsonValue` object
+- `mapping`: explicit selectors for jurisdiction, county, address, APN, parcel acres, capacity, latitude, and longitude; recognized jurisdiction aliases; allowed APN separators; and numeric bounds
+
+`Fact<T>` is exactly one of:
+- `{ status: "known", value: T }`
+- `{ status: "unknown", reasonCode: DiagnosticCode }`
+
+`CanonicalCandidate` contains:
+- immutable source identity
+- `jurisdiction: Fact<{ value: string, resolution: "canonical" | "unresolved" }>`
+- `county: Fact<string>`
+- `address: Fact<string>`
+- `apn: Fact<string>`
+- `parcelAcres: Fact<number>`
+- `reportedCapacity: Fact<number>`
+- `coordinates: Fact<{ latitude: number, longitude: number }>`
+
+`Provenance` contains the source object, the unmodified raw payload, and the raw values selected for canonical fields.
+
+`CandidateNormalizationResult` is exactly one of:
+- `{ status: "accepted", candidate: CanonicalCandidate, provenance: Provenance, diagnostics: Diagnostic[] }`
+- `{ status: "rejected", provenance: Provenance | null, rejectionReasons: RejectionReason[], diagnostics: Diagnostic[] }`
+
+`Diagnostic` identifies the canonical field, a stable reason code, and a non-sensitive explanation. `RejectionReason` contains a stable reason code and non-sensitive explanation. No diagnostic or error contains provider credentials.
+</pdd-interface>
+
+<acceptance_criteria>
+Every rule `R1` through `R12` and inherited rule `P1` through `P8` is mapped to at least one executable behavioral test before generation is accepted.
+</acceptance_criteria>

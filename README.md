@@ -309,26 +309,28 @@ Demo mode changes freshness behavior, not factual standards. It never means fake
 
 ## Prompt Driven Development
 
-Prompts and specifications are durable source artifacts. Generated implementation is replaceable.
+SiteVelocity uses PDD for narrow, testable modules—not as a single prompt for the entire application. Product intent, generated behavior, architecture, and proof are intentionally separate:
 
-Each prompt/spec should define:
+| Artifact | Authority |
+| --- | --- |
+| Product Requirements Document | Product scope, users, outcomes, and capability state |
+| System Design | Architecture, domain boundaries, provider ports, and operational constraints |
+| Module prompt | Behavioral contract for one generated module |
+| Tests | Executable proof that the module contract is satisfied |
+| Evidence manifest | Reproducible record of prompt inputs, generation, and verification |
 
-- purpose;
-- inputs and output schema;
-- invariants;
-- evidence rules;
-- error behavior;
-- acceptance criteria;
-- test cases.
+Prompts and their curated includes are durable source artifacts. Generated implementation is replaceable. A prompt is considered generation-ready only when it has one responsibility, a declared interface, stable `R<n>` rules using `MUST`/`MUST NOT`, explicit non-responsibilities, and at least one behavioral test for every contract rule.
+
+The first PDD module is candidate normalization because it is deterministic, provider-independent, and straightforward to verify. Provider adapters, candidate qualification, evidence validation, snapshot fallback, scoring, and finance follow only as their interfaces and rules become stable. Exploratory UI work and unresolved architecture remain conventionally maintained until they have verifiable contracts.
 
 The intended lifecycle is:
 
 ```text
-prompt/spec -> generation -> verification/tests
-            -> prompt revision -> regeneration
+explore -> capture contract in prompt + tests -> generate -> verify
+        -> revise prompt (not generated behavior) -> regenerate -> verify
 ```
 
-Important agent and workflow behavior must not exist only as ad hoc implementation patches.
+Important agent and workflow behavior must not exist only as ad hoc implementation patches. Each accepted generation records the prompt version, included context, declared interface, generator/tool version, output files, and verification results in an evidence manifest. See [PDD Workflow](docs/PDD_WORKFLOW.md).
 
 ## Security and trust boundaries
 
@@ -360,15 +362,21 @@ lib/
   security/             URL policy, sanitization, redaction, signatures
 workflows/              Render workflow definitions and orchestration
 prompts/
-  product/              UI and product-behavior specifications
-  agents/               Agent contracts and prompts
-  workflows/            Orchestration specifications
-  data/                 Ingestion and normalization specifications
-  scoring/              Deterministic scoring specifications
+  context/              Curated cross-cutting rules and canonical vocabulary
+  modules/              One behavioral contract per generated module
 generated/              Replaceable PDD-generated artifacts when applicable
+pdd/
+  evidence/             Generation and verification manifests
+  evidence-manifest.schema.json
 docs/                   Architecture, ADRs, runbooks, and source registry
-tests/                  Unit, contract, integration, and end-to-end tests
+tests/
+  contracts/            Behavioral tests mapped to prompt rule IDs
+  unit/                 Conventional deterministic unit tests
+  integration/          Provider and persistence boundaries
+  e2e/                  Verified user workflows
 ```
+
+The repository does not include a `.pddrc` until the installed PDD version and its configuration schema are verified. Do not invent configuration or command flags from memory.
 
 ## Environment configuration
 
@@ -417,6 +425,8 @@ Only the core provider variables are required for the primary Alpha path. Option
 ## Documentation
 
 - [System Design](docs/SYSTEM_DESIGN.md) — technical architecture and implementation blueprint
+- [PDD Workflow](docs/PDD_WORKFLOW.md) — prompt ownership, module lifecycle, verification, and evidence manifests
+- [Official PDD Prompting Guide](https://github.com/promptdriven/pdd/blob/main/docs/prompting_guide.md) — upstream prompting conventions
 
 ## License
 

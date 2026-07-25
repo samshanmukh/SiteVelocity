@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sitevelocity.local/schemas/pdd-evidence-manifest.schema.json",
+  "title": "SiteVelocity PDD Evidence Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "module",
+    "contractVersion",
+    "prompt",
+    "includes",
+    "contractRuleIds",
+    "generator",
+    "generatedAt",
+    "outputs",
+    "verification",
+    "ruleCoverage",
+    "accepted"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "module": { "type": "string", "minLength": 1 },
+    "contractVersion": { "type": "string", "minLength": 1 },
+    "prompt": { "$ref": "#/$defs/digestedFile" },
+    "includes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/digestedFile" },
+      "uniqueItems": true
+    },
+    "contractRuleIds": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[A-Z]+[0-9]+$" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "generator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "outputs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/digestedFile" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "verification": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["command", "exitCode"],
+        "properties": {
+          "command": { "type": "string", "minLength": 1 },
+          "exitCode": { "type": "integer", "minimum": 0 }
+        }
+      },
+      "minItems": 1
+    },
+    "ruleCoverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ruleId", "tests"],
+        "properties": {
+          "ruleId": { "type": "string", "pattern": "^[A-Z]+[0-9]+$" },
+          "tests": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "accepted": { "type": "boolean" },
+    "reviewer": { "type": "string", "minLength": 1 },
+    "notes": { "type": "string" }
+  },
+  "$defs": {
+    "digestedFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    }
+  }
+}
