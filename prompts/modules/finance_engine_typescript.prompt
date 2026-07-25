@@ -1,0 +1,207 @@
+% You are an expert TypeScript engineer. Implement `finance_engine`: execute approved deterministic financial formulas from validated assumption sets.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/decision_domain_types.prompt</include>
+
+<pdd-reason>Deterministic decimal-safe executor of approved versioned financial formulas over validated assumption sets.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[
+  {"name":"runCalculation","signature":"(request: CalculationRequest) -> CalculationOutcome","returns":"CalculationOutcome"}]}}
+</pdd-interface>
+
+<pdd>
+Interface decision for foundation-owner review: the calculation registry is a typed data input
+(closed arithmetic-expression definitions), not module-internal code. Formula approval then
+governs the registry data artifact, and the engine itself is a policy-free deterministic
+evaluator that never needs regeneration when formulas change. This also keeps the engine
+testable before any finance formula is approved.
+</pdd>
+
+<responsibility>
+Execute exactly one referenced formula from a supplied calculation registry against one validated assumption set and return an immutable calculation run or a `not_computable` outcome with exact diagnostics.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT define, approve, or select financial formulas, rates, costs, or incentives; it evaluates only supplied registry definitions.
+- DOES NOT source, estimate, or default assumption values; assumptions arrive validated and approved.
+- DOES NOT interpret findings or evidence, and DOES NOT rank, score, or compare candidates.
+- DOES NOT persist runs, fetch data, or read a clock.
+- DOES NOT explain results in natural language; explanation is a separate read-only concern.
+</non_responsibilities>
+
+<vocabulary>
+- Valid registry: no two definitions share the same (calculationType, version) pair; within each definition, input keys are unique, output keys are unique, every `decimals` is an integer >= 0, and every expression `input` reference names a declared input key.
+- Referenced formula: the registry definition whose `calculationType` and `version` equal the request's `calculationType` and `formulaVersion`.
+- Consumed entry: the single assumption entry whose `key` matches a formula input spec. Entries whose keys match no formula input are ignored and are not recorded on the run.
+- Valid consumed entry: exactly one entry exists for the input key; its `value` is a well-formed `DecimalString`; its `unit`, `currency`, and `periodicity` equal the input spec's declared values; the value is within the spec's inclusive `min`/`max` domain when declared; and its `provenance` is `sourced` or `user_approved`.
+- Invalid registry: a registry that is not a valid registry.
+- Invalid input: a required consumed entry that is not a valid consumed entry, or an input whose exact evaluation fails (division by zero).
+- Exact evaluation: expressions are evaluated exactly over arbitrary-precision rational numbers; binary floating-point never participates in any intermediate or recorded value.
+- Rounding policies: `half_up` rounds ties away from zero; `half_even` rounds ties to the nearest even final digit. Rounding is applied once per output, after exact evaluation, at that output's declared `decimals`.
+- Result format: fixed-point `DecimalString` with exactly `decimals` fraction digits (no decimal point when `decimals` is 0); negative zero is normalized to the positive form.
+- Hash material: the object `{ assumptionSet, calculationType, formulaVersion, suppliedAt }` serialized per the shared canonical-JSON convention.
+- Run identifier: `calculationRunId` is `` `${calculationType}@${formulaVersion}:${inputHash}` ``.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Validate the registry, the formula reference, and every required assumption's presence, uniqueness, decimal form, unit, currency, periodicity, and domain before any evaluation; return exactly one `computed` or `not_computable` outcome for every input matching the declared shape and never throw for such inputs.
+R2 (MUST): Evaluate only the referenced formula from the supplied registry; an invalid registry yields `not_computable` with `invalid_registry`, and an absent (calculationType, version) pair yields `not_computable` with `unknown_formula`.
+R3 (MUST): Compute every output by exact evaluation followed by one application of the formula's named rounding policy at the output's declared decimals, recording results only in the declared result format; binary floating-point values are never the record result.
+R4 (MUST): Record consumed entries and calculated outputs as disjoint collections, preserving each consumed entry's `assumptionId`, `provenance`, and `evidenceIds` unaltered; outputs never carry provenance and never appear among consumed entries.
+R5 (MUST): Return `not_computable` with one diagnostic per failure naming the exact field key and a stable code — including `division_by_zero` at evaluation time — whenever any required input is missing or invalid; never substitute a default, estimated, or partial value.
+R6 (MUST): Record on every computed run the `calculationType`, `formulaVersion`, `assumptionSetId`, `scenarioId`, `roundingPolicy`, echoed `suppliedAt`, the `inputHash` of the declared hash material, and the derived `calculationRunId`.
+R7 (MUST): Produce identical outcomes — including result strings, diagnostics order, and input hash — for structurally identical requests.
+R8 (MUST NOT): Accept an assumption whose provenance is not `sourced` or `user_approved`, or produce any numeric result when a required input is missing or invalid; costs, rates, incentives, and returns are never fabricated, defaulted, or accepted from model output.
+</contract_rules>
+
+<interface_types>
+
+The shared types `IsoTimestamp`, `DecimalString`, and `InputHash` are declared in the included decision-domain types and are frozen. This module additionally declares:
+
+```ts
+type Periodicity = "one_time" | "monthly" | "annual" | "none";
+
+type RoundingPolicy = "half_up" | "half_even";
+
+type Expression =
+  | { op: "literal"; value: DecimalString }
+  | { op: "input"; key: string }
+  | { op: "add" | "subtract" | "multiply" | "divide" | "min" | "max"; args: [Expression, Expression] };
+
+interface FormulaInputSpec {
+  key: string;
+  unit: string;              // e.g. "USD", "ratio", "units"
+  currency: string | null;   // null when the input is not monetary
+  periodicity: Periodicity;
+  min?: DecimalString;       // inclusive domain bound
+  max?: DecimalString;       // inclusive domain bound
+}
+
+interface FormulaOutputSpec {
+  key: string;
+  unit: string;
+  currency: string | null;
+  periodicity: Periodicity;
+  decimals: number;          // integer >= 0
+  expression: Expression;
+}
+
+interface FormulaDefinition {
+  calculationType: string;
+  version: string;
+  rounding: RoundingPolicy;
+  inputs: FormulaInputSpec[];
+  outputs: FormulaOutputSpec[];
+}
+
+type AssumptionProvenance = "sourced" | "user_approved";
+
+interface AssumptionEntry {
+  assumptionId: string;
+  key: string;
+  value: DecimalString;
+  unit: string;
+  currency: string | null;
+  periodicity: Periodicity;
+  provenance: AssumptionProvenance;
+  evidenceIds: string[]; // evidence identifiers for sourced entries; may be empty
+}
+
+interface AssumptionSet {
+  assumptionSetId: string;
+  scenarioId: string;
+  entries: AssumptionEntry[];
+}
+
+interface CalculationRequest {
+  registry: FormulaDefinition[];
+  calculationType: string;
+  formulaVersion: string;
+  assumptionSet: AssumptionSet;
+  suppliedAt: IsoTimestamp;
+}
+
+type CalculationDiagnosticCode =
+  | "invalid_registry"
+  | "unknown_formula"
+  | "missing_input"
+  | "duplicate_assumption_key"
+  | "malformed_value"
+  | "unit_mismatch"
+  | "currency_mismatch"
+  | "periodicity_mismatch"
+  | "out_of_domain"
+  | "invalid_provenance"
+  | "division_by_zero";
+
+interface CalculationDiagnostic {
+  code: CalculationDiagnosticCode;
+  field: string | null; // the exact input or output key concerned; null for registry-level failures
+  message: string;      // non-sensitive explanation; never contains credentials
+}
+
+interface ConsumedAssumption {
+  assumptionId: string;
+  key: string;
+  value: DecimalString;
+  unit: string;
+  currency: string | null;
+  periodicity: Periodicity;
+  provenance: AssumptionProvenance;
+  evidenceIds: string[];
+}
+
+interface CalculationResultValue {
+  key: string;
+  value: DecimalString; // declared result format
+  unit: string;
+  currency: string | null;
+  periodicity: Periodicity;
+}
+
+interface CalculationRun {
+  calculationRunId: string; // `${calculationType}@${formulaVersion}:${inputHash}`
+  calculationType: string;
+  formulaVersion: string;
+  assumptionSetId: string;
+  scenarioId: string;
+  roundingPolicy: RoundingPolicy;
+  suppliedAt: IsoTimestamp;         // echoed from the request, never a clock read
+  inputHash: InputHash;
+  inputsUsed: ConsumedAssumption[]; // exactly the consumed entries, in formula input order
+  results: CalculationResultValue[]; // one per formula output, in declared output order
+}
+
+type CalculationOutcome =
+  | { status: "computed"; run: CalculationRun }
+  | { status: "not_computable"; diagnostics: CalculationDiagnostic[] };
+```
+
+Export exactly one public function:
+
+```ts
+export function runCalculation(request: CalculationRequest): CalculationOutcome;
+```
+
+</interface_types>
+
+<coverage>
+R1: tests/contracts/finance_engine.contract.test.ts :: R1
+R2: tests/contracts/finance_engine.contract.test.ts :: R2
+R3: tests/contracts/finance_engine.contract.test.ts :: R3
+R4: tests/contracts/finance_engine.contract.test.ts :: R4
+R5: tests/contracts/finance_engine.contract.test.ts :: R5
+R6: tests/contracts/finance_engine.contract.test.ts :: R6
+R7: tests/contracts/finance_engine.contract.test.ts :: R7
+R8: tests/contracts/finance_engine.contract.test.ts :: R8 (negative)
+</coverage>
+
+<acceptance_gate>
+Interface draft. Generation is not accepted until the team approves formula definitions, required inputs, units, rounding, and versions as a reviewed registry artifact, and one golden contract test exists per approved formula. Contract tests exercise the evaluator with clearly labeled arithmetic fixtures (`fixture_*` calculation types); they encode no real financial formula, rate, cost, incentive, or return.
+</acceptance_gate>
+
+<deliverables>
+Generate the implementation only, as a single module exporting `runCalculation`.
+Contract tests already exist at `tests/contracts/finance_engine.contract.test.ts` and must not be modified by generation.
+</deliverables>
