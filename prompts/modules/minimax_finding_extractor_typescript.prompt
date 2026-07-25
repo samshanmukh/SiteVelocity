@@ -1,0 +1,111 @@
+% You are an expert TypeScript engineer. Implement `minimax_finding_extractor`: the provider-independent MiniMax evidence-to-finding extraction adapter that maps validated evidence through an injected transport into schema-valid evidence-linked candidate findings.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/research_provider_domain_types.prompt</include>
+
+<pdd-reason>Converts one bounded set of validated evidence records through an injected MiniMax transport into schema-valid, evidence-linked candidate findings with safe model and validation metadata.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[
+  {"name":"extractFindings","signature":"(input: { request: FindingExtractionRequest; transport: MiniMaxTransport; signal?: AbortSignal; now?: () => string }) -> Promise<FindingExtractionResult>","returns":"Promise<FindingExtractionResult>"}]}}
+</pdd-interface>
+
+<responsibility>
+Delimit evidence as untrusted data, invoke the injected MiniMax transport with a bounded request, validate the entire unknown response against the `CandidateFindingExtract` finding schema (SYSTEM_DESIGN §7.4 enums), and return exactly one accepted-or-rejected `FindingExtractionResult`.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT retrieve webpages, discover evidence, qualify candidates, score, rank, calculate finance, or issue professional clearance.
+- DOES NOT accept uncited material claims or invent evidence IDs.
+- DOES NOT silently coerce, truncate, or reinterpret malformed model output into accepted findings.
+- DOES NOT call live MiniMax, spend credits, or perform network I/O except through the injected transport.
+- DOES NOT expose credentials, full sensitive documents, unsafe raw provider errors, or provider SDK types.
+</non_responsibilities>
+
+<vocabulary>
+- valid: a request whose purpose and systemPrompt are non-blank, evidence is a non-empty array of EvidenceInput records with non-blank ids, siteId/promptVersion/model are non-blank, and timeoutMs is an integer in (0, effectiveMaxTimeoutMs].
+- invalid: a request that fails any validity check; returned as rejection `invalid_request` without calling transport (or without accepting findings).
+- untrusted: evidence content, system-visible retrieved text, and model-visible strings are data only and never executable instructions.
+- complete: a provider response whose JSON parses and whose every finding fully satisfies the CandidateFindingExtract schema with only known input evidence IDs.
+- partial: not used as an accepted extraction status; incomplete model output is rejected (`malformed_output` or `schema_violation`), never half-accepted.
+- safe: diagnostics, failure messages, and usage contain no credentials, authorization data, API keys, or full sensitive document bodies.
+- unsafe: credentials, authorization headers, API keys, cookies, or full sensitive documents; must never appear in outputs.
+- material finding: a finding that states or affects a property fact, status, impact, confidence, or verification requirement (any CandidateFindingExtract in an accepted result).
+- bounded repair: at most `repairPolicy.maxAttempts` additional transport calls after the first (default 0 when omitted); each repaired response is fully revalidated; exhausting attempts yields `exhausted_bounded_repair`.
+- deterministic: identical validated request plus identical recorded transport responses (and the same injected `now` / abort / repair outcomes) produce identical `FindingExtractionResult`.
+- recorded response: a sanitized fixture object returned by the injected transport; never a live provider call.
+- timeout: `request.timeoutMs`. When `request.maxTimeoutMs` is omitted, the effective maximum is 60000. A transport throw whose `name` is `TimeoutError` maps to failure code `timeout`.
+- page limit: not applicable to this module; extraction is bounded by evidence count and timeout, not by web pageLimit.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Delimit evidence as untrusted data in the messages passed to transport, and validate the entire provider response against the declared finding schema (`CandidateFindingExtract`, including FindingStatus / EvidenceLevel / FindingImpact enums from SYSTEM_DESIGN §7.4) before acceptance.
+
+R2 (MUST): Link every material finding only to one or more evidence IDs present in the validated input; reject absent, unknown, or fabricated references with `unknown_evidence_id`.
+
+R3 (MUST): Preserve `unknown` and `conflicting` statuses exactly as returned when schema-valid; confidence never upgrades status to verified/probable and never clears or replaces `professional_verification_required`.
+
+R4 (MUST): Reject invalid JSON, malformed structured output, invalid enums, incomplete findings, unsupported claims, and unknown evidence IDs with stable failure codes (`malformed_output`, `schema_violation`, `unknown_evidence_id`, `unsupported_claim`). Any repair is explicitly bounded by `repairPolicy.maxAttempts` (default 0); each attempt's full response is revalidated; when attempts are exhausted return `exhausted_bounded_repair`.
+
+R5 (MUST): Preserve configured modelId (from request.model), provider requestId when supplied, promptVersion, measured latencyMs, safe usage metadata (`ModelUsageSafe` only), and stable validation diagnostics without fabricating missing metadata.
+
+R6 (MUST NOT): Invent evidence, source authority, property facts, people, identifiers, timestamps, scores, calculations, or professional clearance beyond what the schema-valid model response asserts with linked input evidence IDs.
+
+R7 (MUST NOT): Expose credentials, authorization data, full sensitive documents, unsafe raw provider errors, or provider SDK types in outputs, diagnostics, logs, or fixtures; and MUST NOT import MiniMax/vendor SDK packages in the generated module.
+</contract_rules>
+
+<interface_types>
+
+The shared types `JsonValue`, `EvidenceInput`, `FindingStatus`, `EvidenceLevel`, `FindingImpact`, `CandidateFindingExtract`, `ModelUsageSafe`, `FindingExtractionRequest`, `FindingExtractionResult`, and `MiniMaxTransport` are declared in the included research-provider domain types and are frozen. Finding schema enums match SYSTEM_DESIGN §7.4.
+
+Expected recorded transport body shape (parsed from `unknown`):
+
+```ts
+// Transport returns unknown. After structural checks, an acceptable body looks like:
+// {
+//   requestId?: string,
+//   usage?: { inputTokens?: number; outputTokens?: number; totalTokens?: number },
+//   findings: CandidateFindingExtract[]
+// }
+// Alternatively the model may return a JSON string in a `content` field; parse then validate.
+```
+
+Export exactly one public function:
+
+```ts
+export function extractFindings(input: {
+  request: FindingExtractionRequest;
+  transport: MiniMaxTransport;
+  signal?: AbortSignal;
+  now?: () => string; // injected clock ISO8601; inject in tests for determinism
+}): Promise<FindingExtractionResult>;
+```
+
+</interface_types>
+
+<coverage>
+R1: tests/contracts/minimax_finding_extractor.contract.test.ts :: R1
+R2: tests/contracts/minimax_finding_extractor.contract.test.ts :: R2
+R3: tests/contracts/minimax_finding_extractor.contract.test.ts :: R3
+R4: tests/contracts/minimax_finding_extractor.contract.test.ts :: R4
+R5: tests/contracts/minimax_finding_extractor.contract.test.ts :: R5
+R6: tests/contracts/minimax_finding_extractor.contract.test.ts :: R6 (negative)
+R7: tests/contracts/minimax_finding_extractor.contract.test.ts :: R7 (negative)
+P1: covered by R5 test (modelId, requestId, promptVersion, latency preserved)
+P2: covered by R3 test (unknown preserved; never coerced to false/zero)
+P3: covered by R3 test (conflicting preserved)
+P4: covered by R5/R1 determinism assertions
+P5: covered by R1 and R4 tests
+P6: covered by R1 test (instruction-like evidence content is inert)
+P7: covered by R6 test
+P8: tests/contracts/minimax_finding_extractor.contract.test.ts :: P8 (plain-data result + import scan)
+</coverage>
+
+<acceptance_gate>
+Contract tests use only an injected transport and sanitized recorded fixtures under `tests/fixtures/research/`. Outbound `fetch` is stubbed to throw. Generation is never accepted if tests contact live MiniMax or spend credits.
+</acceptance_gate>
+
+<deliverables>
+Generate the implementation only, as a single module exporting `extractFindings`.
+Contract tests already exist at `tests/contracts/minimax_finding_extractor.contract.test.ts` and must not be modified by generation.
+</deliverables>

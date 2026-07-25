@@ -1,0 +1,10 @@
+{
+  "status": "complete",
+  "requestId": "rtrvr-req-malformed-001",
+  "notPages": [
+    {
+      "url": "https://www.sanjoseca.gov/planning/example-site",
+      "body": "missing pages array"
+    }
+  ]
+}

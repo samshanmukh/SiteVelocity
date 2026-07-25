@@ -1,0 +1,23 @@
+{
+  "status": "partial",
+  "requestId": "rtrvr-req-partial-001",
+  "pages": [
+    {
+      "requestedUrl": "https://www.sanjoseca.gov/planning/example-site",
+      "finalUrl": "https://www.sanjoseca.gov/planning/example-site",
+      "title": "San José Planning — Example Site",
+      "retrievedAt": "2026-07-25T12:00:00.000Z",
+      "contentStatus": "ok",
+      "content": "First page retrieved before mid-way provider error.",
+      "contentRef": null,
+      "checksum": "sha256:partial-page-1"
+    }
+  ],
+  "diagnostics": [
+    {
+      "code": "midway_error",
+      "message": "Provider stopped after first page",
+      "url": "https://www.sanjoseca.gov/planning/example-hearing"
+    }
+  ]
+}
