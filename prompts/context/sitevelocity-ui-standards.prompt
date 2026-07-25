@@ -1,0 +1,20 @@
+% Shared UI standards for SiteVelocity user-facing surfaces (application and public pages).
+
+<vocabulary>
+landmark structure: a document exposing header, navigation, main, and footer landmarks with exactly one h1 and a heading hierarchy that never skips a level downward.
+capability state: one of the three authoritative labels LIVE, PREVIEW, or ROADMAP, sourced from the application module registry.
+dead control: an interactive element whose activation produces no navigation, state change, or declared feedback.
+reduced-motion support: honoring the prefers-reduced-motion media feature by disabling non-essential animation and transition effects.
+core content: the copy, navigation, and links a visitor needs to understand and act on the page.
+</vocabulary>
+
+<contract_rules>
+U1 (MUST): Render a landmark structure on every page.
+U2 (MUST): Meet WCAG 2.2 AA — keyboard operability, visible focus indication, text contrast of at least 4.5:1 (3:1 for large text), descriptive link text, meaningful alternative text, and reduced-motion support.
+U3 (MUST): Remain readable and operable from 320px through 1440px viewport widths and at 200% zoom without horizontal overflow of the page body.
+U4 (MUST): Server-render core content so the page remains useful when JavaScript does not execute.
+U5 (MUST): Present capability states with the authoritative labels LIVE, PREVIEW, and ROADMAP, visually distinct and consistent with the application module registry.
+U6 (MUST NOT): Ship a dead control, an unimplemented form, or a link to a route that does not exist.
+U7 (MUST NOT): Load trackers, chat widgets, remote scripts, or consent-requiring analytics without separate written approval.
+U8 (MUST): Escape all interpolated content and use rel="noopener noreferrer" on external links that open a new browsing context.
+</contract_rules>

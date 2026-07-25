@@ -1,0 +1,53 @@
+% Generate the public marketing page that explains SiteVelocity's audience, Alpha workflow, differentiators, evidence model, and honest capability state, then directs visitors into the real product.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/sitevelocity-ui-standards.prompt</include>
+
+<responsibility>
+Render the server-side public landing page at the root route, presenting approved brand copy, the five-stage workflow, differentiators, the evidence model, labeled real Alpha-run figures, and the application's capability states, with working calls to action into the product.
+</responsibility>
+
+<non_responsibilities>
+MUST NOT render product data views, maps, the research workflow, dossiers, or an evidence drawer.
+MUST NOT implement sign-up, authentication, contact forms, pricing, or billing.
+MUST NOT present invented screenshots, customer evidence, or performance statistics.
+MUST NOT perform mutations, provider calls, or reads of private APIs.
+</non_responsibilities>
+
+<vocabulary>
+approved copy: text drawn from the product-naming taxonomy (01_PRODUCT_VISION/17) or the design handoff — headline "Find the sites that can move.", strapline "Don't search for land. Search for time.", positioning "the AI operating system for real estate development intelligence".
+labeled run figure: a numeric claim shown together with the run date, market, and the public sources that produced it, drawn from a persisted ingestion or research artifact in the repository.
+capability summary: the per-module listing of LIVE, PREVIEW, and ROADMAP states derived from the application module registry export rather than restated by hand.
+provider probe: any call to provider readiness checks, the integrations diagnostics API, or credential-dependent code.
+required section set: hero, problem, workflow, differentiators, evidence and trust, capability summary, final call to action, and footer.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Render one semantic page with a header, a primary navigation landmark, exactly one h1, a main landmark, and a footer landmark.
+R2 (MUST): Present the approved copy — headline as the h1, strapline, positioning line, the professional-developer audience, and a visible Alpha status.
+R3 (MUST): Explain the five-stage loop in order: Search, Discover, Research, Verify, and Next Step.
+R4 (MUST): Include the required section set, each section carrying a stable id and a heading.
+R5 (MUST): Explain that SiteVelocity preserves evidence, uncertainty, and conflicts, and flags findings that require professional verification.
+R6 (MUST): Link the primary call to action to /command-center and the secondary call to action to an on-page anchor; render no dead control and no unimplemented form.
+R7 (MUST): Derive the capability summary from the application module registry so every displayed module state matches the application.
+R8 (MUST NOT): Publish fabricated metrics, property results, testimonials, customer logos, partner endorsements, pricing, production claims, or professional conclusions.
+R9 (MUST): Show every numeric product claim as a labeled run figure.
+R10 (MUST): State that SiteVelocity is decision support and does not replace planners, surveyors, engineers, attorneys, title professionals, environmental consultants, lenders, or decision-makers.
+R11 (MUST NOT): Execute a provider probe, or import a module that performs one, anywhere in the root-route rendering path.
+R12 (MUST): Render as a synchronous server component whose output depends only on module-level constants and the application module registry.
+R13 (MUST): Emit metadata with an accurate title, description, and canonical reference, and omit optional metadata whose assets do not exist in the repository.
+R14 (MUST): Apply the shared UI standards U1 through U8 to every element of the page.
+R15 (MUST NOT): Read environment variables, credentials, or request state during rendering.
+</contract_rules>
+
+<pdd-interface>
+The module is a Next.js App Router route file at `app/page.tsx` exporting:
+- `default`: a synchronous React server component taking no props and returning the landing page element tree.
+- `metadata`: a Next.js `Metadata` object with `title`, `description`, `alternates.canonical`, and `openGraph` fields limited to text properties; no image references unless the image file exists in the repository.
+
+Inputs are module-level constants (approved copy, workflow stage copy, differentiator copy, labeled run figures) plus the `NAV_GROUPS` export of `components/model.ts`. The component performs no I/O, throws no errors for any input state, and renders identically on every invocation. Styling comes from a co-located CSS module using the design-handoff palette. No provider SDK type appears anywhere in the route.
+</pdd-interface>
+
+<acceptance_criteria>
+Every rule R1 through R15, inherited preamble rules P1 through P8 where observable, and shared UI standards U1 through U8 where statically verifiable are mapped to at least one executable behavioral test before generation is accepted. Interaction-dependent gates (axe audit, keyboard-path E2E, visual baselines) are tracked as pending in HACKATHON_STATUS.md until the E2E toolchain lands.
+</acceptance_criteria>

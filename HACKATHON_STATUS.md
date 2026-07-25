@@ -31,8 +31,13 @@ Saturday, July 25, 2026 · 9:00 AM–9:00 PM · 555 University Ave, Palo Alto
 - Render Workflows task body ready: `workflows/research-site.ts` (same pipeline as API/CLI)
 - Live Rtrvr+MiniMax Development History path coded (`lib/research/live-history.ts`) — activates when keys land
 - PDD cycle demonstrable: prompt contract → 13 contract tests mapped R1–R12/P1–P8 → generated implementation → **accepted evidence manifest with real digests** (`pdd/evidence/candidate-normalizer/`)
-- `npm run typecheck` clean · `npm test` 21/21 passing
+- `npm run typecheck` clean · `npm test` 37/37 passing on this branch
 - Security: https-only source allowlist (`lib/security/url-policy.ts`), untrusted-content rules in the extraction prompt
+- **PDD Segment 8 (Public Landing Page) complete** on `pdd/landing-page`: landing owns `/` (app relocated to `/command-center`), approved taxonomy copy, five-stage loop, differentiators, evidence model, labeled real Alpha-run figures (87 → 23 → 15 → 5, cross-checked against `data/candidates.json` by test), capability summary derived from the app's own `NAV_GROUPS`, R9 decision-support disclaimer; prompt contract + 16 rule-mapped contract tests, strict check + estimate green; verified live in browser (CTA lands in the app shell)
+
+### Pending for Segment 8 (honest gaps)
+
+- axe audit, keyboard-path E2E, JS-disabled E2E, and visual baselines await an E2E toolchain (no Playwright in repo yet) — statically verifiable a11y rules are contract-tested (skip link, one h1, landmarks, alt text, noopener, reduced-motion + focus-visible in stylesheet)
 
 ### Partially working
 
