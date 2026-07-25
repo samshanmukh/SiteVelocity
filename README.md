@@ -15,6 +15,8 @@ SiteVelocity is not a listing portal, a parcel database, a zoning chatbot, or a 
 
 The immediate deliverable is a working vertical slice for the July 25, 2026 Prompt Driven Development Hackathon. The repository is designed as the foundation of the full SiteVelocity product rather than as a disposable demo.
 
+The implemented foundation now includes a Next.js 16 / React 19 TypeScript application, server-only provider contracts for Render Workflows, Rtrvr.ai, MiniMax, and Supabase, a live readiness dashboard, and a no-cache diagnostics endpoint at `/api/integrations`. Provider credentials are not committed; without local credentials the dashboard truthfully reports each provider as unconfigured.
+
 The Alpha proves one complete loop:
 
 ```text
@@ -378,12 +380,35 @@ tests/
 
 The committed `.pddrc` was created with and verified against PDD CLI `0.0.308`. It targets TypeScript and routes generated code, tests, and examples to `generated/`, `tests/`, and `examples/`. Revalidate the configuration schema and commands before upgrading PDD.
 
+## Local development
+
+```bash
+npm install
+cp .env.example .env
+npm run dev
+```
+
+Open `http://localhost:3000`. Provider connection state is available in the UI and as JSON at `http://localhost:3000/api/integrations`.
+
+Verification commands:
+
+```bash
+npm run typecheck
+npm test
+npm run build
+npm audit --audit-level=high
+```
+
 ## Environment configuration
 
 Expected variables are documented here as names only; never commit their values.
 
 ```dotenv
 DATABASE_URL=
+SUPABASE_URL=
+SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_MAP_STYLE_URL=
 
 DEMO_MODE=true
@@ -393,6 +418,7 @@ RENDER_API_KEY=
 RENDER_WORKFLOW_TASK_SLUG=
 RTRVR_API_KEY=
 MINIMAX_API_KEY=
+MINIMAX_MODEL=MiniMax-M2.7
 
 NEXLA_API_KEY=
 RESPAN_API_KEY=

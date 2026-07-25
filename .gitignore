@@ -1,3 +1,19 @@
 # Local PDD diagnostics and model cache
 .pdd/core_dumps/
 litellm_cache.sqlite/
+
+# Application dependencies and build output
+node_modules/
+.next/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Local environment files (the example remains tracked)
+.env
+.env.local
+.env.*.local
+.env*.swp
+
+# Replaceable generated output
+generated/
