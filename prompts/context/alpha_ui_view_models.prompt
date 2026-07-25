@@ -1,0 +1,310 @@
+% Frozen provider-independent Alpha application UI view-model types (no React).
+% Segment 7 interface freeze for capability states, data states, presentation props, and injected actions.
+% Changing a declaration here is an interface change and requires review before regenerating
+% `prompts/modules/alpha_application_ui_typescript.prompt`.
+% Include this file from the Alpha application UI module prompt; do not redeclare these shapes there.
+
+<alpha_ui_view_models>
+
+```ts
+/** Authoritative module capability. Never infer from marketing copy. */
+type CapabilityState = "LIVE" | "PREVIEW" | "ROADMAP";
+
+/**
+ * Declared UI data/lifecycle state. `refresh_failed` keeps the prior valid
+ * snapshot visible and surfaces a SafeUiIssue.
+ */
+type DataState =
+  | "initial"
+  | "loading"
+  | "ready"
+  | "empty"
+  | "partial"
+  | "stale"
+  | "error"
+  | "unauthorized"
+  | "refreshing"
+  | "refresh_failed";
+
+type AlphaRoute =
+  | "command-center"
+  | "scout"
+  | "map"
+  | "site-dossier"
+  | "agents"
+  | "next-steps";
+
+type AlphaModuleId =
+  | "commandCenter"
+  | "scout"
+  | "map"
+  | "siteDossier"
+  | "agents"
+  | "nextSteps";
+
+type FindingStatus = "verified" | "probable" | "unknown" | "conflicting";
+
+type AgentRole =
+  | "Scout"
+  | "Land Use"
+  | "Development History"
+  | "Site Risk"
+  | "Verifier"
+  | "Next Best Action";
+
+type AgentRunStatus =
+  | "pending"
+  | "running"
+  | "succeeded"
+  | "failed"
+  | "cancelled";
+
+/** Safe, non-sensitive user-facing issue. Never includes secrets or raw provider errors. */
+interface SafeUiIssue {
+  code: string;
+  message: string;
+  field?: string;
+}
+
+interface GeometryProvenance {
+  sourceAgency: string;
+  sourceDataset: string;
+  sourceUrl: string; // absolute http(s) URL validated by the application boundary
+  retrievedAt: string; // ISO 8601 UTC
+  disclaimer: string; // legal/survey disclaimer text (untrusted free text; escape on render)
+}
+
+/**
+ * Five decision measures as separate fields.
+ * Alpha LIVE scores: strategyFit, developmentReadiness, evidenceConfidence.
+ * Preview measures MUST carry capabilityState PREVIEW and MUST NOT be treated as LIVE working scores.
+ * Do not invent working Site Feasibility / Deal Potential as LIVE.
+ */
+interface ScoreMeasureView {
+  key:
+    | "strategyFit"
+    | "developmentReadiness"
+    | "evidenceConfidence"
+    | "siteFeasibility"
+    | "dealPotential";
+  label: string;
+  value: number | null; // null when unknown; never coerce unknown to 0
+  capabilityState: CapabilityState;
+  unit?: "score_0_100";
+}
+
+interface MaterialFlagView {
+  id: string;
+  label: string;
+  severity: "info" | "warning" | "critical";
+  /** Always distinct from score measures; never collapsed into an opaque score. */
+  kind: "material_flag";
+}
+
+interface CandidateCardView {
+  siteId: string; // synthetic or canonical site UUID
+  title: string;
+  subtitle?: string;
+  strategyFit: ScoreMeasureView; // LIVE when scored
+  developmentReadiness: ScoreMeasureView; // LIVE when scored
+  evidenceConfidence: ScoreMeasureView; // LIVE when scored
+  siteFeasibility: ScoreMeasureView; // PREVIEW in Alpha
+  dealPotential: ScoreMeasureView; // PREVIEW in Alpha
+  signals: string[];
+  materialFlags: MaterialFlagView[];
+  sourceCount: number;
+  freshnessLabel: string;
+  whySurfaced: string;
+  coordinates?: { lat: number; lng: number };
+  geometry?: unknown; // GeoJSON-like; opaque to presentation
+  geometryProvenance?: GeometryProvenance;
+}
+
+interface EvidenceDrawerView {
+  open: boolean;
+  sourceAgency: string;
+  sourceName: string;
+  sourceUrl: string;
+  retrievedAt: string; // ISO 8601 UTC
+  payloadOrExcerpt: string; // untrusted; escape/sanitize
+  status: FindingStatus;
+  confidence: number | null; // 0..1 or null when unknown
+  verificationRequirement: string;
+}
+
+interface DossierFindingView {
+  id: string;
+  field: string;
+  label: string;
+  valueSummary: string; // untrusted free text
+  status: FindingStatus;
+  evidenceLevel: string;
+  confidence: number | null;
+  impact: string;
+  evidenceDrawer: EvidenceDrawerView;
+}
+
+interface DossierView {
+  siteId: string;
+  title: string;
+  whyFound: string;
+  known: string[];
+  believed: string[];
+  unknown: string[];
+  strategyFit: ScoreMeasureView;
+  developmentReadiness: ScoreMeasureView;
+  evidenceConfidence: ScoreMeasureView;
+  developmentHistory: string[];
+  riskScreen: string[];
+  findings: DossierFindingView[];
+  evidence: EvidenceDrawerView[];
+  timelineEvents: Array<{
+    id: string;
+    occurredAt: string; // ISO 8601 UTC
+    label: string;
+  }>;
+  nextBestAction: NextBestActionView | null;
+  geometryProvenance?: GeometryProvenance;
+}
+
+interface AgentRunView {
+  role: AgentRole;
+  status: AgentRunStatus;
+  workflowId?: string;
+  updatedAt?: string; // ISO 8601 UTC
+  safeMessage?: string;
+}
+
+interface NextBestActionView {
+  unresolvedQuestion: string;
+  importance: string;
+  responsibleRole: string;
+  knownFacts: string[];
+  questionsToAsk: string[];
+  requestedDocuments: string[];
+  expectedFollowUp: string;
+}
+
+interface MapViewModel {
+  selectedSiteId: string | null;
+  candidates: Array<{
+    siteId: string;
+    lat: number;
+    lng: number;
+    label: string;
+  }>;
+  geometryBySiteId?: Record<string, unknown>;
+  geometryProvenanceBySiteId?: Record<string, GeometryProvenance>;
+}
+
+interface DevelopmentThesisView {
+  developmentType: string;
+  market: string;
+  acreageMin: number | null;
+  acreageMax: number | null;
+  minimumPotentialUnits: number | null;
+  preferredSignals: string[];
+  riskTolerance: string;
+  fieldErrors?: Record<string, string>;
+}
+
+interface CommandCenterView {
+  marketsMonitored: number;
+  sitesScreened: number;
+  candidatesCount: number;
+  priorityOpportunities: number;
+  researchRuns: number;
+  developmentEventPreviews: Array<{
+    id: string;
+    label: string;
+    capabilityState: CapabilityState;
+    freshnessLabel: string;
+  }>;
+  freshnessLabel: string;
+}
+
+interface SnapshotView {
+  snapshotId: string;
+  status: "complete" | "partial";
+  createdAt: string; // ISO 8601 UTC
+  label: string;
+}
+
+interface RefreshView {
+  state: "idle" | "refreshing" | "refresh_failed";
+  issue?: SafeUiIssue;
+}
+
+interface WorkflowView {
+  workflowId?: string;
+  status: AgentRunStatus | "idle";
+  updatedAt?: string;
+}
+
+interface AlphaApplicationViewModel {
+  activeRoute: AlphaRoute;
+  capabilityStates: Record<AlphaModuleId, CapabilityState>;
+  thesis: DevelopmentThesisView | null;
+  commandCenter: CommandCenterView | null;
+  candidates: CandidateCardView[];
+  selectedCandidateId: string | null;
+  map: MapViewModel | null;
+  dossier: DossierView | null;
+  agents: AgentRunView[]; // exactly six Alpha roles when ready
+  workflow: WorkflowView | null;
+  snapshot: SnapshotView | null;
+  refresh: RefreshView;
+  demoMode: boolean;
+  liveResearch: boolean;
+  dataState: DataState;
+  safeIssue: SafeUiIssue | null;
+  locale: string; // BCP 47
+  timeZone: string; // IANA
+  now: string; // injected ISO 8601 UTC clock for deterministic rendering
+}
+
+interface CreateThesisInput {
+  developmentType: string;
+  market: string;
+  acreageMin: number | null;
+  acreageMax: number | null;
+  minimumPotentialUnits: number | null;
+  preferredSignals: string[];
+  riskTolerance: string;
+}
+
+interface SelectCandidateInput {
+  siteId: string;
+}
+
+interface StartResearchInput {
+  siteId: string;
+  commandId: string; // caller-supplied idempotency / command ID
+}
+
+interface RefreshFindingInput {
+  siteId: string;
+  findingId: string;
+  commandId: string;
+}
+
+interface RetryInput {
+  operation: "start_research" | "refresh_finding" | "load";
+  commandId: string;
+}
+
+type ActionResult =
+  | { status: "accepted"; workflowId?: string }
+  | { status: "invalid"; fieldErrors: Record<string, string> }
+  | { status: "rejected"; issue: SafeUiIssue };
+
+interface AlphaApplicationActions {
+  createThesis: (input: CreateThesisInput) => Promise<ActionResult>;
+  selectCandidate: (input: SelectCandidateInput) => Promise<ActionResult>;
+  startResearch: (input: StartResearchInput) => Promise<ActionResult>;
+  refreshFinding: (input: RefreshFindingInput) => Promise<ActionResult>;
+  retry: (input: RetryInput) => Promise<ActionResult>;
+}
+```
+
+</alpha_ui_view_models>

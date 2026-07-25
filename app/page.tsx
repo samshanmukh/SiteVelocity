@@ -1,5 +1,8 @@
 import { checkProviderConnections } from "@/lib/providers/registry";
 
+// Provider readiness remains on `/` for now. Segment 8 will own the public
+// landing at `/`. Alpha product entry is `/command-center` under app/(product).
+
 export const dynamic = "force-dynamic";
 
 const labels = {

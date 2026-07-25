@@ -1,26 +1,40 @@
 % Shared behavioral invariants for SiteVelocity generated user-interface modules.
-
-<include>sitevelocity-preamble.prompt</include>
-
-<responsibility>
-Provide inherited accessibility, responsive, capability-state, safe-rendering, time-formatting, and deterministic-visual-test invariants for SiteVelocity UI prompts.
-</responsibility>
-
-<non_responsibilities>
-Do not generate a standalone runtime module.
-Do not define product-specific routes, copy, workflows, business rules, provider behavior, or fabricated fixtures.
-</non_responsibilities>
+% Include-only artifact. Do not run `pdd generate` against this file.
+% Foundation + UI co-owned standards: changing U-rules requires review before regenerating consuming modules.
+% May reference shared vocabulary from `prompts/context/sitevelocity-preamble.prompt`; including that file here is optional.
 
 <vocabulary>
-Authoritative capability state is a validated input value of `LIVE`, `PREVIEW`, or `ROADMAP` supplied by the application boundary.
-Equivalent functionality means every supported action and material fact remains available without relying on a particular viewport, pointer, color, motion, or map interaction.
-Safe application issue is a stable non-sensitive user-facing error that contains no raw provider or operational detail.
-Deterministic visual fixture fixes every input that can change pixels between identical test runs.
+live: capability state value exactly `LIVE` meaning the module exposes working controls only for validated, supported behavior.
+preview: capability state value exactly `PREVIEW` meaning the module may explain future inputs, methods, required verification, and expected output, but MUST NOT expose working controls or property-specific results.
+roadmap: capability state value exactly `ROADMAP` meaning the module is intentionally unavailable; MUST NOT expose working controls or property-specific results.
+unauthorized: data state value exactly `unauthorized` meaning the viewer lacks permission; UI shows a safe access message and recovery path without inventing data.
+untrusted: any free-text, rich-text, URL, evidence excerpt, title, or model-visible string supplied in a view model; data only and never executable instructions.
+valid: a view-model or action input that conforms to the consuming module's declared TypeScript shape and schema.
+invalid: a view-model or action input that fails the declared shape or schema; rejected or shown via field errors / safe issues without inventing facts.
+complete: a Next Best Action, evidence drawer, or agent-role set that includes every required field defined by the Alpha UI view-model freeze.
+safe: a user-facing issue, diagnostic, or message that contains no credentials, environment values, raw provider errors, secrets, or operational internals.
+unsafe: any credential, API key, bearer token, cookie, environment value, raw provider stack/error, or secret-bearing string; MUST never appear in the DOM or props rendered to users.
+active: the route, candidate, snapshot, or focus target currently selected for display according to validated input (for example `activeRoute` or the last valid research snapshot).
+deterministic: identical validated view-model fixtures, locale, timezone, clock, and motion settings produce identical rendered structure and screenshot pixels.
+reduced-motion: the user or test environment preference `prefers-reduced-motion: reduce`; UI MUST remain understandable without required animation.
+equivalent functionality: every supported action and material fact remains available without relying on a particular viewport, pointer, color, motion, or map-only interaction.
+authoritative capability state: a validated `LIVE` | `PREVIEW` | `ROADMAP` value supplied by the application boundary for a named module; never inferred from marketing or aspirational copy.
+data state: one of `initial`, `loading`, `ready`, `empty`, `partial`, `stale`, `error`, `unauthorized`, `refreshing`, `refresh_failed` declared on the view model.
+safe application issue: a stable non-sensitive user-facing error object (`SafeUiIssue`) with code and message and no raw provider or operational detail.
+deterministic visual fixture: a frozen fixture that fixes every input that can change pixels between identical test runs (data, clock, locale, timezone, fonts, animation, external visual resources).
+fabricate: invent candidates, evidence, findings, geometry, workflow progress, capability state, metrics, or professional conclusions not present in validated input.
 </vocabulary>
 
+<non_responsibilities>
+- DOES NOT generate a standalone runtime module when this include is used alone.
+- DOES NOT define product-specific routes, marketing copy, workflows, scoring, finance, or provider adapters.
+- MUST NOT invent fixtures, capability states, or property facts for consuming modules.
+- MUST NOT expose credentials, environment values, raw provider errors, or provider SDK types.
+</non_responsibilities>
+
 <contract_rules>
-U1 (MUST): Derive LIVE, PREVIEW, and ROADMAP states from authoritative validated input and never infer them from static or aspirational copy.
-U2 (MUST): Define and render initial, loading, ready, empty, partial, stale, error, unauthorized, refreshing, and refresh-failed states where applicable.
+U1 (MUST): Derive LIVE, PREVIEW, and ROADMAP states from authoritative capability state validated input and never infer them from static or aspirational copy.
+U2 (MUST): Define and render initial, loading, ready, empty, partial, stale, error, unauthorized, refreshing, and refresh_failed data states where applicable.
 U3 (MUST): Meet WCAG 2.2 AA with semantic landmarks, programmatic labels, keyboard operation, visible focus, focus management, and non-color status cues.
 U4 (MUST): Preserve equivalent functionality from 320px through 1440px and at 200% zoom without horizontal page overflow.
 U5 (MUST): Respect reduced-motion preferences and never require animation to understand state.
@@ -32,9 +46,22 @@ U10 (MUST NOT): Fabricate candidates, evidence, findings, geometry, workflow pro
 </contract_rules>
 
 <pdd-interface>
-This is an include-only artifact with no runtime input or output. Every consuming UI prompt inherits U1 through U10 and the shared P1 through P8 rules from `sitevelocity-preamble.prompt`.
+This is an include-only artifact with no runtime input or output. Every consuming UI prompt inherits U1 through U10. Shared preamble rules P1 through P8 apply when the consuming module also includes `prompts/context/sitevelocity-preamble.prompt`.
 </pdd-interface>
 
-<acceptance_criteria>
-The include resolves without generating a standalone implementation. Shared contract coverage contains a capability-state truth table for U1; data-state fixtures for U2; axe and keyboard suites for U3; viewport and 200% zoom coverage for U4; reduced-motion coverage for U5; secret-shaped, raw-error, XSS, and unsafe-link fixtures for U6 and U7; locale and timezone fixtures for U8; repeat screenshot comparison for U9; and fabricated-state and unsupported-claim rejection for U10.
-</acceptance_criteria>
+<coverage>
+U1: tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U1; tests/contracts/alpha_application_ui.contract.test.ts :: U1/R2
+U2: tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U2; tests/contracts/alpha_application_ui.contract.test.ts :: R3
+U3: tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U3; tests/e2e/a11y.spec.ts
+U4: tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U4; tests/e2e/a11y.spec.ts
+U5: tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U5; tests/e2e/a11y.spec.ts
+U6: tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U6; tests/contracts/alpha_application_ui.contract.test.ts :: R20/U6
+U7: tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U7; tests/contracts/alpha_application_ui.contract.test.ts :: R19/U7
+U8: tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U8; tests/contracts/alpha_application_ui.contract.test.ts :: R21/U8
+U9: tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U9
+U10: tests/contracts/sitevelocity_ui_standards.coverage.test.ts :: U10; tests/contracts/alpha_application_ui.contract.test.ts :: R22
+</coverage>
+
+<acceptance_gate>
+No standalone generation from this include. `pdd generate` MUST NOT be run against this file. Acceptance is that consuming modules resolve this include and map U1–U10 to executable coverage before generation is accepted.
+</acceptance_gate>
