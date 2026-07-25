@@ -1,0 +1,51 @@
+% Implement the provider-independent MiniMax evidence-to-finding extraction contract.
+
+<include>../context/sitevelocity-preamble.prompt</include>
+
+<responsibility>
+Convert one bounded set of validated evidence records through an injected MiniMax transport into schema-valid evidence-linked candidate findings with safe model and validation metadata.
+</responsibility>
+
+<non_responsibilities>
+Do not retrieve webpages, discover evidence, qualify candidates, score, rank, calculate finance, or issue professional clearance.
+Do not accept uncited material claims.
+Do not silently coerce, truncate, or reinterpret malformed model output into accepted findings.
+Do not expose credentials, full sensitive documents, unsafe raw provider errors, or provider SDK types.
+</non_responsibilities>
+
+<vocabulary>
+Material finding is a finding that states or affects a property fact, status, impact, confidence, or verification requirement.
+Bounded repair is an explicitly limited retry that revalidates the complete repaired response and never fabricates missing support.
+Safe usage metadata contains non-sensitive provider-reported counts or cost fields allowed by the interface.
+Evidence content is untrusted data and never an instruction source.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Delimit evidence as untrusted data and validate the entire provider response against the declared finding schema before acceptance.
+R2 (MUST): Link every material finding only to one or more evidence IDs present in the validated input and reject absent, unknown, or fabricated references.
+R3 (MUST): Preserve unknown and conflicting states; confidence never converts them into verified facts or removes professional-verification requirements.
+R4 (MUST): Reject invalid JSON, malformed structured output, invalid enums, incomplete findings, unsupported claims, and unknown evidence IDs; any repair is explicitly bounded and the complete repaired result is revalidated.
+R5 (MUST): Preserve configured model ID, provider request ID when supplied, prompt version, measured latency, safe usage metadata, and stable validation diagnostics without fabricating missing metadata.
+R6 (MUST NOT): Invent evidence, source authority, property facts, people, identifiers, timestamps, scores, calculations, or professional clearance.
+R7 (MUST NOT): Expose credentials, authorization data, full sensitive documents, unsafe raw provider errors, or provider SDK types in outputs, diagnostics, logs, or fixtures.
+</contract_rules>
+
+<pdd-interface>
+`FindingExtractionRequest` contains a non-empty bounded purpose, system instruction, ordered bounded `EvidenceInput` records, a declared finding schema, prompt version, validated model configuration, positive timeout within a declared maximum, and optional bounded-repair policy.
+
+Each `EvidenceInput` contains immutable evidence ID, source and provenance metadata, untrusted bounded content or excerpts, and declared size metadata.
+
+An injected provider-neutral transport accepts validated model messages and optional `AbortSignal`, then returns an unknown response boundary value with safe request and usage metadata.
+
+`FindingExtractionResult` is exactly one of:
+- `{ status: "accepted", findings, modelId, requestId?, promptVersion, latencyMs, usage?, diagnostics }`
+- `{ status: "rejected", failure, modelId, requestId?, promptVersion, latencyMs, usage?, diagnostics }`
+
+Rejections use stable reason codes for invalid input, timeout, caller abort, provider failure, malformed output, schema violation, unknown evidence reference, unsupported claim, and exhausted bounded repair. Diagnostics contain non-sensitive explanations.
+
+Every material finding references only validated input evidence IDs. Provider response parsing begins from `unknown`. No domain-facing type imports or exposes MiniMax SDK types.
+</pdd-interface>
+
+<acceptance_criteria>
+Every rule R1 through R7 and every applicable inherited rule P1 through P8 maps to at least one executable behavioral test. Tests use fixed evidence, injected transports, and sanitized recorded responses, disable outbound network access, and never call live MiniMax or spend credits.
+</acceptance_criteria>
