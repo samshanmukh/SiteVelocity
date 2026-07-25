@@ -1,0 +1,40 @@
+% Shared behavioral invariants for SiteVelocity generated user-interface modules.
+
+<include>sitevelocity-preamble.prompt</include>
+
+<responsibility>
+Provide inherited accessibility, responsive, capability-state, safe-rendering, time-formatting, and deterministic-visual-test invariants for SiteVelocity UI prompts.
+</responsibility>
+
+<non_responsibilities>
+Do not generate a standalone runtime module.
+Do not define product-specific routes, copy, workflows, business rules, provider behavior, or fabricated fixtures.
+</non_responsibilities>
+
+<vocabulary>
+Authoritative capability state is a validated input value of `LIVE`, `PREVIEW`, or `ROADMAP` supplied by the application boundary.
+Equivalent functionality means every supported action and material fact remains available without relying on a particular viewport, pointer, color, motion, or map interaction.
+Safe application issue is a stable non-sensitive user-facing error that contains no raw provider or operational detail.
+Deterministic visual fixture fixes every input that can change pixels between identical test runs.
+</vocabulary>
+
+<contract_rules>
+U1 (MUST): Derive LIVE, PREVIEW, and ROADMAP states from authoritative validated input and never infer them from static or aspirational copy.
+U2 (MUST): Define and render initial, loading, ready, empty, partial, stale, error, unauthorized, refreshing, and refresh-failed states where applicable.
+U3 (MUST): Meet WCAG 2.2 AA with semantic landmarks, programmatic labels, keyboard operation, visible focus, focus management, and non-color status cues.
+U4 (MUST): Preserve equivalent functionality from 320px through 1440px and at 200% zoom without horizontal page overflow.
+U5 (MUST): Respect reduced-motion preferences and never require animation to understand state.
+U6 (MUST NOT): Expose credentials, environment values, raw provider errors, provider SDK types, or operational diagnostics.
+U7 (MUST): Escape untrusted content, sanitize permitted rich text, and validate displayed destinations.
+U8 (MUST): Localize supplied UTC timestamps with the supplied locale and timezone while retaining machine-readable datetime values.
+U9 (MUST): Freeze fixtures, clock, locale, timezone, animation, fonts, and external visual resources for deterministic screenshots.
+U10 (MUST NOT): Fabricate candidates, evidence, findings, geometry, workflow progress, capability state, metrics, or professional conclusions.
+</contract_rules>
+
+<pdd-interface>
+This is an include-only artifact with no runtime input or output. Every consuming UI prompt inherits U1 through U10 and the shared P1 through P8 rules from `sitevelocity-preamble.prompt`.
+</pdd-interface>
+
+<acceptance_criteria>
+The include resolves without generating a standalone implementation. Shared contract coverage contains a capability-state truth table for U1; data-state fixtures for U2; axe and keyboard suites for U3; viewport and 200% zoom coverage for U4; reduced-motion coverage for U5; secret-shaped, raw-error, XSS, and unsafe-link fixtures for U6 and U7; locale and timezone fixtures for U8; repeat screenshot comparison for U9; and fabricated-state and unsupported-claim rejection for U10.
+</acceptance_criteria>

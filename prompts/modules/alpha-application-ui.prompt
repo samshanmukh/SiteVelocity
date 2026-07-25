@@ -1,0 +1,85 @@
+% Implement the provider-independent presentation layer for the complete SiteVelocity Alpha product journey.
+
+<include>../context/sitevelocity-ui-standards.prompt</include>
+
+<responsibility>
+Render the complete Alpha application journey from validated view models and application-service actions without implementing business logic.
+</responsibility>
+
+<non_responsibilities>
+Do not generate the public landing page or marketing copy.
+Do not implement authentication backends, APIs, persistence, provider adapters, workflows, scoring, or finance.
+Do not invent candidates, evidence, findings, geometry, workflow state, capability state, metrics, or professional conclusions.
+Do not provide legal, title, survey, environmental, engineering, or investment conclusions.
+Do not place an operational provider-readiness dashboard inside the public product shell.
+</non_responsibilities>
+
+<vocabulary>
+Alpha modules are Command Center, Scout, Map, Site Dossier, Agents, and Next Steps.
+Material flag is an explicit potentially consequential condition that remains separate from all decision measures.
+Active snapshot is the last valid research snapshot selected by the application boundary for display.
+Six Alpha agent roles are Scout, Land Use, Development History, Site Risk, Verifier, and Next Best Action.
+Preview exposes an honest future-state explanation without working controls or property-specific results; roadmap is intentionally unavailable.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Render persistent product navigation with active-route state and all documented Alpha modules.
+R2 (MUST): Derive LIVE, PREVIEW, and ROADMAP labels from validated input; preview and roadmap modules never expose working controls or property-specific results.
+R3 (MUST): Render explicit initial, loading, ready, empty, partial, stale, error, unauthorized, refreshing, and refresh-failed states with applicable recovery paths.
+R4 (MUST): Scout accepts development type, market, acreage, minimum potential units, preferred signals, and risk tolerance and associates validation errors with their fields.
+R5 (MUST): Command Center shows monitored markets, screened sites, candidates, priority opportunities, research runs, and development-event previews with freshness and state.
+R6 (MUST): Map and candidate cards share selection, and every map-only interaction has a keyboard-accessible list equivalent.
+R7 (MUST): Candidate cards show Strategy Fit, Development Readiness, Site Feasibility, Deal Potential, and Evidence Confidence separately together with signals, material flags, source count, freshness, and why the candidate surfaced.
+R8 (MUST NOT): Collapse material flags into an opaque score or label a government inventory record as a verified opportunity.
+R9 (MUST): Dossier renders Why Found, Known, Believed, Unknown, Strategy Fit, Development Readiness, Evidence Confidence, Development History, Risk Screen, Evidence, and Next Best Action.
+R10 (MUST): Preserve verified, probable, unknown, and conflicting findings as distinct visible states; missing evidence never renders as a negative conclusion.
+R11 (MUST): Every material conclusion opens an evidence drawer containing source, agency, retrieval time, payload or excerpt, status, confidence, and verification requirement.
+R12 (MUST): Show accessible geometry provenance and the legal-survey disclaimer whenever geometry is displayed.
+R13 (MUST): Display exactly the six Alpha agent roles and persisted workflow state and never simulate progress or completion client-side.
+R14 (MUST): Keep the active snapshot visible throughout refresh; a failed refresh shows a safe application issue and never replaces that snapshot.
+R15 (MUST): Render Next Best Action with the unresolved question, importance, responsible role, known facts, questions to ask, requested documents, and expected follow-up.
+R16 (MUST): Prevent duplicate pending mutations and reuse one command ID per user action; never optimistically display research as complete.
+R17 (MUST): Meet WCAG 2.2 AA including drawer focus management and restoration, live-status announcements, non-color cues, and complete keyboard operation.
+R18 (MUST): Preserve equivalent functionality across the supported viewport and zoom matrix.
+R19 (MUST): Escape untrusted content, sanitize permitted rich text, validate evidence destinations, and display only safe application issues.
+R20 (MUST NOT): Expose credentials, environment values, raw provider errors, provider SDK types, or operational diagnostics.
+R21 (MUST): Localize supplied UTC timestamps using the supplied locale and timezone while retaining machine-readable datetime values.
+R22 (MUST NOT): Use fabricated site findings in deployed demo mode; demo mode displays only stored valid snapshots.
+</contract_rules>
+
+<pdd-interface>
+`AlphaApplicationViewModel` contains:
+- active route and authoritative capability states;
+- development thesis and Command Center summary;
+- ordered candidate cards and selected candidate ID;
+- map state with coordinates or geometry and geometry provenance;
+- dossier findings, evidence, timeline events, active snapshot, refresh state, and complete Next Best Action;
+- exactly six persisted Alpha agent-run views and persisted workflow state;
+- demo and live-research flags, declared data state, optional safe application issue, locale, timezone, and supplied current time.
+
+Candidate views expose the five separate decision measures, explicit material flags, signals, source count, freshness, coordinates or geometry, and geometry provenance. Dossier views expose findings, evidence, timeline events, snapshot status, six agent runs, and the complete Next Best Action structure.
+
+Injected application-service actions are:
+- create thesis;
+- select candidate;
+- start research with a caller-supplied command ID;
+- refresh one finding with a caller-supplied command ID;
+- retry the applicable failed operation.
+
+An action result is exactly one of:
+- `{ status: "accepted", workflowId? }`
+- `{ status: "invalid", fieldErrors }`
+- `{ status: "rejected", issue: SafeApplicationIssue }`
+
+Generated presentation exports provide deterministic React views and shared shell elements for thin committed route wrappers under `/command-center`, `/scout`, `/map`, `/sites/[siteId]`, `/agents`, and `/next-steps`. Outputs include accessible navigation, a map/list alternative, candidate views, dossier and evidence drawer, persisted workflow status, snapshot refresh states, and Next Best Action views.
+
+All inputs are provider-independent validated view models. No prop, output, DOM value, issue, or diagnostic exposes provider SDK types, credentials, environment values, or secret-bearing errors.
+</pdd-interface>
+
+<acceptance_criteria>
+Every rule R1 through R22, every applicable inherited rule U1 through U10, and every applicable inherited rule P1 through P8 maps to executable behavioral coverage before generation is accepted.
+
+Contract and component tests cover every declared state and rule. End-to-end coverage exercises thesis entry, candidates, synchronized map and cards, persisted research status, dossier, evidence drawer, refresh, snapshot fallback, and the complete three-minute Alpha journey. Accessibility coverage includes axe, keyboard-only navigation, drawer focus restoration, live status, map/list equivalence, reduced motion, responsive viewports, and 200% zoom. Security coverage includes stored XSS, unsafe source URLs, raw errors, and secret-shaped inputs. Deterministic visual baselines cover 375x812, 768x1024, and 1440x900 for ready, empty, loading, partial, stale, conflicting, drawer-open, preview, roadmap, and refresh-failed states.
+
+Acceptance requires all routes to render validated fixtures without console or hydration errors; capability states to match working behavior; typecheck, lint, contract, accessibility, end-to-end, visual, production build, and high-severity audit checks to pass; and an accepted evidence manifest to record prompt inputs, generated outputs, rule mappings, and verification results.
+</acceptance_criteria>
