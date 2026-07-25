@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "node --import tsx --test tests/unit/**/*.test.ts"
+    "test": "node --import tsx --test tests/unit/**/*.test.ts tests/contracts/**/*.test.ts",
+    "ingest": "tsx scripts/ingest-candidates.ts",
+    "research": "tsx scripts/run-research.ts"
   },
   "dependencies": {
     "@renderinc/sdk": "0.6.0",
