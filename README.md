@@ -376,7 +376,7 @@ tests/
   e2e/                  Verified user workflows
 ```
 
-The repository does not include a `.pddrc` until the installed PDD version and its configuration schema are verified. Do not invent configuration or command flags from memory.
+The committed `.pddrc` was created with and verified against PDD CLI `0.0.308`. It targets TypeScript and routes generated code, tests, and examples to `generated/`, `tests/`, and `examples/`. Revalidate the configuration schema and commands before upgrading PDD.
 
 ## Environment configuration
 

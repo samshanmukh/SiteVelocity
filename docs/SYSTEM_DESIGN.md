@@ -928,7 +928,7 @@ generated implementation v2
 passing verification evidence and accepted manifest
 ```
 
-The repository currently contains the prompt contract and manifest schema only. Generation commands, `.pddrc`, language-specific prompt suffixes, and generated outputs are added after the installed PDD release and configuration format are verified.
+The repository contains the initial prompt contract, manifest schema, and a TypeScript `.pddrc` verified against PDD CLI `0.0.308`. Language-specific prompt naming, executable contract tests, generation commands, and generated outputs are added only after the first module mold is complete.
 
 See `docs/PDD_WORKFLOW.md` for the operating procedure.
 
@@ -1060,7 +1060,7 @@ Browser-exposed variables are limited to explicitly public configuration. Servic
 ### Phase 0 — Repository and intent
 
 1. Establish strict TypeScript/Next.js project.
-2. Verify and pin the PDD CLI version before adding `.pddrc` or generation scripts.
+2. Reproduce the verified PDD CLI `0.0.308` configuration and revalidate it before any upgrade.
 3. Add prompts/specs, domain schemas, provider ports, migrations, and `.env.example`.
 4. Implement executable candidate-normalizer tests mapped to prompt rules.
 5. Generate and verify the first module, then commit its evidence manifest.

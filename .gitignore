@@ -1,0 +1,3 @@
+# Local PDD diagnostics and model cache
+.pdd/core_dumps/
+litellm_cache.sqlite/

@@ -1,0 +1,14 @@
+version: "1.0"
+
+contexts:
+  default:
+    defaults:
+      generate_output_path: "generated/"
+      test_output_path: "tests/"
+      example_output_path: "examples/"
+      default_language: "typescript"
+      strength: 0.818
+      temperature: 0.0
+      target_coverage: 80.0
+      budget: 10.0
+      max_attempts: 3

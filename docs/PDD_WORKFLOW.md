@@ -1,6 +1,6 @@
 # SiteVelocity PDD Workflow
 
-This document defines how Prompt Driven Development is used in SiteVelocity. It follows the [official PDD prompting guide](https://github.com/promptdriven/pdd/blob/main/docs/prompting_guide.md) while keeping all commands and configuration version-specific.
+This document defines how Prompt Driven Development is used in SiteVelocity. It follows the [official PDD prompting guide](https://github.com/promptdriven/pdd/blob/main/docs/prompting_guide.md) while keeping all commands and configuration version-specific. The current `.pddrc` baseline was created with and verified against PDD CLI `0.0.308`.
 
 ## 1. Operating principle
 
@@ -118,4 +118,4 @@ Manifests prove engineering provenance; they are not application telemetry and d
 6. Scout ranker after score approval
 7. Finance engine after formula approval
 
-The first contract is `prompts/modules/candidate-normalizer.prompt`. Its executable implementation and tests are intentionally deferred until the TypeScript project and installed PDD version are pinned.
+The first contract is `prompts/modules/candidate-normalizer.prompt`. Its executable implementation and tests are intentionally deferred until the TypeScript application toolchain and contract-test runner are established.
