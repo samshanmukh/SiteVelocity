@@ -113,7 +113,14 @@
 
 /* Hero */
 .hero {
-  background: linear-gradient(150deg, #0c1524 0%, #132441 62%, #1b2a45 100%);
+  background-color: #0c1524;
+  background-image:
+    linear-gradient(90deg, rgba(8, 16, 29, 0.78) 0%, rgba(10, 22, 39, 0.64) 48%, rgba(10, 22, 39, 0.4) 100%),
+    linear-gradient(180deg, rgba(12, 21, 36, 0.08) 0%, rgba(12, 21, 36, 0.46) 100%),
+    url("/images/sitevelocity-construction-hero.webp");
+  background-position: center, center, center 58%;
+  background-repeat: no-repeat;
+  background-size: cover;
   color: #ffffff;
   text-align: center;
   padding: clamp(3.5rem, 9vw, 6.5rem) clamp(1rem, 5vw, 3rem) clamp(3rem, 7vw, 5.5rem);
@@ -135,6 +142,7 @@
   letter-spacing: -0.015em;
   margin: 0 auto 0.9rem;
   max-width: 18ch;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.42);
 }
 
 .heroStrap {
@@ -149,6 +157,13 @@
   margin: 0 auto 2rem;
   color: #ccd6e6;
   font-size: 1.02rem;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.48);
+}
+
+@media (max-width: 640px) {
+  .hero {
+    background-position: center, center, 62% center;
+  }
 }
 
 .heroActions {
