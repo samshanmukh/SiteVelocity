@@ -1,6 +1,6 @@
 import { pathToFileURL } from "node:url";
 import { getIntegrationConfig } from "../lib/config/env";
-import { RenderWorkflowEngine, siblingRenderTaskSlug } from "../lib/providers/render";
+import { configuredWorkflowEngine } from "../lib/providers/workflow";
 import {
   attachProviderRun,
   createCandidateIngestionWorkflowRun,
@@ -15,9 +15,8 @@ export function scheduledIngestionIdempotencyKey(now = new Date()): string {
 export async function scheduleCandidateIngestion(now = new Date()) {
   const config = getIntegrationConfig();
   if (!config.SITEVELOCITY_ORGANIZATION_ID) throw new Error("SITEVELOCITY_ORGANIZATION_ID is required.");
-  if (!config.RENDER_API_KEY || !config.RENDER_WORKFLOW_TASK_SLUG) {
-    throw new Error("Render workflow configuration is required.");
-  }
+  const configuredWorkflow = configuredWorkflowEngine(config, "ingest-candidates");
+  if (!configuredWorkflow) throw new Error("The selected workflow provider is not configured.");
 
   const thesis = await thesisRepositoryForOrganization(config.SITEVELOCITY_ORGANIZATION_ID).getActive();
   const workflow = await createCandidateIngestionWorkflowRun({
@@ -25,6 +24,7 @@ export async function scheduleCandidateIngestion(now = new Date()) {
     userId: null,
     thesisId: thesis.id,
     idempotencyKey: scheduledIngestionIdempotencyKey(now),
+    provider: configuredWorkflow.provider,
   });
   if (workflow.replayed) {
     console.log(`scheduled-ingestion: command ${workflow.id} already exists (${workflow.status})`);
@@ -32,8 +32,7 @@ export async function scheduleCandidateIngestion(now = new Date()) {
   }
 
   try {
-    const taskSlug = siblingRenderTaskSlug(config.RENDER_WORKFLOW_TASK_SLUG, "ingestCandidates");
-    const providerRun = await new RenderWorkflowEngine(config.RENDER_API_KEY, taskSlug).start({
+    const providerRun = await configuredWorkflow.engine.start({
       organizationId: config.SITEVELOCITY_ORGANIZATION_ID,
       workflowRunId: workflow.id,
     });

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getIntegrationConfig } from "@/lib/config/env";
 import { runtimeStoreForOrganization } from "@/lib/persistence/runtime-store";
-import { RenderWorkflowEngine, siblingRenderTaskSlug } from "@/lib/providers/render";
+import { configuredWorkflowEngine } from "@/lib/providers/workflow";
 import { requestContextErrorResponse, resolveRequestContext, type RequestContext } from "@/lib/security/request-context";
 import { ingestCandidates } from "@/scripts/ingest-candidates";
 import {
@@ -47,7 +47,8 @@ export async function POST(request: Request) {
   if (!parsedKey.success) {
     return NextResponse.json({ error: "A valid Idempotency-Key header is required." }, { status: 400, headers: { "X-Request-Id": requestId } });
   }
-  if (!config.RENDER_API_KEY || !config.RENDER_WORKFLOW_TASK_SLUG) {
+  const configuredWorkflow = configuredWorkflowEngine(config, "ingest-candidates");
+  if (!configuredWorkflow) {
     return NextResponse.json({ error: "The durable ingestion workflow is not configured." }, { status: 503, headers: { "X-Request-Id": requestId } });
   }
 
@@ -58,17 +59,14 @@ export async function POST(request: Request) {
       userId: context.userId,
       thesisId: thesis.id,
       idempotencyKey: parsedKey.data,
+      provider: configuredWorkflow.provider,
     });
     workflowRunId = workflow.id;
     if (workflow.replayed) {
       return NextResponse.json(workflow, { status: 202, headers: { "Cache-Control": "no-store, private", "X-Request-Id": requestId } });
     }
 
-    const engine = new RenderWorkflowEngine(
-      config.RENDER_API_KEY,
-      siblingRenderTaskSlug(config.RENDER_WORKFLOW_TASK_SLUG, "ingestCandidates"),
-    );
-    const providerRun = await engine.start({ organizationId: context.organizationId, workflowRunId: workflow.id });
+    const providerRun = await configuredWorkflow.engine.start({ organizationId: context.organizationId, workflowRunId: workflow.id });
     await attachProviderRun({ organizationId: context.organizationId, workflowRunId: workflow.id, providerRunId: providerRun.runId });
     return NextResponse.json(
       { ...workflow, providerRunId: providerRun.runId },

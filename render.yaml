@@ -47,9 +47,19 @@ services:
         value: supabase
       - key: SITEVELOCITY_ORGANIZATION_ID
         sync: false
+      - key: WORKFLOW_PROVIDER
+        value: render
       - key: RENDER_API_KEY
         sync: false
       - key: RENDER_WORKFLOW_TASK_SLUG
+        sync: false
+      - key: ROCKETRIDE_APIKEY
+        sync: false
+      - key: ROCKETRIDE_URI
+        value: https://api.rocketride.ai
+      - key: ROCKETRIDE_RESEARCH_PIPELINE
+        sync: false
+      - key: ROCKETRIDE_INGEST_PIPELINE
         sync: false
       - key: RTRVR_API_KEY
         sync: false
@@ -107,9 +117,19 @@ services:
         sync: false
       - key: DATABASE_URL
         sync: false
+      - key: WORKFLOW_PROVIDER
+        value: render
       - key: RENDER_API_KEY
         sync: false
       - key: RENDER_WORKFLOW_TASK_SLUG
+        sync: false
+      - key: ROCKETRIDE_APIKEY
+        sync: false
+      - key: ROCKETRIDE_URI
+        value: https://api.rocketride.ai
+      - key: ROCKETRIDE_RESEARCH_PIPELINE
+        sync: false
+      - key: ROCKETRIDE_INGEST_PIPELINE
         sync: false
       - key: RTRVR_API_KEY
         sync: false

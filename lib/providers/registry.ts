@@ -2,6 +2,7 @@ import "server-only";
 import { getIntegrationConfig } from "@/lib/config/env";
 import { checkMiniMaxConnection } from "./minimax";
 import { checkRenderConnection } from "./render";
+import { checkRocketRideConnection } from "./rocketride";
 import { checkRtrvrConfiguration } from "./rtrvr";
 import { checkSupabasePersistenceConnection } from "./supabase";
 import type { ProviderDiagnostic } from "./types";
@@ -10,7 +11,7 @@ import { configuredProvider } from "./configuration";
 export async function checkProviderConnections(): Promise<ProviderDiagnostic[]> {
   const config = getIntegrationConfig();
 
-  const [supabase, render, minimax] = await Promise.all([
+  const [supabase, render, rocketride, minimax] = await Promise.all([
     checkSupabasePersistenceConnection({
       url: config.SUPABASE_URL,
       publishableKey: config.SUPABASE_PUBLISHABLE_KEY,
@@ -18,12 +19,19 @@ export async function checkProviderConnections(): Promise<ProviderDiagnostic[]> 
       serviceRoleKey: config.SUPABASE_SERVICE_ROLE_KEY,
     }),
     checkRenderConnection(config.RENDER_API_KEY, config.RENDER_WORKFLOW_TASK_SLUG),
+    checkRocketRideConnection(
+      config.ROCKETRIDE_APIKEY,
+      config.ROCKETRIDE_URI,
+      config.ROCKETRIDE_RESEARCH_PIPELINE,
+      config.ROCKETRIDE_INGEST_PIPELINE,
+    ),
     checkMiniMaxConnection(config.MINIMAX_API_KEY),
   ]);
 
   return [
     supabase,
     render,
+    rocketride,
     checkRtrvrConfiguration(config.RTRVR_API_KEY),
     minimax,
     configuredProvider(

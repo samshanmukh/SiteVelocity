@@ -24,6 +24,10 @@ const optionalSupabaseServiceRoleKey = z.preprocess(
   z.string().trim().regex(/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/).optional(),
 );
 const optionalUuid = z.preprocess(blankToUndefined, z.string().trim().uuid().optional());
+const optionalPipelinePath = z.preprocess(
+  blankToUndefined,
+  z.string().trim().regex(/^pipelines\/rocketride\/[A-Za-z0-9][A-Za-z0-9._/-]*\.pipe$/).optional(),
+);
 const booleanFlag = (defaultValue: boolean) => z.preprocess(
   (value) => value === undefined || value === "" ? defaultValue : value,
   z.union([z.boolean(), z.enum(["true", "false"])]).transform((value) => value === true || value === "true"),
@@ -39,8 +43,13 @@ const IntegrationEnvironmentSchema = z.object({
   LIVE_RESEARCH: booleanFlag(false),
   PERSISTENCE_BACKEND: z.enum(["auto", "file", "supabase"]).default("auto"),
   SITEVELOCITY_ORGANIZATION_ID: optionalUuid,
+  WORKFLOW_PROVIDER: z.preprocess(blankToUndefined, z.enum(["render", "rocketride"]).default("render")),
   RENDER_API_KEY: optionalSecret,
   RENDER_WORKFLOW_TASK_SLUG: optionalSecret,
+  ROCKETRIDE_APIKEY: optionalSecret,
+  ROCKETRIDE_URI: optionalUrl,
+  ROCKETRIDE_RESEARCH_PIPELINE: optionalPipelinePath,
+  ROCKETRIDE_INGEST_PIPELINE: optionalPipelinePath,
   RTRVR_API_KEY: optionalSecret,
   MINIMAX_API_KEY: optionalSecret,
   MINIMAX_MODEL: optionalSecret.default("MiniMax-M2.7"),

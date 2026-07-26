@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { getIntegrationConfig } from "@/lib/config/env";
 import { runtimeStoreForOrganization } from "@/lib/persistence/runtime-store";
-import { RenderWorkflowEngine } from "@/lib/providers/render";
+import { configuredWorkflowEngine } from "@/lib/providers/workflow";
 import { researchSite } from "@/lib/research/pipeline";
 import { requestContextErrorResponse, resolveRequestContext, type RequestContext } from "@/lib/security/request-context";
 import {
@@ -19,7 +19,7 @@ const IdempotencyKeySchema = z.string().trim().min(8).max(255);
 
 /**
  * Start (or refresh) research for one site. Alpha runs the pipeline in-process;
- * the same pipeline is exposed to Render Workflows via workflows/research-site.
+ * the same pipeline can be dispatched through Render or RocketRide.
  * A failed run records diagnostics and never replaces the active snapshot.
  */
 export async function POST(request: Request, { params }: { params: Promise<{ siteId: string }> }) {
@@ -47,7 +47,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ sit
         { status: 400, headers: { "X-Request-Id": requestId } },
       );
     }
-    if (!config.RENDER_API_KEY || !config.RENDER_WORKFLOW_TASK_SLUG) {
+    const configuredWorkflow = configuredWorkflowEngine(config, "research-site");
+    if (!configuredWorkflow) {
       return NextResponse.json(
         { error: "The durable research workflow is not configured." },
         { status: 503, headers: { "X-Request-Id": requestId } },
@@ -61,6 +62,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ sit
         userId: context.userId,
         externalSiteId: siteId,
         idempotencyKey: parsedKey.data,
+        provider: configuredWorkflow.provider,
       });
       createdWorkflowId = workflow.id;
       if (workflow.replayed) {
@@ -70,8 +72,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ sit
         });
       }
 
-      const engine = new RenderWorkflowEngine(config.RENDER_API_KEY, config.RENDER_WORKFLOW_TASK_SLUG);
-      const providerRun = await engine.start({
+      const providerRun = await configuredWorkflow.engine.start({
         organizationId: context.organizationId,
         siteId,
         workflowRunId: workflow.id,

@@ -382,6 +382,141 @@
   padding-left: 0.9rem;
 }
 
+/* Technology stack */
+.stackFlow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  max-width: 72rem;
+  margin: 2rem auto 1.5rem;
+}
+
+.stackFlowItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.stackNode {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.25rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d6dae1;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #37404c;
+  font-family: var(--font-mono, "IBM Plex Mono", ui-monospace, monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.stackNodeSelected {
+  color: #ffffff;
+  background: #2557c7;
+  border-color: #2557c7;
+  box-shadow: 0 5px 16px rgba(37, 87, 199, 0.2);
+}
+
+.stackArrow {
+  color: #7a828e;
+  font-size: 1rem;
+}
+
+.technologyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 0.9rem;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.technologyCard {
+  min-width: 0;
+  background: #ffffff;
+  border: 1px solid #e2e5ea;
+  border-radius: 10px;
+  padding: 1.05rem 1.1rem;
+}
+
+.technologyFeatured {
+  border-color: #8fb0ee;
+  background: linear-gradient(145deg, #ffffff, #f2f6ff);
+  box-shadow: inset 3px 0 0 #2557c7;
+}
+
+.technologyCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.technologyCardHeader h3 {
+  margin: 0;
+  color: #16202e;
+  font-size: 1rem;
+}
+
+.technologyCardHeader span {
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #eaf0fc;
+  color: #2557c7;
+  padding: 0.18rem 0.48rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.technologyCard > p {
+  margin: 0;
+  color: #4a5568;
+  font-size: 0.86rem;
+}
+
+.integrationState {
+  margin-top: 0.75rem !important;
+  padding-top: 0.65rem;
+  border-top: 1px solid #d8e2f7;
+  color: #2557c7 !important;
+  font-size: 0.72rem !important;
+  font-weight: 600;
+}
+
+.integrationState code {
+  font-family: var(--font-mono, "IBM Plex Mono", ui-monospace, monospace);
+}
+
+@media (max-width: 640px) {
+  .stackFlow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .stackFlowItem {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .stackNode {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .stackArrow {
+    transform: rotate(90deg);
+  }
+
+  .technologyCardHeader {
+    flex-direction: column;
+  }
+}
+
 /* Capability summary */
 .capabilityGroups {
   display: grid;

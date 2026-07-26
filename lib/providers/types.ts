@@ -1,12 +1,14 @@
 export type ProviderStatus = "connected" | "configured" | "unconfigured" | "error";
 
 export interface ProviderDiagnostic {
-  id: "supabase" | "render" | "rtrvr" | "minimax" | "nexla" | "respan" | "mem0" | "elevenlabs" | "mapbox";
+  id: "supabase" | "render" | "rocketride" | "rtrvr" | "minimax" | "nexla" | "respan" | "mem0" | "elevenlabs" | "mapbox";
   name: string;
   status: ProviderStatus;
   message: string;
   latencyMs?: number;
 }
+
+export type WorkflowProviderId = "render" | "rocketride";
 
 export interface WebResearchRequest {
   task: string;

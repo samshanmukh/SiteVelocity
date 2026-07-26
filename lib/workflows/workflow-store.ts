@@ -4,6 +4,7 @@ import { createHash } from "node:crypto";
 import type { Json } from "@/lib/persistence/database.types";
 import { deterministicUuid } from "@/lib/persistence/identity";
 import { createSupabaseAdminClient } from "@/lib/persistence/supabase/admin";
+import type { WorkflowProviderId } from "@/lib/providers/types";
 
 export type WorkflowRunStatus = "queued" | "running" | "succeeded" | "failed" | "cancelled" | "partial";
 
@@ -84,6 +85,7 @@ export async function createResearchWorkflowRun(input: {
   userId: string | null;
   externalSiteId: string;
   idempotencyKey: string;
+  provider?: WorkflowProviderId;
 }): Promise<ResearchWorkflowRun> {
   const client = createSupabaseAdminClient();
   const hash = requestHash(input.organizationId, input.externalSiteId);
@@ -146,7 +148,7 @@ export async function createResearchWorkflowRun(input: {
       site_id: siteId,
       workflow_type: "research_site",
       status: "queued",
-      provider: "render",
+      provider: input.provider ?? "render",
       input: { siteId: input.externalSiteId },
     })
     .select(RUN_COLUMNS)
@@ -163,6 +165,7 @@ export async function createCandidateIngestionWorkflowRun(input: {
   userId: string | null;
   thesisId: string;
   idempotencyKey: string;
+  provider?: WorkflowProviderId;
 }): Promise<ResearchWorkflowRun> {
   const client = createSupabaseAdminClient();
   const hash = createHash("sha256")
@@ -212,7 +215,7 @@ export async function createCandidateIngestionWorkflowRun(input: {
       idempotency_id: idempotencyId,
       workflow_type: "ingest_candidates",
       status: "queued",
-      provider: "render",
+      provider: input.provider ?? "render",
       input: { thesisId: input.thesisId },
     })
     .select(RUN_COLUMNS)

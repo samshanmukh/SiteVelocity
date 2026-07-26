@@ -9,6 +9,8 @@ export type ReasonCode =
   | "invalid_url"
   | "invalid_boolean"
   | "invalid_task_slug"
+  | "invalid_workflow_provider"
+  | "invalid_pipeline_path"
   | "invalid_uuid"
   | "invalid_persistence_backend"
   | "insecure_production_url"
@@ -16,6 +18,7 @@ export type ReasonCode =
   | "persistence_unready"
   | "snapshot_unready"
   | "render_unready"
+  | "rocketride_unready"
   | "rtrvr_unready"
   | "minimax_unready";
 
@@ -28,6 +31,7 @@ export interface DeploymentEnv {
   appBaseUrl: string;
   demoMode: boolean;
   liveResearch: boolean;
+  workflowProvider: "render" | "rocketride";
   nodeEnv: "production" | "development" | "test";
   releaseId: string | null;
   demoSnapshotId: string | null;
@@ -45,6 +49,7 @@ export interface DependencyProbe {
   persistence: DependencyState;
   storedSnapshot: DependencyState;
   render: DependencyState;
+  rocketride: DependencyState;
   rtrvr: DependencyState;
   minimax: DependencyState;
   optional?: Record<string, DependencyState>; // never gates readiness (R7)
@@ -99,18 +104,26 @@ const SUPABASE_SERVER_KEY_NAMES = [
   "SUPABASE_SERVICE_ROLE_KEY",
 ] as const;
 
-const LIVE_RESEARCH_SECRET_NAMES = [
-  "RENDER_API_KEY",
-  "RENDER_WORKFLOW_TASK_SLUG",
+const LIVE_RESEARCH_COMMON_SECRET_NAMES = [
   "RTRVR_API_KEY",
   "MINIMAX_API_KEY",
+] as const;
+
+const RENDER_WORKFLOW_NAMES = ["RENDER_API_KEY", "RENDER_WORKFLOW_TASK_SLUG"] as const;
+const ROCKETRIDE_WORKFLOW_NAMES = [
+  "ROCKETRIDE_APIKEY",
+  "ROCKETRIDE_URI",
+  "ROCKETRIDE_RESEARCH_PIPELINE",
+  "ROCKETRIDE_INGEST_PIPELINE",
 ] as const;
 
 const PRESENCE_ONLY_NAMES: readonly string[] = [
   "SUPABASE_URL",
   "SUPABASE_PUBLISHABLE_KEY",
   ...SUPABASE_SERVER_KEY_NAMES,
-  ...LIVE_RESEARCH_SECRET_NAMES,
+  ...LIVE_RESEARCH_COMMON_SECRET_NAMES,
+  ...RENDER_WORKFLOW_NAMES,
+  ...ROCKETRIDE_WORKFLOW_NAMES,
 ];
 
 function present(source: Record<string, string | undefined>, name: string): boolean {
@@ -181,6 +194,14 @@ export function parseDeploymentEnv(
     issues.push({ code: "mode_conflict" });
   }
 
+  const workflowProviderRaw = source.WORKFLOW_PROVIDER?.trim() || "render";
+  const workflowProvider = workflowProviderRaw === "render" || workflowProviderRaw === "rocketride"
+    ? workflowProviderRaw
+    : null;
+  if (workflowProvider === null) {
+    issues.push({ code: "invalid_workflow_provider", variable: "WORKFLOW_PROVIDER" });
+  }
+
   if (demoMode === true) {
     if (!present(source, "DEMO_SNAPSHOT_ID")) {
       issues.push({ code: "missing_required_variable", variable: "DEMO_SNAPSHOT_ID" });
@@ -218,16 +239,39 @@ export function parseDeploymentEnv(
   }
 
   if (liveResearch === true) {
-    for (const name of LIVE_RESEARCH_SECRET_NAMES) {
+    for (const name of LIVE_RESEARCH_COMMON_SECRET_NAMES) {
       if (!present(source, name)) {
         issues.push({ code: "missing_required_variable", variable: name });
       }
     }
-    if (
-      present(source, "RENDER_WORKFLOW_TASK_SLUG")
-      && !/^[^/\s]+\/[^/\s]+$/.test(source.RENDER_WORKFLOW_TASK_SLUG as string)
-    ) {
-      issues.push({ code: "invalid_task_slug", variable: "RENDER_WORKFLOW_TASK_SLUG" });
+    if (workflowProvider === "render") {
+      for (const name of RENDER_WORKFLOW_NAMES) {
+        if (!present(source, name)) issues.push({ code: "missing_required_variable", variable: name });
+      }
+      if (
+        present(source, "RENDER_WORKFLOW_TASK_SLUG")
+        && !/^[^/\s]+\/[^/\s]+$/.test(source.RENDER_WORKFLOW_TASK_SLUG as string)
+      ) {
+        issues.push({ code: "invalid_task_slug", variable: "RENDER_WORKFLOW_TASK_SLUG" });
+      }
+    }
+    if (workflowProvider === "rocketride") {
+      for (const name of ROCKETRIDE_WORKFLOW_NAMES) {
+        if (!present(source, name)) issues.push({ code: "missing_required_variable", variable: name });
+      }
+      if (present(source, "ROCKETRIDE_URI")) {
+        try {
+          const uri = new URL(source.ROCKETRIDE_URI as string);
+          if (!["http:", "https:", "ws:", "wss:"].includes(uri.protocol)) throw new Error();
+        } catch {
+          issues.push({ code: "invalid_url", variable: "ROCKETRIDE_URI" });
+        }
+      }
+      for (const name of ["ROCKETRIDE_RESEARCH_PIPELINE", "ROCKETRIDE_INGEST_PIPELINE"] as const) {
+        if (present(source, name) && !/^pipelines\/rocketride\/[A-Za-z0-9][A-Za-z0-9._/-]*\.pipe$/.test(source[name] as string)) {
+          issues.push({ code: "invalid_pipeline_path", variable: name });
+        }
+      }
     }
   }
 
@@ -241,6 +285,7 @@ export function parseDeploymentEnv(
       appBaseUrl: appBaseUrl as string,
       demoMode: demoMode as boolean,
       liveResearch: liveResearch as boolean,
+      workflowProvider: workflowProvider as "render" | "rocketride",
       nodeEnv,
       releaseId: nonBlankOrNull(source.RELEASE_SHA) ?? nonBlankOrNull(source.RENDER_GIT_COMMIT),
       demoSnapshotId: nonBlankOrNull(source.DEMO_SNAPSHOT_ID),
@@ -285,8 +330,9 @@ export function evaluateReadiness(
   }
 
   if (env.liveResearch) {
-    checkedDependencies.push("render", "rtrvr", "minimax");
-    if (probe.render !== "ready") reasonCodes.add("render_unready");
+    checkedDependencies.push(env.workflowProvider, "rtrvr", "minimax");
+    if (env.workflowProvider === "render" && probe.render !== "ready") reasonCodes.add("render_unready");
+    if (env.workflowProvider === "rocketride" && probe.rocketride !== "ready") reasonCodes.add("rocketride_unready");
     if (probe.rtrvr !== "ready") reasonCodes.add("rtrvr_unready");
     if (probe.minimax !== "ready") reasonCodes.add("minimax_unready");
   }

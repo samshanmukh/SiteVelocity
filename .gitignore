@@ -22,3 +22,4 @@ generated/
 
 # Mutable local development state
 data/runtime/
+.vercel

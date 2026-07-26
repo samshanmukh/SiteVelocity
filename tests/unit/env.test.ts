@@ -10,6 +10,7 @@ test("defaults the MiniMax model without inventing provider credentials", () => 
   assert.equal(config.PERSISTENCE_BACKEND, "auto");
   assert.equal(config.DEMO_MODE, true);
   assert.equal(config.LIVE_RESEARCH, false);
+  assert.equal(config.WORKFLOW_PROVIDER, "render");
   assert.equal(config.SITEVELOCITY_ORGANIZATION_ID, undefined);
   assert.equal(config.MINIMAX_API_KEY, undefined);
   assert.equal(config.RTRVR_API_KEY, undefined);

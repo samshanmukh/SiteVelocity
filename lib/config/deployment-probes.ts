@@ -3,6 +3,7 @@ import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { checkMiniMaxConnection } from "@/lib/providers/minimax";
 import { checkRenderConnection } from "@/lib/providers/render";
+import { checkRocketRideConnection } from "@/lib/providers/rocketride";
 import { isProviderReady } from "@/lib/providers/readiness";
 import { checkRtrvrConfiguration } from "@/lib/providers/rtrvr";
 import { checkSupabasePersistenceConnection } from "@/lib/providers/supabase";
@@ -40,6 +41,7 @@ export async function probeDependencies(
     persistence: "skipped",
     storedSnapshot: "skipped",
     render: "skipped",
+    rocketride: "skipped",
     rtrvr: "skipped",
     minimax: "skipped",
   };
@@ -61,13 +63,20 @@ export async function probeDependencies(
   }
 
   if (env.liveResearch) {
-    const [supabase, render, minimax] = await Promise.all([
+    const [supabase, workflow, minimax] = await Promise.all([
       supabasePromise,
-      checkRenderConnection(source.RENDER_API_KEY, source.RENDER_WORKFLOW_TASK_SLUG),
+      env.workflowProvider === "rocketride"
+        ? checkRocketRideConnection(
+            source.ROCKETRIDE_APIKEY,
+            source.ROCKETRIDE_URI,
+            source.ROCKETRIDE_RESEARCH_PIPELINE,
+            source.ROCKETRIDE_INGEST_PIPELINE,
+          )
+        : checkRenderConnection(source.RENDER_API_KEY, source.RENDER_WORKFLOW_TASK_SLUG),
       checkMiniMaxConnection(source.MINIMAX_API_KEY),
     ]);
     probe.persistence = supabase.status === "connected" ? "ready" : "unready";
-    probe.render = isProviderReady(render) ? "ready" : "unready";
+    probe[env.workflowProvider] = isProviderReady(workflow) ? "ready" : "unready";
     probe.rtrvr = isProviderReady(checkRtrvrConfiguration(source.RTRVR_API_KEY)) ? "ready" : "unready";
     probe.minimax = isProviderReady(minimax) ? "ready" : "unready";
   } else {

@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
+  outputFileTracingIncludes: {
+    "/*": ["./pipelines/rocketride/**/*.pipe"],
+  },
 };
 
 export default nextConfig;

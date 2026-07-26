@@ -29,6 +29,7 @@ const READY_PROBE: DependencyProbe = {
   persistence: "ready",
   storedSnapshot: "ready",
   render: "ready",
+  rocketride: "ready",
   rtrvr: "ready",
   minimax: "ready",
 };
@@ -198,6 +199,7 @@ test("R7: dependency matrix — demo requires persistence+snapshot; live require
     persistence: "ready",
     storedSnapshot: "ready",
     render: "unready",
+    rocketride: "unready",
     rtrvr: "unready",
     minimax: "unready",
   });
@@ -221,6 +223,25 @@ test("R7: dependency matrix — demo requires persistence+snapshot; live require
     assert.equal(result.state, "blocked", `${dependency} must gate live research`);
     assert.deepEqual(result.reasonCodes, [`${dependency}_unready`]);
   }
+
+  const rocketRideLive = {
+    ...LIVE_ENV,
+    WORKFLOW_PROVIDER: "rocketride",
+    RENDER_API_KEY: "",
+    RENDER_WORKFLOW_TASK_SLUG: "",
+    ROCKETRIDE_APIKEY: "rr-test-value",
+    ROCKETRIDE_URI: "https://api.rocketride.ai",
+    ROCKETRIDE_RESEARCH_PIPELINE: "pipelines/rocketride/research-site.pipe",
+    ROCKETRIDE_INGEST_PIPELINE: "pipelines/rocketride/ingest-candidates.pipe",
+  };
+  const rocketRideBlocked = evaluateReadiness(parseDeploymentEnv(rocketRideLive), {
+    ...READY_PROBE,
+    render: "unready",
+    rocketride: "unready",
+  });
+  assert.equal(rocketRideBlocked.state, "blocked");
+  assert.deepEqual(rocketRideBlocked.reasonCodes, ["rocketride_unready"]);
+  assert.deepEqual(rocketRideBlocked.diagnostics.checkedDependencies, ["persistence", "storedSnapshot", "rocketride", "rtrvr", "minimax"]);
 
   // Optional providers never gate readiness.
   const optionalDown = evaluateReadiness(parseDeploymentEnv({ ...LIVE_ENV }), {
@@ -288,7 +309,7 @@ test("R9 (negative): no secret value appears in any result, and declarative arti
       { path: ".env.example", content: repoFile(".env.example") },
       { path: "render.yaml", content: repoFile("render.yaml") },
     ],
-    ["SUPABASE_SECRET_KEY", "SUPABASE_SERVICE_ROLE_KEY", "DATABASE_URL", "RENDER_API_KEY", "RTRVR_API_KEY", "MINIMAX_API_KEY", "WEBHOOK_SIGNING_SECRET"],
+    ["SUPABASE_SECRET_KEY", "SUPABASE_SERVICE_ROLE_KEY", "DATABASE_URL", "RENDER_API_KEY", "ROCKETRIDE_APIKEY", "RTRVR_API_KEY", "MINIMAX_API_KEY", "WEBHOOK_SIGNING_SECRET"],
   );
   assert.deepEqual(clean, []);
 });

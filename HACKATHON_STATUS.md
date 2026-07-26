@@ -16,8 +16,8 @@ Saturday, July 25, 2026 · 9:00 AM–9:00 PM · 555 University Ave, Palo Alto
 - Thesis: multifamily & mixed-use residential redevelopment, 0.5–10 acres, prefer 100+ units
 - Hero workflow: SEARCH → DISCOVER → RESEARCH → VERIFY → NEXT STEP
 - Funnel: 50–100 raw HCD/DGS records → ~15 candidates → top 5 researched → 3 hero sites → 1 polished dossier
-- Sponsor stack (runtime): Render Workflows → Rtrvr.ai → MiniMax, with Nexla managed-ingestion support, ElevenLabs Scout voice, and Mem0 preference memory. PDD is the implementation methodology.
-- Optional/not selected for the core runtime: Cerebras, Band, TokenRouter, RocketRide, Featherless, and Tencent EdgeOne. Respan tracing awaits the required auto-vs-structured instrumentation choice.
+- Sponsor stack (runtime): selectable Render Workflows or RocketRide pipeline runtime → Rtrvr.ai → MiniMax, with Nexla managed-ingestion support, ElevenLabs Scout voice, and Mem0 preference memory. PDD is the implementation methodology.
+- Optional/not selected for the core runtime: Cerebras, Band, TokenRouter, Featherless, and Tencent EdgeOne. RocketRide is integrated but remains inactive until its key and two `.pipe` files are configured. Respan tracing awaits the required auto-vs-structured instrumentation choice.
 
 Other delegation segments (Foundation & QA, Government Ingestion, Candidate Pipeline,
 Research Providers, Evidence & Snapshots, Decision Layer, App UI, Landing Page) are

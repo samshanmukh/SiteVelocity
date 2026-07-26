@@ -257,7 +257,7 @@ See [System Design](docs/SYSTEM_DESIGN.md) for implementation details.
 ### Hackathon runtime providers
 
 - **PDD:** prompt/spec artifacts define behavior and regeneration intent
-- **Render Workflows:** durable research orchestration, retries, and run status
+- **Render Workflows / RocketRide:** selectable durable workflow runtime; Render remains the default
 - **Rtrvr.ai:** targeted public-web retrieval and browser research
 - **MiniMax:** structured evidence extraction and synthesis
 - **Nexla:** conditional structured dataset ingestion and normalization
@@ -266,11 +266,11 @@ See [System Design](docs/SYSTEM_DESIGN.md) for implementation details.
 - **ElevenLabs:** Scout speech-to-text microphone input and verified answer playback
 - **Mem0:** semantic retrieval for durable Scout working preferences, backed by PostgreSQL
 
-### Future/provider options
+### Additional/provider options
 
 - Expanded Mem0 pursue/pass rationale memory, never authoritative property facts
 - TokenRouter or an internal router for multi-model fallback
-- RocketRide as an alternative pipeline implementation, not alongside Render in Alpha
+- RocketRide as an integrated alternative pipeline runtime selected with `WORKFLOW_PROVIDER=rocketride`
 - Tencent EdgeOne as an alternative deployment target
 - Featherless for open-model access
 
@@ -445,8 +445,13 @@ NEXT_PUBLIC_MAPBOX_STYLE_URL=mapbox://styles/mapbox/streets-v12
 DEMO_MODE=true
 LIVE_RESEARCH=false
 
+WORKFLOW_PROVIDER=render
 RENDER_API_KEY=
 RENDER_WORKFLOW_TASK_SLUG=
+ROCKETRIDE_APIKEY=
+ROCKETRIDE_URI=https://api.rocketride.ai
+ROCKETRIDE_RESEARCH_PIPELINE=
+ROCKETRIDE_INGEST_PIPELINE=
 RTRVR_API_KEY=
 MINIMAX_API_KEY=
 ELEVENLABS_API_KEY=
@@ -477,7 +482,7 @@ Only the core provider variables are required for the primary Alpha path. Option
 - Known, believed, unknown, and conflicting information are distinct.
 - Material findings expose sources and retrieval timestamps.
 - A useful Next Best Action is generated from unresolved findings.
-- Render Workflows is used in the real path.
+- Render Workflows or RocketRide is used in the real path, with exactly one selected as the workflow backend.
 - At least one Rtrvr retrieval and MiniMax structured extraction are real.
 - A Research Snapshot loads without rerunning external services.
 - A failed refresh preserves the previous valid snapshot.

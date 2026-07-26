@@ -1056,7 +1056,7 @@ Browser-exposed variables are limited to explicitly public configuration. Servic
 
 | Provider | Alpha role | Decision gate |
 | --- | --- | --- |
-| Render | Required workflow orchestration | Core |
+| Render | Default workflow orchestration | Core unless RocketRide is selected |
 | Rtrvr.ai | Required targeted web/public-record retrieval | Core |
 | MiniMax | Required meaningful typed extraction | Core |
 | Nexla | Structured candidate ingestion and lineage | Use if it accelerates the real ingestion path |
@@ -1065,7 +1065,7 @@ Browser-exposed variables are limited to explicitly public configuration. Servic
 | ElevenLabs | Render verified briefing as audio | Add after demo stability |
 | Mem0 | Scout investment, risk, communication, and workflow preferences | Implemented with PostgreSQL fallback; keep out of the evidence graph |
 | Band | Cross-agent collaboration | Skip Alpha unless competing specifically for its track |
-| RocketRide | Alternative pipeline runtime | Do not duplicate Render in Alpha |
+| RocketRide | Integrated alternative pipeline runtime using versioned `.pipe` files and the TypeScript SDK | Select with `WORKFLOW_PROVIDER=rocketride`; do not dispatch the same command to both runtimes |
 | TokenRouter | Future multi-model routing/fallback | Direct provider adapters in Alpha |
 | Featherless | Future open-model access | Redundant in Alpha |
 | Tencent EdgeOne | Alternative hosting/edge runtime | Avoid dual deployment unless needed as fallback |

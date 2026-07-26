@@ -81,6 +81,72 @@ const DIFFERENTIATORS = [
   },
 ] as const;
 
+const TECHNOLOGY_STACK = [
+  {
+    name: "RocketRide",
+    role: "Selected workflow runtime",
+    copy: "Runs portable property-research and candidate-ingestion workflows through the official TypeScript SDK, with authenticated Cloud execution, run tokens, diagnostics, and readiness checks.",
+    featured: true,
+  },
+  {
+    name: "Render Workflows",
+    role: "Workflow fallback",
+    copy: "Remains available as the alternative durable workflow backend without duplicating the same command across runtimes.",
+  },
+  {
+    name: "Rtrvr.ai",
+    role: "Public-web research",
+    copy: "Finds relevant planning, permit, zoning, and development-history records across approved public sources.",
+  },
+  {
+    name: "MiniMax",
+    role: "Evidence extraction",
+    copy: "Transforms retrieved documents into typed, evidence-linked property findings while deterministic code retains decision authority.",
+  },
+  {
+    name: "Nexla",
+    role: "Managed data ingestion",
+    copy: "Normalizes government and property datasets while preserving source lineage before records enter the candidate pipeline.",
+  },
+  {
+    name: "Supabase",
+    role: "System of record",
+    copy: "Stores organizations, sites, evidence, immutable snapshots, workflow runs, watchlists, preferences, and team access in PostgreSQL.",
+  },
+  {
+    name: "Mapbox",
+    role: "Spatial intelligence",
+    copy: "Maps parcel centroids and ranked opportunities with candidate, zoning, and flood context for synchronized site review.",
+  },
+  {
+    name: "ElevenLabs",
+    role: "Scout voice",
+    copy: "Lets users speak to Scout and hear concise briefings generated only from verified dossier content.",
+  },
+  {
+    name: "Mem0",
+    role: "Preference memory",
+    copy: "Remembers investment and workflow preferences for personalized recommendations without treating memory as property evidence.",
+  },
+  {
+    name: "Respan",
+    role: "AI observability",
+    copy: "Traces and evaluates retrieval, model, and workflow behavior so reliability can improve without hiding failures.",
+  },
+  {
+    name: "Vercel",
+    role: "Application hosting",
+    copy: "Hosts the production Next.js application, server APIs, and public landing experience.",
+  },
+  {
+    name: "PDD",
+    role: "Development methodology",
+    copy: "Turns product requirements into versioned prompts, behavioral contracts, tests, and implementation modules.",
+  },
+] as const;
+
+const STACK_FLOW = ["Government records", "Nexla", "RocketRide", "Rtrvr + MiniMax", "Supabase", "Mapbox + Scout"] as const;
+
 const STATUS_LABEL: Record<string, string> = {
   live: "LIVE",
   preview: "PREVIEW",
@@ -106,6 +172,7 @@ export default function LandingPage() {
           <a href="#workflow">How it works</a>
           <a href="#differentiators">Why it&rsquo;s different</a>
           <a href="#evidence">Evidence</a>
+          <a href="#technology">Technology</a>
           <a href="#capability">What&rsquo;s live</a>
           <a href="/command-center" className={styles.navCta}>
             Open the app
@@ -211,6 +278,46 @@ export default function LandingPage() {
           </p>
         </section>
 
+        {/* Technology stack */}
+        <section id="technology" aria-labelledby="technology-heading" className={styles.sectionAlt}>
+          <h2 id="technology-heading">One system. Specialized infrastructure.</h2>
+          <p className={styles.sectionLead}>
+            SiteVelocity combines purpose-built workflow, retrieval, extraction, ingestion, mapping, voice, memory,
+            and observability services behind one evidence-first product experience.
+          </p>
+
+          <div className={styles.stackFlow} role="list" aria-label="SiteVelocity technology flow">
+            {STACK_FLOW.map((item, index) => (
+              <div className={styles.stackFlowItem} key={item}>
+                <span className={`${styles.stackNode} ${item === "RocketRide" ? styles.stackNodeSelected : ""}`} role="listitem">
+                  {item}
+                </span>
+                {index < STACK_FLOW.length - 1 ? <span className={styles.stackArrow} aria-hidden="true">&rarr;</span> : null}
+              </div>
+            ))}
+          </div>
+
+          <div className={styles.technologyGrid}>
+            {TECHNOLOGY_STACK.map((technology) => (
+              <article
+                key={technology.name}
+                className={`${styles.technologyCard} ${"featured" in technology && technology.featured ? styles.technologyFeatured : ""}`}
+              >
+                <div className={styles.technologyCardHeader}>
+                  <h3>{technology.name}</h3>
+                  <span>{technology.role}</span>
+                </div>
+                <p>{technology.copy}</p>
+                {technology.name === "RocketRide" ? (
+                  <p className={styles.integrationState}>
+                    Cloud authentication connected &middot; research and ingestion <code>.pipe</code> definitions being finalized
+                  </p>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        </section>
+
         {/* Capability summary — derived from the application's own module registry (R7). */}
         <section id="capability" aria-labelledby="capability-heading" className={styles.section}>
           <h2 id="capability-heading">What&rsquo;s live today &mdash; exactly what the app says</h2>
@@ -254,6 +361,7 @@ export default function LandingPage() {
           <a href="#workflow">How it works</a>
           <a href="#differentiators">Differentiators</a>
           <a href="#evidence">Evidence</a>
+          <a href="#technology">Technology</a>
           <a href="#capability">Capability states</a>
           <a href="https://github.com/samshanmukh/SiteVelocity" rel="noopener noreferrer" target="_blank">
             Source on GitHub
