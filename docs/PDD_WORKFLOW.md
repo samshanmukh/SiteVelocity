@@ -111,6 +111,7 @@ Each contract test declares the rule IDs it verifies. Local npm scripts:
 | --- | --- |
 | `npm test` | Unit + contract tests (`tests/unit/**`, `tests/contracts/**`) |
 | `npm run typecheck` | `tsc --noEmit` |
+| `npm run pdd:stories` | Validate prompt-to-user-story and rule-to-test traceability |
 | `npm run pdd:check` | Strict contract check + context table for every generation module |
 | `npm run pdd:estimate -- <prompt> <test>` | Dry estimate; asserts `provider_call_made` is false |
 

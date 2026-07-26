@@ -17,6 +17,7 @@
     "workflow:start": "tsx scripts/workflow-entrypoint.ts",
     "deployment:check": "tsx scripts/deployment-check.ts",
     "pdd:check": "bash scripts/pdd-check.sh",
+    "pdd:stories": "node scripts/validate-pdd-user-stories.mjs",
     "pdd:estimate": "bash scripts/pdd-estimate.sh",
     "ingest": "tsx scripts/ingest-candidates.ts",
     "research": "tsx scripts/run-research.ts",
