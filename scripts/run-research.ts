@@ -1,5 +1,6 @@
-import { loadCandidateSet } from "../lib/persistence/file-store";
+import { loadCandidateSet } from "../lib/persistence/runtime-store";
 import { researchSite } from "../lib/research/pipeline";
+import { workspaceSettingsRepositoryForOrganization } from "../lib/persistence/workspace-settings-store";
 
 /**
  * Research the top N shortlisted candidates and persist Research Snapshots.
@@ -15,10 +16,11 @@ async function main(): Promise<void> {
     return;
   }
   const targets = set.sites.slice(0, count);
+  const settings = await workspaceSettingsRepositoryForOrganization().get();
   for (const site of targets) {
     console.log(`[research] #${site.rank} ${site.apnFormatted} ${site.address ?? ""}`);
     try {
-      const bundle = await researchSite(site);
+      const bundle = await researchSite(site, { settings });
       console.log(
         `  snapshot ${bundle.snapshot.status}: ${bundle.evidence.length} evidence, ${bundle.findings.length} findings, ${bundle.agentRuns.length} agent runs`,
       );

@@ -6,7 +6,9 @@
     "layerUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0",
     "landingPage": "https://www.arcgis.com/home/item.html?id=&owner=pbce_CSJ",
     "queryUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-    "retrievedAt": "2026-07-25T21:31:50.172Z"
+    "retrievedAt": "2026-07-26T02:03:23.442Z",
+    "transport": "direct",
+    "managedBatchId": null
   },
   "features": [
     {

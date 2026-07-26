@@ -1,0 +1,44 @@
+% You are an expert TypeScript engineer. Implement deterministic Next Best Action selection.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/decision_domain_types.prompt</include>
+<include>prompts/context/evidence_domain_types.prompt</include>
+
+<pdd-reason>Translate verified gaps and material risks into one traceable human follow-up action.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[{"name":"selectNextBestAction","signature":"(input: NextActionInput) -> NextActionResult","returns":"NextActionResult"}]}}
+</pdd-interface>
+
+<responsibility>
+Select and explain the highest-priority declared verification action using stable deterministic policy.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT contact professionals, send messages, schedule meetings, or perform research.
+- DOES NOT provide legal, engineering, survey, title, environmental, or financial advice.
+- MUST NOT convert unknown evidence into a negative conclusion.
+- DOES NOT use an LLM or provider score to choose priority.
+</non_responsibilities>
+
+<vocabulary>
+action candidate: a caller-supplied verification step with owner role, rationale, evidence links, urgency, and blocking impact.
+blocking impact: whether unresolved work blocks screening, diligence, underwriting, or pursuit.
+traceable action: an action referencing the findings or evidence gaps that caused it.
+valid candidate: an action candidate satisfying the declared owner, question, completion-condition, and trigger requirements.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Consider only caller-supplied action candidates and never invent a professional conclusion.
+R2 (MUST): Prioritize safety or legal blockers, then pursuit blockers, then underwriting blockers, then diligence, then informational work.
+R3 (MUST): Break equal priority by urgency, evidence confidence ascending, then stable action identifier.
+R4 (MUST): Preserve unknown, conflicting, and contradicted reasons distinctly in the explanation.
+R5 (MUST): Require an owner role, concrete question, completion condition, and at least one triggering finding or evidence gap.
+R6 (MUST): Return no_action with stable reasons when no valid candidate exists rather than fabricating work.
+R7 (MUST): Include a decision-support disclaimer and identify required professional verification where applicable.
+R8 (MUST): Produce structurally identical output for structurally identical input without clock, randomness, or network access.
+</contract_rules>
+
+<deliverables>
+Generate `lib/calculations/next-best-action.ts` with one exported deterministic selector.
+</deliverables>

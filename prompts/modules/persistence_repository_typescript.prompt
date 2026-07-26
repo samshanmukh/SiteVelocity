@@ -1,0 +1,47 @@
+% You are an expert TypeScript engineer. Implement the SiteVelocity persistence repository boundary.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/domain-types.prompt</include>
+
+<pdd-reason>Persist authoritative domain records and immutable research snapshots without leaking Supabase types into application code.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[{"name":"createPersistenceRepository","signature":"(client: PersistenceClient, clock: Clock) -> PersistenceRepository","returns":"PersistenceRepository"}]}}
+</pdd-interface>
+
+<responsibility>
+Provide a provider-neutral repository for candidates, sites, evidence, findings, agent runs, snapshots, and command receipts with deterministic mapping and explicit missing/conflict results.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT call research, model, workflow, or government-data providers.
+- DOES NOT calculate scores, infer facts, or rewrite evidence.
+- MUST NOT expose database, Supabase, SQL, or transport types through the public interface.
+- MUST NOT place privileged credentials in browser-reachable code or results.
+</non_responsibilities>
+
+<vocabulary>
+repository record: a plain domain value accepted or returned by this module.
+immutable snapshot: a research snapshot whose content cannot be updated after insertion.
+command receipt: the stored result associated with one idempotency command identifier.
+conflict: an attempted insert whose stable identifier already exists with different content.
+missing: no matching record exists; it is not an empty or negative factual conclusion.
+safe retry: a later attempt using the same unchanged records and a new permitted transaction attempt.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Return only plain JSON-serializable domain values and stable repository result unions.
+R2 (MUST): Preserve source identifiers, provenance, evidence links, finding status, timestamps supplied by the caller, and snapshot version exactly.
+R3 (MUST): Insert a research snapshot once and reject any later mutation or different-content replacement under the same snapshot identifier.
+R4 (MUST): Store a command receipt atomically with its result and return the stored result for an identical repeated command identifier.
+R5 (MUST): Report different-input reuse of a command identifier as conflict and perform no write.
+R6 (MUST): Distinguish missing, stored, and conflict results; missing never becomes an empty domain record.
+R7 (MUST): Apply multi-record writes atomically so partial evidence, findings, agent runs, or snapshot state is never visible.
+R8 (MUST NOT): Return secret values, database connection details, raw SQL errors, or provider client objects in results or diagnostics.
+R9 (MUST): Convert storage failures into stable sanitized failure codes while retaining the original records unchanged for a safe retry.
+R10 (MUST): Produce structurally identical mappings for structurally identical storage rows and never consult randomness.
+</contract_rules>
+
+<deliverables>
+Generate `lib/persistence/repository.ts`. Export the repository interfaces, stable result unions, and `createPersistenceRepository`. Keep the concrete Supabase client behind the declared `PersistenceClient` port.
+</deliverables>

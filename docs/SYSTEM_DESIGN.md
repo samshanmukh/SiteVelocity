@@ -81,7 +81,7 @@ flowchart TB
     Respan -.-> Render
     Cerebras["Cerebras fast extraction - optional"] -.-> ModelPort
     Eleven["ElevenLabs voice - optional"] -.-> AppSvc
-    Mem0["mem0 customer memory - future"] -.-> AppSvc
+    Mem0["Mem0 advisory Scout preference memory"] -.-> AppSvc
 ```
 
 ## 5. Technology choices
@@ -91,7 +91,7 @@ flowchart TB
 | Web application | Next.js App Router, React, strict TypeScript | Full-stack TypeScript, fast UI iteration, server-only provider calls |
 | Styling/components | Tailwind CSS and shadcn/ui-compatible primitives | Rapid professional interface without locking domain logic to a UI kit |
 | Validation | Zod | Shared runtime schemas across APIs, workflows, providers, and persistence |
-| Map | MapLibre GL JS | Open map renderer with GeoJSON support and provider flexibility |
+| Map | Mapbox GL JS with MapLibre fallback | Live basemap and parcel-centroid layers with a credential-free demo fallback |
 | Spatial utilities | Turf.js for Alpha | Sufficient for display, simple intersection, centroid, and measurement operations |
 | Primary database | PostgreSQL on Supabase | Relational integrity, JSONB, managed hosting, future PostGIS path |
 | ORM/query layer | Drizzle ORM or typed SQL repository layer | Versioned migrations and explicit SQL without leaking storage into the domain |
@@ -101,8 +101,8 @@ flowchart TB
 | Main model | MiniMax through `ModelGateway` | Long-context structured interpretation and meaningful sponsor use |
 | Structured ingestion | Direct adapters; Nexla conditionally | Nexla is useful when it reduces rather than increases ingestion work |
 | Tracing | OpenTelemetry-style application spans; Respan optional | Debug prompts, retrieval, model calls, latency, cost, and validation |
-| Voice | ElevenLabs optional | Presentation-only rendering of an already verified summary |
-| Memory | PostgreSQL first; mem0 for future preference memory | Authoritative evidence stays relational; semantic memory is scoped to personalization |
+| Voice | ElevenLabs | Scout speech-to-text input and playback of already verified answers |
+| Memory | PostgreSQL projections plus Mem0 | Preferences survive provider outages; semantic memory is advisory and never property evidence |
 
 Exact package versions are pinned during implementation to the current stable releases and recorded in the lockfile. Domain code must not import provider SDK types.
 
@@ -445,7 +445,7 @@ interface PreferenceMemory {
 }
 ```
 
-The default implementation is PostgreSQL. A future mem0 adapter is limited to user preferences, decision rationales, and interaction memory. Evidence, zoning, permit status, scores, and calculation results never use mem0 as the source of truth.
+The implemented repository writes each tenant preference revision to an immutable PostgreSQL projection. When `MEM0_API_KEY` is present, the API also stores and retrieves preferences through Mem0 V3 using a tenant-scoped identifier. Mem0 failure is non-blocking. Evidence, zoning, permit status, scores, and calculation results never use Mem0 as the source of truth.
 
 ## 10. Candidate ingestion
 
@@ -618,7 +618,7 @@ Alpha implements:
 - Development Readiness
 - Evidence Confidence
 
-Site Feasibility and Deal Potential remain preview/roadmap until supported by sufficient inputs and deterministic calculations.
+Buildable Envelope, Development Yield, Underwriting, and Investment Committee views use versioned deterministic scenario calculations. Missing inputs remain explicit assumptions or unknowns rather than invented live facts.
 
 ```ts
 interface Calculation<I, O> {
@@ -699,7 +699,7 @@ Workflow status can use polling for Alpha. Production may add Server-Sent Events
 
 ### 16.1 Command Center
 
-Shows markets monitored, sites screened, candidates, priority opportunities, research runs, and development-event previews. Every item displays `LIVE`, `PREVIEW`, or `ROADMAP` when relevant.
+Shows markets monitored, sites screened, candidates, priority opportunities, research runs, and evidence-backed development events from persisted application state.
 
 ### 16.2 Scout
 
@@ -731,9 +731,13 @@ Required sections:
 
 Each strong conclusion opens an evidence drawer with source, agency, retrieval time, excerpt/structured payload, status, confidence, and verification requirement.
 
-### 16.5 Preview modules
+### 16.5 Extended dossier modules
 
-Preview modules describe future inputs, methods, required verification, and expected output. They must not contain fabricated calculations or property-specific conclusions.
+Contacts, parcel, entitlement, utility, title, ownership, air-rights, feasibility,
+yield, underwriting, and investment-committee modules read accepted snapshot
+findings or persisted deterministic scenarios. Missing source records render as
+unknown with the correct professional-verification path; scenario assumptions are
+visibly distinct from evidence.
 
 ## 17. Research Snapshot behavior
 
@@ -994,6 +998,8 @@ Maintain a small gold dataset of official documents and expected typed findings.
 - Server-side provider secrets
 - Demo and live-research feature flags
 - Pre-run snapshots for five sites
+- Tenant-scoped `workspace_agent_settings` controls specialist enablement, verification depth, and the exact number of external public-record research tasks executed per site.
+- Administration routes use the same authenticated request context as research and persistence; only owners can change organization roles.
 
 ### 23.2 Environment variables
 
@@ -1001,6 +1007,8 @@ Maintain a small gold dataset of official documents and expected typed findings.
 NODE_ENV=
 APP_BASE_URL=
 DATABASE_URL=
+PERSISTENCE_BACKEND=auto
+SITEVELOCITY_ORGANIZATION_ID=
 SUPABASE_URL=
 SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SECRET_KEY=
@@ -1021,6 +1029,9 @@ NEXLA_API_KEY=
 RESPAN_API_KEY=
 CEREBRAS_API_KEY=
 ELEVENLABS_API_KEY=
+ELEVENLABS_VOICE_ID=JBFqnCBsd6RMkjVDRZzb
+ELEVENLABS_MODEL_ID=eleven_flash_v2_5
+ELEVENLABS_STT_MODEL_ID=scribe_v2
 MEM0_API_KEY=
 
 RESEARCH_URL_ALLOWLIST=
@@ -1052,7 +1063,7 @@ Browser-exposed variables are limited to explicitly public configuration. Servic
 | Respan | Trace workflow/model/retrieval behavior | Add after complete research loop |
 | Cerebras | Fast first-pass candidate signal extraction | Add after core; deterministic rules still rank |
 | ElevenLabs | Render verified briefing as audio | Add after demo stability |
-| mem0 | User buy-box and pursue/pass memory | Future or final polish with two-session demo |
+| Mem0 | Scout investment, risk, communication, and workflow preferences | Implemented with PostgreSQL fallback; keep out of the evidence graph |
 | Band | Cross-agent collaboration | Skip Alpha unless competing specifically for its track |
 | RocketRide | Alternative pipeline runtime | Do not duplicate Render in Alpha |
 | TokenRouter | Future multi-model routing/fallback | Direct provider adapters in Alpha |
@@ -1108,7 +1119,7 @@ Browser-exposed variables are limited to explicitly public configuration. Servic
 
 1. Cerebras rapid signal extraction, if it has a distinct task.
 2. ElevenLabs `Brief Me`, using only verified summary text.
-3. mem0 `Remember My Buy Box`, only if a second-session memory demo is reliable.
+3. Mem0 `Remember My Buy Box`, with PostgreSQL fallback for a reliable second-session demo.
 
 ## 26. Architecture decision records to add
 

@@ -49,7 +49,7 @@ const LIVE_ENV: Record<string, string> = {
   ...DEMO_ENV,
   LIVE_RESEARCH: "true",
   RENDER_API_KEY: "rnd-test-value",
-  RENDER_WORKFLOW_TASK_SLUG: "research-site",
+  RENDER_WORKFLOW_TASK_SLUG: "sitevelocity/researchSite",
   RTRVR_API_KEY: "rtrvr-test-value",
   MINIMAX_API_KEY: "mm-test-value",
 };
@@ -130,13 +130,15 @@ test("R3 (static): CI gates promotion in order without touching the managed secr
   );
 });
 
-test("R4 (static): web and workflow services deploy from one Blueprint, same branch, and readiness records the release id", () => {
+test("R4 (static): Blueprint deploys web and scheduler while the Workflow limitation is explicit", () => {
   const blueprint = parseYaml(repoFile("render.yaml"));
   const types = blueprint.services.map((service: { type: string }) => service.type).sort();
-  assert.deepEqual(types, ["web", "worker"], "exactly one web and one worker service");
+  assert.deepEqual(types, ["cron", "web"], "exactly one web and one ingestion cron service");
 
   const branches = new Set(blueprint.services.map((service: { branch: string }) => service.branch));
-  assert.equal(branches.size, 1, "both services must deploy the same branch (same release SHA)");
+  assert.equal(branches.size, 1, "Blueprint services must deploy the same branch (same release SHA)");
+  assert.match(repoFile("docs/runbooks/render-deployment.md"), /Blueprints do not (?:create|manage)\s+Render\s+Workflow/i);
+  assert.match(repoFile("scripts/workflow-entrypoint.ts"), /\["ingest-candidates\.ts", "research-site\.ts"\]/);
 
   const result = evaluateReadiness(parseDeploymentEnv({ ...DEMO_ENV }), { ...READY_PROBE });
   assert.equal(result.releaseId, "abc1234", "readiness result must record the release identifier");
@@ -239,6 +241,7 @@ test("R8: validation table — invalid URLs and booleans, missing names, product
     { env: { ...DEMO_ENV, DEMO_SNAPSHOT_ID: "" }, code: "missing_required_variable", variable: "DEMO_SNAPSHOT_ID" },
     { env: { ...DEMO_ENV, SUPABASE_URL: "" }, code: "missing_required_variable", variable: "SUPABASE_URL" },
     { env: { ...LIVE_ENV, RTRVR_API_KEY: "" }, code: "missing_required_variable", variable: "RTRVR_API_KEY" },
+    { env: { ...LIVE_ENV, RENDER_WORKFLOW_TASK_SLUG: "researchSite" }, code: "invalid_task_slug", variable: "RENDER_WORKFLOW_TASK_SLUG" },
   ];
 
   for (const { env, code, variable } of cases) {

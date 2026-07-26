@@ -2,6 +2,15 @@ import { Render } from "@renderinc/sdk";
 import type { ProviderDiagnostic, WorkflowEngine } from "./types";
 import { fetchWithTimeout, safeHttpMessage } from "./http";
 
+const TASK_SLUG_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9_-]*\/[a-zA-Z0-9][a-zA-Z0-9_-]*$/;
+
+export function siblingRenderTaskSlug(configuredTaskSlug: string, taskName: string): string {
+  if (!TASK_SLUG_PATTERN.test(configuredTaskSlug) || !/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(taskName)) {
+    throw new Error("Render workflow task slug must use workflow-name/task-name format.");
+  }
+  return `${configuredTaskSlug.slice(0, configuredTaskSlug.indexOf("/"))}/${taskName}`;
+}
+
 export class RenderWorkflowEngine implements WorkflowEngine {
   private readonly client: Render;
 
@@ -9,6 +18,9 @@ export class RenderWorkflowEngine implements WorkflowEngine {
     token: string,
     private readonly taskSlug: string,
   ) {
+    if (!TASK_SLUG_PATTERN.test(taskSlug)) {
+      throw new Error("Render workflow task slug must use workflow-name/task-name format.");
+    }
     this.client = new Render({ token });
   }
 

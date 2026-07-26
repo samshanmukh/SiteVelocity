@@ -1,3 +1,5 @@
+import { normalizeSupabaseProjectUrl } from "./supabase-url";
+
 // Deployment-readiness contract for the Render Alpha release.
 // Source of truth: prompts/modules/render-alpha-deployment_typescript.prompt (R1-R16).
 // Pure and deterministic: no clock, randomness, network, or filesystem access (R1).
@@ -6,6 +8,9 @@ export type ReasonCode =
   | "missing_required_variable"
   | "invalid_url"
   | "invalid_boolean"
+  | "invalid_task_slug"
+  | "invalid_uuid"
+  | "invalid_persistence_backend"
   | "insecure_production_url"
   | "mode_conflict"
   | "persistence_unready"
@@ -89,10 +94,9 @@ export interface SecretScanFinding {
   variable: string; // name only
 }
 
-const SUPABASE_KEY_NAMES = [
+const SUPABASE_SERVER_KEY_NAMES = [
   "SUPABASE_SECRET_KEY",
   "SUPABASE_SERVICE_ROLE_KEY",
-  "SUPABASE_PUBLISHABLE_KEY",
 ] as const;
 
 const LIVE_RESEARCH_SECRET_NAMES = [
@@ -104,7 +108,8 @@ const LIVE_RESEARCH_SECRET_NAMES = [
 
 const PRESENCE_ONLY_NAMES: readonly string[] = [
   "SUPABASE_URL",
-  ...SUPABASE_KEY_NAMES,
+  "SUPABASE_PUBLISHABLE_KEY",
+  ...SUPABASE_SERVER_KEY_NAMES,
   ...LIVE_RESEARCH_SECRET_NAMES,
 ];
 
@@ -182,9 +187,33 @@ export function parseDeploymentEnv(
     }
     if (!present(source, "SUPABASE_URL")) {
       issues.push({ code: "missing_required_variable", variable: "SUPABASE_URL" });
+    } else {
+      try { normalizeSupabaseProjectUrl(source.SUPABASE_URL as string); } catch { issues.push({ code: "invalid_url", variable: "SUPABASE_URL" }); }
     }
-    if (!SUPABASE_KEY_NAMES.some((name) => present(source, name))) {
+    if (!SUPABASE_SERVER_KEY_NAMES.some((name) => present(source, name))) {
       issues.push({ code: "missing_required_variable", variable: "SUPABASE_SECRET_KEY" });
+    }
+  }
+
+  if (demoMode === false) {
+    if (!present(source, "SUPABASE_URL")) {
+      issues.push({ code: "missing_required_variable", variable: "SUPABASE_URL" });
+    } else {
+      try { normalizeSupabaseProjectUrl(source.SUPABASE_URL as string); } catch { issues.push({ code: "invalid_url", variable: "SUPABASE_URL" }); }
+    }
+    if (!SUPABASE_SERVER_KEY_NAMES.some((name) => present(source, name))) {
+      issues.push({ code: "missing_required_variable", variable: "SUPABASE_SECRET_KEY" });
+    }
+    if (!present(source, "SUPABASE_PUBLISHABLE_KEY")) {
+      issues.push({ code: "missing_required_variable", variable: "SUPABASE_PUBLISHABLE_KEY" });
+    }
+    if (!present(source, "SITEVELOCITY_ORGANIZATION_ID")) {
+      issues.push({ code: "missing_required_variable", variable: "SITEVELOCITY_ORGANIZATION_ID" });
+    } else if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(source.SITEVELOCITY_ORGANIZATION_ID as string)) {
+      issues.push({ code: "invalid_uuid", variable: "SITEVELOCITY_ORGANIZATION_ID" });
+    }
+    if (source.PERSISTENCE_BACKEND !== "supabase") {
+      issues.push({ code: "invalid_persistence_backend", variable: "PERSISTENCE_BACKEND" });
     }
   }
 
@@ -193,6 +222,12 @@ export function parseDeploymentEnv(
       if (!present(source, name)) {
         issues.push({ code: "missing_required_variable", variable: name });
       }
+    }
+    if (
+      present(source, "RENDER_WORKFLOW_TASK_SLUG")
+      && !/^[^/\s]+\/[^/\s]+$/.test(source.RENDER_WORKFLOW_TASK_SLUG as string)
+    ) {
+      issues.push({ code: "invalid_task_slug", variable: "RENDER_WORKFLOW_TASK_SLUG" });
     }
   }
 
@@ -241,9 +276,11 @@ export function evaluateReadiness(
   const reasonCodes = new Set<ReasonCode>();
   const checkedDependencies: string[] = [];
 
+  checkedDependencies.push("persistence");
+  if (probe.persistence !== "ready") reasonCodes.add("persistence_unready");
+
   if (env.demoMode) {
-    checkedDependencies.push("persistence", "storedSnapshot");
-    if (probe.persistence !== "ready") reasonCodes.add("persistence_unready");
+    checkedDependencies.push("storedSnapshot");
     if (probe.storedSnapshot !== "ready") reasonCodes.add("snapshot_unready");
   }
 

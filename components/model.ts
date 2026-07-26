@@ -7,7 +7,8 @@ export type { CandidateSite };
 
 export type ModuleId =
   | "command" | "scout" | "map" | "sites" | "runs" | "next" | "dossier"
-  | "datasources" | "info";
+  | "devevents" | "watchlists" | "datasources" | "info"
+  | "agentsettings" | "integrations" | "team";
 
 export type PaneMode =
   | "overview" | "evidence" | "history" | "agents" | "nextstep" | "score" | "scout";
@@ -23,6 +24,7 @@ export interface UiState {
   prevMode: PaneMode;
   evidenceId: string | null;
   scoreSel: "strategyFit" | "developmentReadiness" | "evidenceConfidence";
+  searchQuery: string;
   scoutThread: ScoutMessage[];
 }
 
@@ -97,41 +99,41 @@ export const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   {
     label: "Intelligence",
     items: [
-      { id: "devevents", icon: "◉", label: "Development Events", status: "preview", desc: "Continuous detection of rezonings, approvals, permits, expirations, tax distress, ownership changes, and infrastructure catalysts across your watchlists.", bullets: ["Jurisdiction-wide rezoning and approval monitoring", "Entitlement expiration countdown alerts", "Tax distress and lien detection", "Infrastructure catalyst tracking from CIP and utility plans"] },
-      { id: "watchlists", icon: "☆", label: "Watchlists", status: "preview", desc: "Standing watch over sites, markets, owners, REITs, and jurisdictions — every change lands as a development event.", bullets: ["Site, owner, and jurisdiction watchlists", "REIT and institutional portfolio tracking", "Snapshot-diff powered change detection"] },
+      { id: "devevents", icon: "◉", label: "Development Events", status: "live", target: { module: "devevents" } },
+      { id: "watchlists", icon: "☆", label: "Watchlists", status: "live", target: { module: "watchlists" } },
       { id: "devhistory", icon: "≣", label: "Development History", status: "live", target: { module: "dossier", tab: "history" } },
-      { id: "contactsmod", icon: "◎", label: "Contacts", status: "preview", desc: "Contact Intelligence: the specific public official or professional most likely to resolve each unknown, with preparation briefs.", bullets: ["Role-matched contact identification from public directories", "Conversation briefs generated from verified findings", "Interaction capture that feeds the evidence graph"] },
+      { id: "contactsmod", icon: "◎", label: "Contacts", status: "live", target: { module: "dossier", tab: "contacts" } },
     ],
   },
   {
     label: "Property Analysis",
     items: [
-      { id: "land", icon: "▱", label: "Land & Parcel", status: "preview", desc: "Canonical parcel record — boundary, APN reconciliation, acreage, access, recorded plats, and easements.", bullets: ["APN / deed / GIS / plat reconciliation", "Legal access verification", "Easement and encroachment screen"] },
+      { id: "land", icon: "▱", label: "Land & Parcel", status: "live", target: { module: "dossier", tab: "land" } },
       { id: "landuse", icon: "▨", label: "Land Use", status: "live", target: { module: "dossier", tab: "landuse" } },
-      { id: "entitlements", icon: "✓", label: "Entitlements & Permits", status: "preview", desc: "Planning applications, approvals, conditions, and permit lifecycle for the parcel and its comparables.", bullets: ["Entitlement timeline and status", "Condition-of-approval catalog", "Permit lifecycle tracking"] },
+      { id: "entitlements", icon: "✓", label: "Entitlements & Permits", status: "live", target: { module: "dossier", tab: "entitlements" } },
       { id: "siteenv", icon: "≈", label: "Site & Environment", status: "live", target: { module: "dossier", tab: "siterisk" } },
-      { id: "utilities", icon: "⌁", label: "Utilities & Infrastructure", status: "preview", desc: "Electricity, sewer, water, gas, fiber, and transportation — proximity, capacity signals, and the Utility Readiness Matrix.", bullets: ["Utility Readiness Matrix per site", "Capacity and will-serve signal detection", "Off-site obligation screening"] },
-      { id: "title", icon: "§", label: "Title & Liens", status: "preview", desc: "Tax liens, mortgages, easements, covenants, and encumbrances assembled from recorder and tax data.", bullets: ["Encumbrance summary from recorded documents", "Delinquent tax and lien detection", "UCC fixture filing screen"] },
-      { id: "ownership", icon: "◫", label: "Ownership & Capital", status: "preview", desc: "Owner and entity resolution, hold duration, REIT/institutional classification, and portfolio behavior.", bullets: ["LLC / entity resolution", "REIT and fund classification with SEC context", "Disposition pattern analysis"] },
-      { id: "airrights", icon: "↟", label: "Air & Vertical Rights", status: "roadmap", desc: "Height, unused development rights, TDRs, rooftop rights, and FAA/avigation constraints.", bullets: ["Unused development right detection", "TDR program mapping", "FAA obstruction surface screening"] },
+      { id: "utilities", icon: "⌁", label: "Utilities & Infrastructure", status: "live", target: { module: "dossier", tab: "utilities" } },
+      { id: "title", icon: "§", label: "Title & Liens", status: "live", target: { module: "dossier", tab: "title" } },
+      { id: "ownership", icon: "◫", label: "Ownership & Capital", status: "live", target: { module: "dossier", tab: "ownership" } },
+      { id: "airrights", icon: "↟", label: "Air & Vertical Rights", status: "live", target: { module: "dossier", tab: "airrights" } },
     ],
   },
   {
     label: "Feasibility",
     items: [
-      { id: "envelope", icon: "⬒", label: "Buildable Envelope", status: "preview", desc: "What can physically fit: parcel boundary, setbacks, easement carve-outs, floodway overlays, and net developable area.", bullets: ["AI researches constraints; a deterministic envelope engine computes", "Setback and easement carve-out modeling", "Feeds Development Yield → Underwriting → IC"] },
-      { id: "yield", icon: "∑", label: "Development Yield", status: "roadmap", desc: "What may fit: units, GFA, floors, and parking scenarios derived from zoning plus the buildable envelope.", bullets: ["FAR / density / height scenario engine", "Parking configuration modeling", "Deterministic yield calculations"] },
-      { id: "underwriting", icon: "ƒ", label: "Underwriting", status: "roadmap", desc: "Development budget, sources & uses, cash flow, debt schedule, NOI, yield on cost, IRR/XIRR, NPV, equity multiple, residual land value, sensitivities.", bullets: ["AI researches assumptions — deterministic TypeScript tools calculate", "Versioned formulas with explicit units and tests", "Residual land value and sensitivity tables"] },
-      { id: "ic", icon: "◧", label: "Investment Committee", status: "roadmap", desc: "Decision memos assembling evidence, risks, economics, and recommendation for committee review.", bullets: ["Auto-assembled IC memo with evidence links", "Risk register with verification status", "Pass / pursue decision log"] },
+      { id: "envelope", icon: "⬒", label: "Buildable Envelope", status: "live", target: { module: "dossier", tab: "envelope" } },
+      { id: "yield", icon: "∑", label: "Development Yield", status: "live", target: { module: "dossier", tab: "yield" } },
+      { id: "underwriting", icon: "ƒ", label: "Underwriting", status: "live", target: { module: "dossier", tab: "underwriting" } },
+      { id: "ic", icon: "◧", label: "Investment Committee", status: "live", target: { module: "dossier", tab: "ic" } },
     ],
   },
   {
     label: "Administration",
     items: [
       { id: "datasources", icon: "⊞", label: "Data Sources", status: "live", target: { module: "datasources" } },
-      { id: "agentsettings", icon: "✦", label: "Agent Settings", status: "preview", desc: "Orchestrator configuration — which specialist capabilities run, verification depth, and spend limits.", bullets: ["Per-strategy agent selection", "Verification depth control", "Run budget limits"] },
-      { id: "integrations", icon: "⇄", label: "Integrations", status: "roadmap", desc: "CRM, data room, and pipeline integrations.", bullets: ["CRM sync", "Export to data room", "Webhook events"] },
-      { id: "team", icon: "◳", label: "Team", status: "roadmap", desc: "Members, roles, and site assignments.", bullets: ["Role-based access", "Site assignment and review queues"] },
+      { id: "agentsettings", icon: "✦", label: "Agent Settings", status: "live", target: { module: "agentsettings" } },
+      { id: "integrations", icon: "⇄", label: "Integrations", status: "live", target: { module: "integrations" } },
+      { id: "team", icon: "◳", label: "Team", status: "live", target: { module: "team" } },
     ],
   },
 ];

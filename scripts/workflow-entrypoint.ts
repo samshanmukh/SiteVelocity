@@ -1,5 +1,6 @@
-// Render workflow-service entrypoint: `npm run workflow:start`.
-// Deploys from the same release SHA as the web service (render-alpha-deployment R4).
+// Render Workflow entrypoint: `npm run workflow:start`.
+// The Workflow is created separately because Blueprints cannot manage it, and is
+// released from the same repository commit as the Blueprint services (R4).
 // Loads the research workflow task module when it exists on this branch; until
 // then it idles honestly rather than fabricating work. Shutdown is graceful so
 // rollback never cancels or duplicates in-flight work (R14).
@@ -15,13 +16,17 @@ async function start(): Promise<void> {
     process.env.RELEASE_SHA?.trim() || process.env.RENDER_GIT_COMMIT?.trim() || "unknown";
   console.log(`workflow-entrypoint: starting (release ${releaseId})`);
 
-  const taskModulePath = path.join(process.cwd(), "workflows", "research-site.ts");
-  if (existsSync(taskModulePath)) {
-    console.log("workflow-entrypoint: loading workflows/research-site.ts");
-    await import(pathToFileURL(taskModulePath).href);
+  const taskModulePaths = ["ingest-candidates.ts", "research-site.ts"]
+    .map((name) => path.join(process.cwd(), "workflows", name));
+  const availableTaskModules = taskModulePaths.filter(existsSync);
+  if (availableTaskModules.length > 0) {
+    for (const taskModulePath of availableTaskModules) {
+      console.log(`workflow-entrypoint: loading workflows/${path.basename(taskModulePath)}`);
+      await import(pathToFileURL(taskModulePath).href);
+    }
   } else {
     console.log(
-      "workflow-entrypoint: no workflow task module on this branch (workflows/research-site.ts absent); idling",
+      "workflow-entrypoint: no workflow task modules on this branch; idling",
     );
   }
 

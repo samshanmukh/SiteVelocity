@@ -1,6 +1,7 @@
-# Render Blueprint for the SiteVelocity Alpha.
-# Render is the exclusive hosting target; web and workflow services deploy from
-# the same repository and branch, so both resolve to the same release commit.
+# Render Blueprint for the SiteVelocity Alpha web app and ingestion scheduler.
+# Render Workflows are created/released separately because Render Blueprints do
+# not currently manage Workflow services. The Workflow uses this same repository
+# and branch; docs/runbooks/render-deployment.md records that required setup.
 # Secrets are presence-only here (sync: false) — values live in the Render
 # dashboard environment, never in this file.
 # Platform health checks use the liveness route, never the provider-diagnostics route.
@@ -23,9 +24,9 @@ services:
       - key: NODE_ENV
         value: production
       - key: DEMO_MODE
-        value: "true"
-      - key: LIVE_RESEARCH
         value: "false"
+      - key: LIVE_RESEARCH
+        value: "true"
       - key: APP_BASE_URL
         sync: false
       - key: DEMO_SNAPSHOT_ID
@@ -42,6 +43,10 @@ services:
         sync: false
       - key: DATABASE_URL
         sync: false
+      - key: PERSISTENCE_BACKEND
+        value: supabase
+      - key: SITEVELOCITY_ORGANIZATION_ID
+        sync: false
       - key: RENDER_API_KEY
         sync: false
       - key: RENDER_WORKFLOW_TASK_SLUG
@@ -56,15 +61,30 @@ services:
         sync: false
       - key: WEBHOOK_SIGNING_SECRET
         sync: false
+      - key: NEXLA_API_URL
+        sync: false
+      - key: NEXLA_API_KEY
+        sync: false
+      - key: RESPAN_API_KEY
+        sync: false
+      - key: MEM0_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+        sync: false
+      - key: NEXT_PUBLIC_MAPBOX_STYLE_URL
+        value: mapbox://styles/mapbox/streets-v12
 
-  - type: worker
-    name: sitevelocity-workflow
+  - type: cron
+    name: sitevelocity-ingestion-schedule
     runtime: node
     plan: starter
     region: oregon
     branch: master
     buildCommand: npm ci
-    startCommand: npm run workflow:start
+    startCommand: npm run ingest:schedule
+    schedule: "0 10 * * *"
     autoDeploy: true
     envVars:
       - key: NODE_VERSION
@@ -72,9 +92,13 @@ services:
       - key: NODE_ENV
         value: production
       - key: DEMO_MODE
-        value: "true"
-      - key: LIVE_RESEARCH
         value: "false"
+      - key: LIVE_RESEARCH
+        value: "true"
+      - key: PERSISTENCE_BACKEND
+        value: supabase
+      - key: SITEVELOCITY_ORGANIZATION_ID
+        sync: false
       - key: SUPABASE_URL
         sync: false
       - key: SUPABASE_SECRET_KEY

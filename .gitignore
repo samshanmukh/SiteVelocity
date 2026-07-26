@@ -1,11 +1,13 @@
-# Local PDD diagnostics and model cache
-.pdd/core_dumps/
+# Local PDD run state, diagnostics, and model cache
+.pdd/
 litellm_cache.sqlite/
 
 # Application dependencies and build output
 node_modules/
 .next/
 coverage/
+test-results/
+playwright-report/
 *.tsbuildinfo
 next-env.d.ts
 
@@ -17,3 +19,6 @@ next-env.d.ts
 
 # Replaceable generated output
 generated/
+
+# Mutable local development state
+data/runtime/

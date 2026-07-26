@@ -3,10 +3,11 @@ import { registerCalculation } from "../registry";
 
 /**
  * Alpha deterministic scores: Strategy Fit, Development Readiness, Evidence
- * Confidence (docs/SYSTEM_DESIGN.md §13). Site Feasibility and Deal Potential
- * remain PREVIEW until their inputs exist. Scores expose signed drivers and
- * missing-input warnings; fatal flags are separate outputs and are never
- * averaged away.
+ * Confidence (docs/SYSTEM_DESIGN.md §13). Physical feasibility and deal
+ * potential are separate, persisted scenario calculations because their user-
+ * declared inputs are not evidence-backed scoring facts. Scores expose signed
+ * drivers and missing-input warnings; fatal flags are separate outputs and are
+ * never averaged away.
  */
 
 export const ScoreDriverSchema = z.object({

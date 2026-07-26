@@ -10,7 +10,7 @@ import type { CanonicalCandidate, Fact } from "./candidate-normalizer";
  * priority, they do not fabricate a "fails" answer.
  */
 
-export const DevelopmentThesisSchema = z.object({
+const DevelopmentThesisFieldsSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   market: z.string().min(1),
@@ -19,8 +19,21 @@ export const DevelopmentThesisSchema = z.object({
   minAcres: z.number().positive(),
   maxAcres: z.number().positive(),
   preferredMinCapacity: z.number().int().positive(),
+}).strict();
+
+const validAcreageWindow = (value: { minAcres: number; maxAcres: number }) => value.maxAcres > value.minAcres;
+
+export const DevelopmentThesisSchema = DevelopmentThesisFieldsSchema.refine(validAcreageWindow, {
+  message: "Maximum acreage must be greater than minimum acreage.",
+  path: ["maxAcres"],
 });
 export type DevelopmentThesis = z.infer<typeof DevelopmentThesisSchema>;
+
+export const UpdateDevelopmentThesisSchema = DevelopmentThesisFieldsSchema.omit({ id: true }).strict().refine(validAcreageWindow, {
+  message: "Maximum acreage must be greater than minimum acreage.",
+  path: ["maxAcres"],
+});
+export type UpdateDevelopmentThesis = z.infer<typeof UpdateDevelopmentThesisSchema>;
 
 export const ALPHA_THESIS: DevelopmentThesis = {
   id: "thesis-sj-multifamily-v1",

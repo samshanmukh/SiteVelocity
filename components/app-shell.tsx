@@ -8,9 +8,10 @@ import {
   type PaneMode,
   type UiState,
 } from "./model";
-import { CommandCenter, DataSources, NextSteps, OpportunityMap, PreviewModule, ResearchRuns, ScoutForm, SitesList } from "./screens";
+import { CommandCenter, DataSources, DevelopmentEvents, NextSteps, OpportunityMap, PreviewModule, ResearchRuns, ScoutForm, SitesList, Watchlists } from "./screens";
 import { Dossier } from "./dossier";
 import { PaneContent } from "./pane-content";
+import { Administration } from "./administration";
 
 const PANE_TITLES: Record<PaneMode, string> = {
   overview: "Site Context",
@@ -36,6 +37,7 @@ export function AppShell({ data }: { data: AppData }) {
     prevMode: "overview",
     evidenceId: null,
     scoreSel: "strategyFit",
+    searchQuery: "",
     scoutThread: [],
   });
 
@@ -68,7 +70,22 @@ export function AppShell({ data }: { data: AppData }) {
   const activeNavId = ui.module === "info"
     ? ui.infoId
     : ui.module === "dossier"
-      ? (ui.dossierTab === "history" ? "devhistory" : ui.dossierTab === "landuse" ? "landuse" : ui.dossierTab === "siterisk" ? "siteenv" : "sites")
+      ? ({
+          history: "devhistory",
+          landuse: "landuse",
+          siterisk: "siteenv",
+          contacts: "contactsmod",
+          land: "land",
+          entitlements: "entitlements",
+          utilities: "utilities",
+          title: "title",
+          ownership: "ownership",
+          airrights: "airrights",
+          envelope: "envelope",
+          yield: "yield",
+          underwriting: "underwriting",
+          ic: "ic",
+        }[ui.dossierTab] ?? "sites")
       : ui.module;
 
   const infoItem = NAV_GROUPS.flatMap((g) => g.items).find((i) => i.id === ui.infoId);
@@ -107,8 +124,17 @@ export function AppShell({ data }: { data: AppData }) {
 
       <div className="sv-main">
         <header className="sv-topbar">
-          <input className="sv-search" placeholder="Search properties, owners, APNs, markets, or cases…" readOnly />
-          <span className="sv-chip">Strategy | Multifamily — San José ▾</span>
+          <input
+            className="sv-search"
+            placeholder="Search addresses, APNs, or jurisdictions…"
+            value={ui.searchQuery}
+            onChange={(event) => patch({ searchQuery: event.target.value })}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") patch({ module: "sites", infoId: null });
+            }}
+            aria-label="Search sites"
+          />
+          <span className="sv-chip">Strategy | {data.candidates?.thesisId ?? "No active thesis"}</span>
           <button className="sv-indicator" onClick={() => openPane("agents")}>
             <span className="sv-dot pulse" style={{ background: runningAgents > 0 ? "#1F9D55" : "#C9CED6" }} />
             {runningAgents > 0 ? `${runningAgents} agent${runningAgents === 1 ? "" : "s"} pending` : "agents idle"}
@@ -119,6 +145,15 @@ export function AppShell({ data }: { data: AppData }) {
               <div style={{ fontWeight: 600 }}>SiteVelocity Team</div>
               <div style={{ color: "var(--text-muted)", fontSize: 10 }}>Alpha — PDD Hackathon</div>
             </div>
+            {!data.runtime.demoMode ? (
+              <button
+                aria-label="Sign out"
+                onClick={() => void fetch("/api/auth/session", { method: "DELETE" }).then(() => { window.location.href = "/"; })}
+                style={{ color: "var(--text-muted)", fontSize: 10 }}
+              >
+                Sign out
+              </button>
+            ) : null}
           </div>
         </header>
 
@@ -129,17 +164,23 @@ export function AppShell({ data }: { data: AppData }) {
             ) : ui.module === "scout" ? (
               <ScoutForm data={data} patch={patch} />
             ) : ui.module === "map" ? (
-              <OpportunityMap data={data} ui={ui} patch={patch} openPane={openPane} />
+              <OpportunityMap data={data} ui={ui} patch={patch} openPane={openPane} query={ui.searchQuery} />
             ) : ui.module === "sites" ? (
-              <SitesList data={data} patch={patch} openPane={openPane} />
+              <SitesList data={data} patch={patch} openPane={openPane} query={ui.searchQuery} />
             ) : ui.module === "runs" ? (
               <ResearchRuns data={data} ui={ui} openPane={openPane} />
             ) : ui.module === "next" ? (
               <NextSteps data={data} patch={patch} openPane={openPane} />
+            ) : ui.module === "devevents" ? (
+              <DevelopmentEvents data={data} patch={patch} openPane={openPane} />
+            ) : ui.module === "watchlists" ? (
+              <Watchlists data={data} patch={patch} openPane={openPane} />
             ) : ui.module === "dossier" && site ? (
               <Dossier data={data} site={site} snapshot={snapshot} ui={ui} patch={patch} openPane={openPane} />
             ) : ui.module === "datasources" ? (
               <DataSources data={data} />
+            ) : ui.module === "agentsettings" || ui.module === "integrations" || ui.module === "team" ? (
+              <Administration mode={ui.module} data={data} />
             ) : infoItem ? (
               <PreviewModule item={infoItem} />
             ) : (

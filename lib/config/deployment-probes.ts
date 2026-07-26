@@ -1,11 +1,11 @@
 import "server-only";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { checkMiniMaxConnection } from "@/lib/providers/minimax";
 import { checkRenderConnection } from "@/lib/providers/render";
 import { isProviderReady } from "@/lib/providers/readiness";
 import { checkRtrvrConfiguration } from "@/lib/providers/rtrvr";
-import { checkSupabaseConnection } from "@/lib/providers/supabase";
+import { checkSupabasePersistenceConnection } from "@/lib/providers/supabase";
 import type {
   DependencyProbe,
   DependencyState,
@@ -19,7 +19,13 @@ function snapshotState(demoSnapshotId: string | null): DependencyState {
     path.join(root, "data", "sites", `${demoSnapshotId}.json`),
     path.join(root, "data", "snapshots", `${demoSnapshotId}.json`),
   ];
-  return candidates.some((file) => existsSync(file)) ? "ready" : "unready";
+  if (candidates.some((file) => existsSync(file))) return "ready";
+  const sitesRoot = path.join(root, "data", "sites");
+  if (!existsSync(sitesRoot)) return "unready";
+  const nestedSnapshotExists = readdirSync(sitesRoot, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .some((entry) => existsSync(path.join(sitesRoot, entry.name, "snapshots", `${demoSnapshotId}.json`)));
+  return nestedSnapshotExists ? "ready" : "unready";
 }
 
 /**
@@ -43,22 +49,30 @@ export async function probeDependencies(
   const source = process.env;
   const probe: DependencyProbe = { ...skipped };
 
+  const supabasePromise = checkSupabasePersistenceConnection({
+    url: source.SUPABASE_URL,
+    publishableKey: source.SUPABASE_PUBLISHABLE_KEY,
+    secretKey: source.SUPABASE_SECRET_KEY,
+    serviceRoleKey: source.SUPABASE_SERVICE_ROLE_KEY,
+  });
+
   if (env.demoMode) {
-    const supabaseKey =
-      source.SUPABASE_SECRET_KEY || source.SUPABASE_SERVICE_ROLE_KEY || source.SUPABASE_PUBLISHABLE_KEY;
-    const supabase = await checkSupabaseConnection(source.SUPABASE_URL, supabaseKey);
-    probe.persistence = isProviderReady(supabase) ? "ready" : "unready";
     probe.storedSnapshot = snapshotState(env.demoSnapshotId);
   }
 
   if (env.liveResearch) {
-    const [render, minimax] = await Promise.all([
+    const [supabase, render, minimax] = await Promise.all([
+      supabasePromise,
       checkRenderConnection(source.RENDER_API_KEY, source.RENDER_WORKFLOW_TASK_SLUG),
       checkMiniMaxConnection(source.MINIMAX_API_KEY),
     ]);
+    probe.persistence = supabase.status === "connected" ? "ready" : "unready";
     probe.render = isProviderReady(render) ? "ready" : "unready";
     probe.rtrvr = isProviderReady(checkRtrvrConfiguration(source.RTRVR_API_KEY)) ? "ready" : "unready";
     probe.minimax = isProviderReady(minimax) ? "ready" : "unready";
+  } else {
+    const supabase = await supabasePromise;
+    probe.persistence = supabase.status === "connected" ? "ready" : "unready";
   }
 
   return probe;

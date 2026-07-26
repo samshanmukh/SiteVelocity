@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-25T21:31:50.172Z",
+  "generatedAt": "2026-07-26T02:03:23.442Z",
   "thesisId": "thesis-sj-multifamily-v1",
   "funnel": {
     "rawRecords": 87,
@@ -12,14 +12,14 @@
       "agency": "City of San José — Planning, Building & Code Enforcement",
       "dataset": "AB2011Parcels2024",
       "url": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-      "retrievedAt": "2026-07-25T21:31:50.172Z",
+      "retrievedAt": "2026-07-26T02:03:23.442Z",
       "recordCount": 87
     },
     {
       "agency": "County of Santa Clara",
       "dataset": "Parcels (ubcd-cewv)",
       "url": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-      "retrievedAt": "2026-07-25T21:31:50.172Z",
+      "retrievedAt": "2026-07-26T02:03:23.442Z",
       "recordCount": 87
     }
   ],
@@ -64,7 +64,7 @@
             "dataset": "AB2011Parcels2024",
             "sourceRecordId": "4384",
             "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "AB 2011 eligible parcel screening — APN 230-18-033",
           "excerpt": "City screening (Apr 2024): zoning CO, vacant YES, flood NO, wetlands NO, historic NO.",
@@ -105,7 +105,7 @@
             "dataset": "Parcels (ubcd-cewv)",
             "sourceRecordId": "23018033",
             "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "County parcel record — APN 230-18-033",
           "excerpt": "Situs 2165 THE ALAMEDA, San Jose · jurisdiction SAN JOSE · state-plane area 23301.091451050001 sq ft.",
@@ -170,7 +170,7 @@
             "Reported capacity unknown — density preference not scored"
           ]
         },
-        "calculatedAt": "2026-07-25T21:31:50.172Z"
+        "calculatedAt": "2026-07-26T02:03:23.442Z"
       },
       "rank": 1,
       "scoutReasons": [
@@ -219,7 +219,7 @@
             "dataset": "AB2011Parcels2024",
             "sourceRecordId": "947",
             "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "AB 2011 eligible parcel screening — APN 259-25-034",
           "excerpt": "City screening (Apr 2024): zoning DC, vacant YES, flood NO, wetlands NO, historic NO.",
@@ -260,7 +260,7 @@
             "dataset": "Parcels (ubcd-cewv)",
             "sourceRecordId": "25925034",
             "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "County parcel record — APN 259-25-034",
           "excerpt": "Situs CINNABAR ST, San Jose · jurisdiction SAN JOSE · state-plane area 35559.220942191001 sq ft.",
@@ -325,7 +325,7 @@
             "Reported capacity unknown — density preference not scored"
           ]
         },
-        "calculatedAt": "2026-07-25T21:31:50.172Z"
+        "calculatedAt": "2026-07-26T02:03:23.442Z"
       },
       "rank": 2,
       "scoutReasons": [
@@ -374,7 +374,7 @@
             "dataset": "AB2011Parcels2024",
             "sourceRecordId": "1180",
             "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "AB 2011 eligible parcel screening — APN 259-28-028",
           "excerpt": "City screening (Apr 2024): zoning DC, vacant YES, flood NO, wetlands NO, historic NO.",
@@ -415,7 +415,7 @@
             "dataset": "Parcels (ubcd-cewv)",
             "sourceRecordId": "25928028",
             "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "County parcel record — APN 259-28-028",
           "excerpt": "Situs 292 STOCKTON AV, San Jose · jurisdiction SAN JOSE · state-plane area 39675.147489157796 sq ft.",
@@ -481,7 +481,7 @@
             "Reported capacity unknown — density preference not scored"
           ]
         },
-        "calculatedAt": "2026-07-25T21:31:50.172Z"
+        "calculatedAt": "2026-07-26T02:03:23.442Z"
       },
       "rank": 3,
       "scoutReasons": [
@@ -530,7 +530,7 @@
             "dataset": "AB2011Parcels2024",
             "sourceRecordId": "1909",
             "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "AB 2011 eligible parcel screening — APN 274-15-017",
           "excerpt": "City screening (Apr 2024): zoning MUC, vacant YES, flood NO, wetlands NO, historic NO.",
@@ -571,7 +571,7 @@
             "dataset": "Parcels (ubcd-cewv)",
             "sourceRecordId": "27415017",
             "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "County parcel record — APN 274-15-017",
           "excerpt": "Situs 1585 SAN CARLOS ST, San Jose · jurisdiction SAN JOSE · state-plane area 31857.758583534302 sq ft.",
@@ -638,7 +638,7 @@
             "Reported capacity unknown — density preference not scored"
           ]
         },
-        "calculatedAt": "2026-07-25T21:31:50.172Z"
+        "calculatedAt": "2026-07-26T02:03:23.442Z"
       },
       "rank": 4,
       "scoutReasons": [
@@ -687,7 +687,7 @@
             "dataset": "AB2011Parcels2024",
             "sourceRecordId": "4924",
             "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "AB 2011 eligible parcel screening — APN 274-51-016",
           "excerpt": "City screening (Apr 2024): zoning CP, vacant YES, flood NO, wetlands NO, historic NO.",
@@ -728,7 +728,7 @@
             "dataset": "Parcels (ubcd-cewv)",
             "sourceRecordId": "27451016",
             "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "County parcel record — APN 274-51-016",
           "excerpt": "Situs 176 WINCHESTER BL, San Jose · jurisdiction SAN JOSE · state-plane area 41314.685377032198 sq ft.",
@@ -795,7 +795,7 @@
             "Reported capacity unknown — density preference not scored"
           ]
         },
-        "calculatedAt": "2026-07-25T21:31:50.172Z"
+        "calculatedAt": "2026-07-26T02:03:23.442Z"
       },
       "rank": 5,
       "scoutReasons": [
@@ -844,7 +844,7 @@
             "dataset": "AB2011Parcels2024",
             "sourceRecordId": "3810",
             "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "AB 2011 eligible parcel screening — APN 282-11-036",
           "excerpt": "City screening (Apr 2024): zoning UV, vacant YES, flood NO, wetlands NO, historic NO.",
@@ -885,7 +885,7 @@
             "dataset": "Parcels (ubcd-cewv)",
             "sourceRecordId": "28211036",
             "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "County parcel record — APN 282-11-036",
           "excerpt": "Situs 1017 BASCOM AV, San Jose · jurisdiction SAN JOSE · state-plane area 58563.245823621102 sq ft.",
@@ -952,7 +952,7 @@
             "Reported capacity unknown — density preference not scored"
           ]
         },
-        "calculatedAt": "2026-07-25T21:31:50.172Z"
+        "calculatedAt": "2026-07-26T02:03:23.442Z"
       },
       "rank": 6,
       "scoutReasons": [
@@ -1001,7 +1001,7 @@
             "dataset": "AB2011Parcels2024",
             "sourceRecordId": "3518",
             "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "AB 2011 eligible parcel screening — APN 372-24-033",
           "excerpt": "City screening (Apr 2024): zoning CP, vacant YES, flood NO, wetlands NO, historic NO.",
@@ -1042,7 +1042,7 @@
             "dataset": "Parcels (ubcd-cewv)",
             "sourceRecordId": "37224033",
             "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "County parcel record — APN 372-24-033",
           "excerpt": "Situs 7285 BARK LN, San Jose · jurisdiction SAN JOSE · state-plane area 22653.034573404198 sq ft.",
@@ -1108,7 +1108,7 @@
             "Reported capacity unknown — density preference not scored"
           ]
         },
-        "calculatedAt": "2026-07-25T21:31:50.172Z"
+        "calculatedAt": "2026-07-26T02:03:23.442Z"
       },
       "rank": 7,
       "scoutReasons": [
@@ -1157,7 +1157,7 @@
             "dataset": "AB2011Parcels2024",
             "sourceRecordId": "3984",
             "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "AB 2011 eligible parcel screening — APN 372-26-037",
           "excerpt": "City screening (Apr 2024): zoning CP, vacant YES, flood NO, wetlands NO, historic NO.",
@@ -1198,7 +1198,7 @@
             "dataset": "Parcels (ubcd-cewv)",
             "sourceRecordId": "37226037",
             "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "County parcel record — APN 372-26-037",
           "excerpt": "Situs 972 DE ANZA BL, San Jose · jurisdiction SAN JOSE · state-plane area 39835.355347903998 sq ft.",
@@ -1265,7 +1265,7 @@
             "Reported capacity unknown — density preference not scored"
           ]
         },
-        "calculatedAt": "2026-07-25T21:31:50.172Z"
+        "calculatedAt": "2026-07-26T02:03:23.442Z"
       },
       "rank": 8,
       "scoutReasons": [
@@ -1314,7 +1314,7 @@
             "dataset": "AB2011Parcels2024",
             "sourceRecordId": "3173",
             "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "AB 2011 eligible parcel screening — APN 412-24-009",
           "excerpt": "City screening (Apr 2024): zoning CP, vacant YES, flood NO, wetlands NO, historic NO.",
@@ -1355,7 +1355,7 @@
             "dataset": "Parcels (ubcd-cewv)",
             "sourceRecordId": "41224009",
             "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "County parcel record — APN 412-24-009",
           "excerpt": "Situs 2517 BASCOM AV, San Jose · jurisdiction SAN JOSE · state-plane area 22411.7037115034 sq ft.",
@@ -1422,7 +1422,7 @@
             "Reported capacity unknown — density preference not scored"
           ]
         },
-        "calculatedAt": "2026-07-25T21:31:50.172Z"
+        "calculatedAt": "2026-07-26T02:03:23.442Z"
       },
       "rank": 9,
       "scoutReasons": [
@@ -1471,7 +1471,7 @@
             "dataset": "AB2011Parcels2024",
             "sourceRecordId": "3194",
             "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "AB 2011 eligible parcel screening — APN 412-25-026",
           "excerpt": "City screening (Apr 2024): zoning CP, vacant YES, flood NO, wetlands NO, historic NO.",
@@ -1512,7 +1512,7 @@
             "dataset": "Parcels (ubcd-cewv)",
             "sourceRecordId": "41225026",
             "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "County parcel record — APN 412-25-026",
           "excerpt": "Situs 2375 BASCOM AV, San Jose · jurisdiction SAN JOSE · state-plane area 52887.662608833998 sq ft.",
@@ -1579,7 +1579,7 @@
             "Reported capacity unknown — density preference not scored"
           ]
         },
-        "calculatedAt": "2026-07-25T21:31:50.172Z"
+        "calculatedAt": "2026-07-26T02:03:23.442Z"
       },
       "rank": 10,
       "scoutReasons": [
@@ -1628,7 +1628,7 @@
             "dataset": "AB2011Parcels2024",
             "sourceRecordId": "1958",
             "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "AB 2011 eligible parcel screening — APN 472-12-086",
           "excerpt": "City screening (Apr 2024): zoning UR, vacant YES, flood NO, wetlands NO, historic NO.",
@@ -1669,7 +1669,7 @@
             "dataset": "Parcels (ubcd-cewv)",
             "sourceRecordId": "47212086",
             "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "County parcel record — APN 472-12-086",
           "excerpt": "Situs 551 KEYES ST, San Jose · jurisdiction SAN JOSE · state-plane area 31247.422628869099 sq ft.",
@@ -1735,7 +1735,7 @@
             "Reported capacity unknown — density preference not scored"
           ]
         },
-        "calculatedAt": "2026-07-25T21:31:50.172Z"
+        "calculatedAt": "2026-07-26T02:03:23.442Z"
       },
       "rank": 11,
       "scoutReasons": [
@@ -1784,7 +1784,7 @@
             "dataset": "AB2011Parcels2024",
             "sourceRecordId": "226",
             "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "AB 2011 eligible parcel screening — APN 481-34-091",
           "excerpt": "City screening (Apr 2024): zoning CN, vacant YES, flood NO, wetlands NO, historic NO.",
@@ -1825,7 +1825,7 @@
             "dataset": "Parcels (ubcd-cewv)",
             "sourceRecordId": "48134091",
             "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "County parcel record — APN 481-34-091",
           "excerpt": "Situs 2195 STORY RD, San Jose · jurisdiction SAN JOSE · state-plane area 50912.678546187701 sq ft.",
@@ -1891,7 +1891,7 @@
             "Reported capacity unknown — density preference not scored"
           ]
         },
-        "calculatedAt": "2026-07-25T21:31:50.172Z"
+        "calculatedAt": "2026-07-26T02:03:23.442Z"
       },
       "rank": 12,
       "scoutReasons": [
@@ -1940,7 +1940,7 @@
             "dataset": "AB2011Parcels2024",
             "sourceRecordId": "4874",
             "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "AB 2011 eligible parcel screening — APN 481-43-028",
           "excerpt": "City screening (Apr 2024): zoning CP, vacant YES, flood NO, wetlands NO, historic NO.",
@@ -1981,7 +1981,7 @@
             "dataset": "Parcels (ubcd-cewv)",
             "sourceRecordId": "48143028",
             "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "County parcel record — APN 481-43-028",
           "excerpt": "Situs 436 KING RD, San Jose · jurisdiction SAN JOSE · state-plane area 45046.2762487125 sq ft.",
@@ -2048,7 +2048,7 @@
             "Reported capacity unknown — density preference not scored"
           ]
         },
-        "calculatedAt": "2026-07-25T21:31:50.172Z"
+        "calculatedAt": "2026-07-26T02:03:23.442Z"
       },
       "rank": 13,
       "scoutReasons": [
@@ -2097,7 +2097,7 @@
             "dataset": "AB2011Parcels2024",
             "sourceRecordId": "5050",
             "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "AB 2011 eligible parcel screening — APN 567-30-015",
           "excerpt": "City screening (Apr 2024): zoning MUN, vacant YES, flood NO, wetlands NO, historic NO.",
@@ -2138,7 +2138,7 @@
             "dataset": "Parcels (ubcd-cewv)",
             "sourceRecordId": "56730015",
             "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "County parcel record — APN 567-30-015",
           "excerpt": "Situs BLOSSOM HILL RD, San Jose · jurisdiction SAN JOSE · state-plane area 47077.757839837199 sq ft.",
@@ -2203,7 +2203,7 @@
             "Reported capacity unknown — density preference not scored"
           ]
         },
-        "calculatedAt": "2026-07-25T21:31:50.172Z"
+        "calculatedAt": "2026-07-26T02:03:23.442Z"
       },
       "rank": 14,
       "scoutReasons": [
@@ -2252,7 +2252,7 @@
             "dataset": "AB2011Parcels2024",
             "sourceRecordId": "5351",
             "sourceUrl": "https://services.arcgis.com/6kSayNlqm3HvsYZ8/arcgis/rest/services/AB2011Parcels2024/FeatureServer/0/query?where=VACANT%3D'YES'",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "AB 2011 eligible parcel screening — APN 659-04-011",
           "excerpt": "City screening (Apr 2024): zoning CP, vacant YES, flood NO, wetlands NO, historic NO.",
@@ -2293,7 +2293,7 @@
             "dataset": "Parcels (ubcd-cewv)",
             "sourceRecordId": "65904011",
             "sourceUrl": "https://data.sccgov.org/Government/Parcels/ubcd-cewv",
-            "retrievedAt": "2026-07-25T21:31:50.172Z"
+            "retrievedAt": "2026-07-26T02:03:23.442Z"
           },
           "title": "County parcel record — APN 659-04-011",
           "excerpt": "Situs 385 SAN FELIPE RD, San Jose · jurisdiction SAN JOSE · state-plane area 33989.928356926597 sq ft.",
@@ -2359,7 +2359,7 @@
             "Reported capacity unknown — density preference not scored"
           ]
         },
-        "calculatedAt": "2026-07-25T21:31:50.172Z"
+        "calculatedAt": "2026-07-26T02:03:23.442Z"
       },
       "rank": 15,
       "scoutReasons": [

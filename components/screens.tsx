@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+
 import {
   agentLabel,
   runStatusColor,
@@ -10,6 +12,9 @@ import {
   type PaneMode,
   type UiState,
 } from "./model";
+import { MapboxOpportunityMap } from "./mapbox-opportunity-map";
+import { developmentEventsFromAppData } from "@/lib/view/development-events";
+import { commandId, waitForWorkflow } from "./workflow-client";
 
 type Patch = (partial: Partial<UiState>) => void;
 type OpenPane = (mode: PaneMode, extra?: Partial<UiState>) => void;
@@ -29,6 +34,7 @@ export function CommandCenter({ data, patch, openPane }: { data: AppData; ui: Ui
   const researched = sites.filter((s) => data.snapshots[s.id]);
   const allRuns = Object.values(data.snapshots).flatMap((s) => s.agentRuns);
   const actions = Object.values(data.snapshots).map((s) => s.nextAction).filter((a) => a !== null);
+  const developmentEvents = developmentEventsFromAppData(data);
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
   return (
@@ -70,13 +76,17 @@ export function CommandCenter({ data, patch, openPane }: { data: AppData; ui: Ui
           <section className="sv-panel">
             <div className="sv-panel-pad" style={{ borderBottom: "1px solid var(--border-section)", display: "flex", alignItems: "center", gap: 8 }}>
               <div className="sv-section-label" style={{ marginBottom: 0 }}>Development Events</div>
-              <span className="sv-badge" style={{ background: "var(--bg-chip)", color: "var(--accent)" }}>PREVIEW</span>
+              <span className="sv-badge" style={{ background: "var(--green-bg)", color: "var(--green-text)" }}>{developmentEvents.length} OBSERVED</span>
             </div>
-            <div className="sv-panel-pad sv-note">
-              Continuous event detection (rezonings, expirations, tax distress, infrastructure catalysts) ships after the Alpha:
-              it is powered by diffs between Research Snapshots — the snapshot architecture in this build is what makes it possible.
-              No live events are shown because none have been detected yet.
-            </div>
+            {developmentEvents.slice(0, 4).map((event) => (
+              <div className="sv-row" key={event.id} onClick={() => patch({ module: "devevents", siteId: event.siteId })}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 12 }}>{event.title}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-2)", marginTop: 2 }}>{event.year} · {event.siteName}</div>
+                </div>
+              </div>
+            ))}
+            {developmentEvents.length === 0 ? <div className="sv-panel-pad sv-note">No evidence-backed development events have been observed yet.</div> : null}
           </section>
         </div>
 
@@ -121,8 +131,190 @@ export function CommandCenter({ data, patch, openPane }: { data: AppData; ui: Ui
 }
 
 /* ------------------------------------------------------------------ */
+export function DevelopmentEvents({ data, patch, openPane }: { data: AppData; patch: Patch; openPane: OpenPane }) {
+  const events = developmentEventsFromAppData(data);
+  return (
+    <div>
+      <h1 className="sv-h1">Development Events</h1>
+      <p className="sv-sub">Evidence-backed planning, entitlement, permit, and development events found during site research.</p>
+      <section className="sv-panel" style={{ marginTop: 14 }}>
+        {events.map((event) => (
+          <div className="sv-row" key={event.id} onClick={() => { patch({ siteId: event.siteId }); openPane("history", { siteId: event.siteId }); }}>
+            <div className="mono" style={{ minWidth: 54, color: "var(--accent)", fontWeight: 700 }}>{event.year}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 650, fontSize: 12.5 }}>{event.title}</div>
+              <div style={{ fontSize: 11, color: "var(--text-2)", marginTop: 2 }}>{event.siteName}</div>
+              <div className="sv-note" style={{ marginTop: 4 }}>{event.description}</div>
+            </div>
+            <span className="sv-pill" style={{ background: event.evidenceId ? "var(--green-bg)" : "var(--amber-bg)", color: event.evidenceId ? "var(--green-text)" : "var(--amber-text)" }}>
+              {event.evidenceId ? "EVIDENCE LINKED" : "VERIFY"}
+            </span>
+          </div>
+        ))}
+        {events.length === 0 ? <div className="sv-empty">No development events are present in the accepted research snapshots.</div> : null}
+      </section>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+export function Watchlists({ data, patch, openPane }: { data: AppData; patch: Patch; openPane: OpenPane }) {
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [issue, setIssue] = useState<string | null>(null);
+
+  const create = async () => {
+    if (!name.trim() || busy) return;
+    setBusy(true);
+    setIssue(null);
+    const response = await fetch("/api/watchlists", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name.trim() }),
+    });
+    if (response.ok) {
+      setName("");
+      router.refresh();
+    } else {
+      setIssue("The watchlist could not be created. Use a unique name and try again.");
+    }
+    setBusy(false);
+  };
+
+  const addSite = async (watchlistId: string, siteId: string) => {
+    if (busy) return;
+    setBusy(true);
+    setIssue(null);
+    const response = await fetch(`/api/watchlists/${encodeURIComponent(watchlistId)}/sites`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ siteId }),
+    });
+    if (response.ok) router.refresh();
+    else setIssue("The site could not be added to the watchlist.");
+    setBusy(false);
+  };
+
+  const sites = data.candidates?.sites ?? [];
+  const alerts = data.watchlists.flatMap((watchlist) => watchlist.siteIds.flatMap((siteId) => {
+    const changes = data.snapshots[siteId]?.changes;
+    if (!changes?.fromSnapshotId) return [];
+    return changes.changes.filter((change) => change.material).map((change) => ({ watchlist, siteId, change }));
+  }));
+  return (
+    <div>
+      <h1 className="sv-h1">Watchlists</h1>
+      <p className="sv-sub">Create standing monitoring sets for sites. Accepted snapshot changes become evidence-backed Development Events.</p>
+      <section className="sv-panel sv-panel-pad" style={{ marginTop: 14 }}>
+        <div className="sv-section-label">New watchlist</div>
+        <div style={{ display: "flex", gap: 8, maxWidth: 560 }}>
+          <input className="sv-search" aria-label="Watchlist name" placeholder="e.g. Downtown entitlement targets" value={name} onChange={(event) => setName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") void create(); }} />
+          <button className="sv-btn" disabled={!name.trim() || busy} onClick={() => void create()}>{busy ? "SAVING…" : "CREATE"}</button>
+        </div>
+        {issue ? <p style={{ color: "var(--red)", marginTop: 8, fontSize: 11 }}>{issue}</p> : null}
+      </section>
+
+      <div className="sv-grid2" style={{ marginTop: 14 }}>
+        {data.watchlists.map((watchlist) => (
+          <section className="sv-panel" key={watchlist.id}>
+            <div className="sv-panel-pad" style={{ borderBottom: "1px solid var(--border-section)" }}>
+              <div style={{ fontWeight: 700 }}>{watchlist.name}</div>
+              <div className="sv-note">{watchlist.siteIds.length} monitored site{watchlist.siteIds.length === 1 ? "" : "s"}</div>
+            </div>
+            {watchlist.siteIds.map((siteId) => {
+              const site = sites.find((candidate) => candidate.id === siteId);
+              return (
+                <div className="sv-row" key={siteId} onClick={() => { patch({ siteId, module: "dossier", dossierTab: "snapshot" }); openPane("overview", { siteId }); }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: 12 }}>{site?.address ?? siteId}</div>
+                    <div className="mono" style={{ fontSize: 10.5, color: "var(--text-muted)" }}>{site?.apnFormatted ?? "Site identity retained"}</div>
+                  </div>
+                </div>
+              );
+            })}
+            <div className="sv-panel-pad" style={{ borderTop: watchlist.siteIds.length ? "1px solid var(--border-section)" : undefined }}>
+              <select aria-label={`Add site to ${watchlist.name}`} defaultValue="" disabled={busy} onChange={(event) => { if (event.target.value) void addSite(watchlist.id, event.target.value); }}>
+                <option value="" disabled>Add a site…</option>
+                {sites.filter((site) => !watchlist.siteIds.includes(site.id)).map((site) => <option value={site.id} key={site.id}>{site.address ?? site.apnFormatted}</option>)}
+              </select>
+            </div>
+          </section>
+        ))}
+        {data.watchlists.length === 0 ? <section className="sv-panel sv-empty">No watchlists yet. Create one to start a standing monitoring set.</section> : null}
+      </div>
+      <section className="sv-panel" style={{ marginTop: 14 }}>
+        <div className="sv-panel-pad" style={{ borderBottom: "1px solid var(--border-section)" }}>
+          <div className="sv-section-label" style={{ marginBottom: 0 }}>Recent watchlist alerts</div>
+        </div>
+        {alerts.map(({ watchlist, siteId, change }) => (
+          <div className="sv-row" key={`${watchlist.id}:${siteId}:${change.key}`} onClick={() => { patch({ siteId, module: "dossier", dossierTab: "history" }); openPane("history", { siteId }); }}>
+            <span className="sv-dot" style={{ background: change.current?.impact === "fatal_constraint" ? "var(--red)" : "var(--amber)" }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 650, fontSize: 12 }}>{change.field.replace(/_/g, " ")} · {change.kind.replace(/_/g, " ")}</div>
+              <div className="sv-note">{watchlist.name} · {change.summary}</div>
+            </div>
+          </div>
+        ))}
+        {alerts.length === 0 ? <div className="sv-empty">No material changes have been detected after a baseline snapshot yet.</div> : null}
+      </section>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 export function ScoutForm({ data, patch }: { data: AppData; patch: Patch }) {
+  const router = useRouter();
   const funnel = data.candidates?.funnel;
+  const [thesis, setThesis] = useState(data.thesis);
+  const [state, setState] = useState<"idle" | "saving" | "ingesting" | "done" | "error">("idle");
+  const [issue, setIssue] = useState<string | null>(null);
+
+  const scout = async () => {
+    if (state === "saving" || state === "ingesting") return;
+    setIssue(null);
+    setState("saving");
+    const saved = await fetch("/api/thesis", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: thesis.name,
+        market: thesis.market,
+        county: thesis.county,
+        strategy: thesis.strategy,
+        minAcres: thesis.minAcres,
+        maxAcres: thesis.maxAcres,
+        preferredMinCapacity: thesis.preferredMinCapacity,
+      }),
+    });
+    if (!saved.ok) {
+      setIssue("Check the acreage window and development target, then try again.");
+      setState("error");
+      return;
+    }
+    setThesis(await saved.json() as AppData["thesis"]);
+    setState("ingesting");
+    const response = await fetch("/api/candidates/ingest", {
+      method: "POST",
+      headers: { "Idempotency-Key": commandId() },
+    });
+    if (!response.ok) {
+      setIssue("The thesis was saved, but candidate ingestion could not be started.");
+      setState("error");
+      return;
+    }
+    if (response.status === 202) {
+      const queued = await response.json() as { id?: unknown };
+      if (typeof queued.id !== "string" || (await waitForWorkflow(queued.id)).status !== "succeeded") {
+        setIssue("The durable ingestion workflow did not complete successfully.");
+        setState("error");
+        return;
+      }
+    }
+    setState("done");
+    router.refresh();
+    patch({ module: "map" });
+  };
   return (
     <div>
       <h1 className="sv-h1">What do you want to build?</h1>
@@ -131,28 +323,18 @@ export function ScoutForm({ data, patch }: { data: AppData; patch: Patch }) {
       <div className="sv-grid2" style={{ marginTop: 18 }}>
         <section className="sv-panel sv-panel-pad">
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-            <div className="sv-field"><label>Development Type</label><select defaultValue="mf"><option value="mf">Multifamily / Mixed-Use Residential</option><option>Industrial</option><option>Office</option></select></div>
-            <div className="sv-field"><label>Geography</label><select defaultValue="sj"><option value="sj">San José, CA (Santa Clara County)</option></select></div>
-            <div className="sv-field"><label>Site Size (acres)</label><div style={{ display: "flex", gap: 8 }}><input defaultValue="0.5" /><input defaultValue="10" /></div></div>
-            <div className="sv-field"><label>Development Target</label><input defaultValue="100+ units preferred" /></div>
+            <div className="sv-field"><label>Development Type (Alpha source scope)</label><input value={thesis.strategy} readOnly /></div>
+            <div className="sv-field"><label>Geography (Alpha source scope)</label><input value={`${thesis.market} · ${thesis.county} County`} readOnly /></div>
+            <div className="sv-field"><label>Site Size (acres)</label><div style={{ display: "flex", gap: 8 }}><input aria-label="Minimum site acres" type="number" min="0.01" step="0.01" value={thesis.minAcres} onChange={(event) => setThesis({ ...thesis, minAcres: Number(event.target.value) })} /><input aria-label="Maximum site acres" type="number" min="0.02" step="0.01" value={thesis.maxAcres} onChange={(event) => setThesis({ ...thesis, maxAcres: Number(event.target.value) })} /></div></div>
+            <div className="sv-field"><label>Preferred Minimum Units</label><input type="number" min="1" step="1" value={thesis.preferredMinCapacity} onChange={(event) => setThesis({ ...thesis, preferredMinCapacity: Number(event.target.value) })} /></div>
           </div>
-          <div style={{ marginTop: 16 }}>
-            <div className="sv-section-label">Prefer</div>
-            <div className="sv-checks">
-              {["Vacant or underutilized parcels", "Official opportunity inventories (AB 2011 / Housing Element)", "Clean public constraint screens", "Transit / corridor locations"].map((label) => (
-                <label className="sv-check" key={label}><input type="checkbox" defaultChecked style={{ accentColor: "#2557C7" }} />{label}</label>
-              ))}
-            </div>
+          <div className="sv-callout" style={{ marginTop: 16 }}>
+            <strong>Current live source universe</strong>
+            <p className="sv-note">San José AB 2011 opportunity inventory, enriched with Santa Clara County parcels. The acreage and unit preferences above directly drive deterministic qualification and ranking.</p>
           </div>
-          <div style={{ marginTop: 12 }}>
-            <div className="sv-section-label">Avoid</div>
-            <div className="sv-checks">
-              {["Special flood hazard areas", "Wetland / habitat flags", "Historic-resource flags", "Waste-site flags"].map((label) => (
-                <label className="sv-check" key={label}><input type="checkbox" defaultChecked style={{ accentColor: "#B22730" }} />{label}</label>
-              ))}
-            </div>
-          </div>
-          <button className="sv-btn" style={{ marginTop: 18 }} onClick={() => patch({ module: "map" })}>SCOUT SITES</button>
+          <button className="sv-btn" style={{ marginTop: 18 }} disabled={state === "saving" || state === "ingesting"} onClick={() => void scout()}>{state === "saving" ? "SAVING THESIS…" : state === "ingesting" ? "INGESTING…" : "SAVE & SCOUT SITES"}</button>
+          {issue ? <p style={{ color: "var(--red)", fontSize: 11, marginTop: 8 }}>{issue}</p> : null}
+          {state === "done" ? <p style={{ color: "var(--green-text)", fontSize: 11, marginTop: 8 }}>Thesis saved and candidate set refreshed.</p> : null}
         </section>
 
         <section className="sv-panel sv-panel-pad">
@@ -179,34 +361,22 @@ export function ScoutForm({ data, patch }: { data: AppData; patch: Patch }) {
 }
 
 /* ------------------------------------------------------------------ */
-export function OpportunityMap({ data, ui, patch, openPane }: { data: AppData; ui: UiState; patch: Patch; openPane: OpenPane }) {
-  const sites = data.candidates?.sites ?? [];
-  const located = sites.filter((s) => s.coordinates);
-  const bounds = useMemo(() => {
-    if (located.length === 0) return null;
-    const lats = located.map((s) => s.coordinates!.latitude);
-    const lons = located.map((s) => s.coordinates!.longitude);
-    const pad = 0.01;
-    return {
-      minLat: Math.min(...lats) - pad, maxLat: Math.max(...lats) + pad,
-      minLon: Math.min(...lons) - pad, maxLon: Math.max(...lons) + pad,
-    };
-  }, [located]);
-  const [layers, setLayers] = useState<Record<string, boolean>>({ Parcels: true, Zoning: false, Flood: false, Candidates: true });
+function matchesSiteSearch(site: NonNullable<AppData["candidates"]>["sites"][number], query: string): boolean {
+  const needle = query.trim().toLocaleLowerCase();
+  if (!needle) return true;
+  return [site.address, site.apn, site.apnFormatted, site.jurisdiction, site.county]
+    .some((value) => value?.toLocaleLowerCase().includes(needle));
+}
 
-  const project = (lat: number, lon: number) => {
-    if (!bounds) return { left: "50%", top: "50%" };
-    return {
-      left: `${((lon - bounds.minLon) / (bounds.maxLon - bounds.minLon)) * 100}%`,
-      top: `${(1 - (lat - bounds.minLat) / (bounds.maxLat - bounds.minLat)) * 100}%`,
-    };
-  };
+export function OpportunityMap({ data, ui, patch, openPane, query }: { data: AppData; ui: UiState; patch: Patch; openPane: OpenPane; query: string }) {
+  const sites = (data.candidates?.sites ?? []).filter((site) => matchesSiteSearch(site, query));
+  const located = sites.filter((s) => s.coordinates);
 
   return (
     <div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 12 }}>
         <h1 className="sv-h1">Opportunity Map</h1>
-        <span className="sv-sub">{located.length} located candidates · real parcel centroids (GIS-derived, schematic base map)</span>
+        <span className="sv-sub">{located.length} located candidates · real parcel centroids on Mapbox</span>
       </div>
       <div className="sv-map-wrap">
         <div className="sv-map-list">
@@ -236,31 +406,11 @@ export function OpportunityMap({ data, ui, patch, openPane }: { data: AppData; u
           {sites.length === 0 ? <div className="sv-empty">No candidates yet.</div> : null}
         </div>
         <div className="sv-map-canvas">
-          <div className="sv-map-chips">
-            {Object.entries(layers).map(([name, on]) => (
-              <button key={name} className={`sv-map-chip${on ? " on" : ""}`} onClick={() => setLayers((l) => ({ ...l, [name]: !l[name] }))}>{name}</button>
-            ))}
-          </div>
-          <svg width="100%" height="100%" style={{ position: "absolute", inset: 0 }}>
-            {[...Array(12)].map((_, i) => (
-              <line key={`h${i}`} x1="0" y1={`${(i + 1) * 8}%`} x2="100%" y2={`${(i + 1) * 8}%`} stroke="#fff" strokeWidth={i % 3 === 0 ? 5 : 2} />
-            ))}
-            {[...Array(14)].map((_, i) => (
-              <line key={`v${i}`} x1={`${(i + 1) * 7}%`} y1="0" x2={`${(i + 1) * 7}%`} y2="100%" stroke={i % 4 === 0 ? "#F0D9A8" : "#fff"} strokeWidth={i % 4 === 0 ? 6 : 2} />
-            ))}
-          </svg>
-          {layers.Candidates ? located.map((site) => (
-            <button
-              key={site.id}
-              className={`sv-marker${ui.siteId === site.id ? " sel" : ""}`}
-              style={project(site.coordinates!.latitude, site.coordinates!.longitude)}
-              onClick={() => { patch({ siteId: site.id }); openPane("overview", { siteId: site.id }); }}
-              title={site.address ?? site.apnFormatted}
-            >
-              {site.strategyFit.output.score}
-            </button>
-          )) : null}
-          <div className="sv-legend">Markers = Strategy Fit score · positions from county parcel centroids · schematic street grid (production: MapLibre GL)</div>
+          <MapboxOpportunityMap
+            sites={located}
+            selectedSiteId={ui.siteId}
+            onSelectSite={(siteId) => { patch({ siteId }); openPane("overview", { siteId }); }}
+          />
         </div>
       </div>
     </div>
@@ -268,9 +418,9 @@ export function OpportunityMap({ data, ui, patch, openPane }: { data: AppData; u
 }
 
 /* ------------------------------------------------------------------ */
-export function SitesList({ data, patch, openPane }: { data: AppData; patch: Patch; openPane: OpenPane }) {
+export function SitesList({ data, patch, openPane, query }: { data: AppData; patch: Patch; openPane: OpenPane; query: string }) {
   void openPane;
-  const sites = data.candidates?.sites ?? [];
+  const sites = (data.candidates?.sites ?? []).filter((site) => matchesSiteSearch(site, query));
   return (
     <div>
       <h1 className="sv-h1">Sites</h1>
@@ -308,14 +458,46 @@ export function SitesList({ data, patch, openPane }: { data: AppData; patch: Pat
 
 /* ------------------------------------------------------------------ */
 export function ResearchRuns({ data, ui, openPane }: { data: AppData; ui: UiState; openPane: OpenPane }) {
+  const router = useRouter();
+  const [refreshState, setRefreshState] = useState<"idle" | "queued" | "running" | "done" | "error">("idle");
   const site = data.candidates?.sites.find((s) => s.id === ui.siteId) ?? data.candidates?.sites[0];
   const snapshot = site ? data.snapshots[site.id] : undefined;
   const providersReady = data.providers.filter((p) => p.status === "connected" || p.status === "configured").length;
+  const refresh = async () => {
+    if (!site || refreshState === "running") return;
+    setRefreshState("running");
+    try {
+      const response = await fetch(`/api/sites/${encodeURIComponent(site.id)}/research`, {
+        method: "POST",
+        headers: { "Idempotency-Key": commandId() },
+      });
+      if (!response.ok) throw new Error("research_failed");
+      if (response.status === 202) {
+        const queued = await response.json() as { id?: unknown };
+        if (typeof queued.id !== "string") throw new Error("workflow_id_missing");
+        setRefreshState("queued");
+        const terminal = await waitForWorkflow(queued.id);
+        if (terminal.status !== "succeeded" && terminal.status !== "partial") throw new Error("research_failed");
+      }
+      setRefreshState("done");
+      router.refresh();
+    } catch {
+      setRefreshState("error");
+    }
+  };
 
   return (
     <div>
       <h1 className="sv-h1">Research Runs</h1>
       <p className="sv-sub">{site ? `${site.address ?? site.apnFormatted} · six-agent research roster` : "No site selected"}</p>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
+        <button className="sv-btn" disabled={!site || refreshState === "running" || refreshState === "queued"} onClick={() => void refresh()}>
+          {refreshState === "queued" ? "QUEUED…" : refreshState === "running" ? "RESEARCHING…" : snapshot ? "REFRESH RESEARCH" : "RUN RESEARCH"}
+        </button>
+        <span className="sv-note">
+          {refreshState === "done" ? "Snapshot refreshed." : refreshState === "error" ? "Refresh failed; the last valid snapshot remains active." : `${data.runtime.persistence.toUpperCase()} persistence · live web research ${data.runtime.liveResearch ? "enabled" : "disabled"}`}
+        </span>
+      </div>
 
       <div className="sv-grid2" style={{ marginTop: 14 }}>
         <section className="sv-panel">
@@ -336,9 +518,9 @@ export function ResearchRuns({ data, ui, openPane }: { data: AppData; ui: UiStat
             );
           })}
           {!snapshot ? <div className="sv-empty">No research run for this site yet — POST /api/sites/&lt;id&gt;/research or `npm run research`.</div> : null}
-          {snapshot && providersReady < 3 ? (
+          {snapshot && (!data.runtime.liveResearch || providersReady < 3) ? (
             <div className="sv-panel-pad" style={{ background: "var(--amber-bg)", borderTop: "1px solid var(--border-section)", fontSize: 11, color: "var(--amber-text)" }}>
-              Development History is waiting on live research providers ({providersReady}/4 configured). Add Rtrvr + MiniMax keys and refresh the run — the snapshot upgrades from partial to complete.
+              Development History is waiting on explicit live mode and its providers ({providersReady}/4 configured). Set LIVE_RESEARCH=true with Rtrvr + MiniMax configured, then refresh; free GIS agents still run in partial mode.
             </div>
           ) : null}
         </section>
@@ -361,7 +543,16 @@ export function ResearchRuns({ data, ui, openPane }: { data: AppData; ui: UiStat
           </section>
           <section className="sv-panel sv-panel-pad">
             <div className="sv-section-label">What changed</div>
-            <p className="sv-note">Snapshot-diff cards appear after a second research run on the same site. Diffs between snapshots are the engine behind Development Event Intelligence.</p>
+            {snapshot?.changes?.fromSnapshotId ? (
+              snapshot.changes.changes.length > 0 ? snapshot.changes.changes.map((change) => (
+                <div key={change.key} className="sv-callout" style={{ marginTop: 7, borderLeft: `3px solid ${change.material ? "var(--amber)" : "var(--border-accent)"}` }}>
+                  <div style={{ fontWeight: 650, fontSize: 11.5 }}>{change.field.replace(/_/g, " ")} · {change.kind.replace(/_/g, " ")}</div>
+                  <div className="sv-note" style={{ marginTop: 3 }}>{change.summary}</div>
+                </div>
+              )) : <p className="sv-note">No finding values or verification states changed from the prior accepted snapshot.</p>
+            ) : (
+              <p className="sv-note">This is the baseline snapshot. Change cards appear after the next accepted research run.</p>
+            )}
           </section>
         </div>
       </div>
@@ -459,10 +650,57 @@ export function PreviewModule({ item }: { item: NavItem }) {
 
 /* ------------------------------------------------------------------ */
 export function DataSources({ data }: { data: AppData }) {
+  const router = useRouter();
+  const [refreshState, setRefreshState] = useState<"idle" | "running" | "done" | "error">("idle");
+  const researchSources = Array.from(
+    Object.values(data.snapshots)
+      .flatMap((snapshot) => snapshot.evidence)
+      .reduce((sources, evidence) => {
+        const key = `${evidence.source.agency}:${evidence.source.dataset}`;
+        const existing = sources.get(key);
+        sources.set(key, {
+          dataset: evidence.source.dataset,
+          agency: evidence.source.agency,
+          recordCount: (existing?.recordCount ?? 0) + 1,
+          retrievedAt: existing && existing.retrievedAt > evidence.source.retrievedAt ? existing.retrievedAt : evidence.source.retrievedAt,
+        });
+        return sources;
+      }, new Map<string, { dataset: string; agency: string; recordCount: number; retrievedAt: string }>())
+      .values(),
+  ).sort((a, b) => a.agency.localeCompare(b.agency) || a.dataset.localeCompare(b.dataset));
+  const refreshCandidates = async () => {
+    if (refreshState === "running") return;
+    setRefreshState("running");
+    try {
+      const response = await fetch("/api/candidates/ingest", {
+        method: "POST",
+        headers: { "Idempotency-Key": commandId() },
+      });
+      if (!response.ok) throw new Error("ingestion_failed");
+      if (response.status === 202) {
+        const queued = await response.json() as { id?: unknown };
+        if (typeof queued.id !== "string") throw new Error("workflow_id_missing");
+        const terminal = await waitForWorkflow(queued.id);
+        if (terminal.status !== "succeeded") throw new Error("ingestion_failed");
+      }
+      setRefreshState("done");
+      router.refresh();
+    } catch {
+      setRefreshState("error");
+    }
+  };
   return (
     <div>
       <h1 className="sv-h1">Data Sources</h1>
       <p className="sv-sub">Live provider connections and the government source registry. Truthful states only — nothing is marked connected without a verified probe.</p>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 12 }}>
+        <button className="sv-btn" disabled={refreshState === "running"} onClick={() => void refreshCandidates()}>
+          {refreshState === "running" ? "REFRESHING…" : "REFRESH GOVERNMENT DATA"}
+        </button>
+        <span className="sv-note">
+          {refreshState === "done" ? "Candidate ingestion completed." : refreshState === "error" ? "Refresh failed or requires an organization admin; existing candidates remain active." : "Runs through the durable ingestion task in production."}
+        </span>
+      </div>
 
       <div className="sv-section-label" style={{ marginTop: 16 }}>Runtime providers</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10 }}>
@@ -491,12 +729,18 @@ export function DataSources({ data }: { data: AppData }) {
             </div>
           </div>
         ))}
-        <div className="sv-row" style={{ cursor: "default" }}>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontWeight: 600, fontSize: 12 }}>San José Zoning / General Plan 2040 · FEMA NFHL</div>
-            <div style={{ fontSize: 11, color: "var(--text-2)" }}>Queried live per site during research runs; evidence records carry exact retrieval timestamps.</div>
+        {data.candidates?.sources.length ? null : <div className="sv-empty">No candidate-source ingestion has completed yet.</div>}
+      </section>
+
+      <div className="sv-section-label" style={{ marginTop: 20 }}>Research sources retained in snapshots</div>
+      <section className="sv-panel">
+        {researchSources.map((source) => (
+          <div key={`${source.agency}:${source.dataset}`} className="sv-row" style={{ cursor: "default" }}>
+            <div style={{ flex: 1 }}><div style={{ fontWeight: 600, fontSize: 12 }}>{source.dataset}</div><div style={{ fontSize: 11, color: "var(--text-2)" }}>{source.agency}</div></div>
+            <div className="mono" style={{ fontSize: 10.5, color: "var(--text-muted)", textAlign: "right" }}>{source.recordCount} retained evidence record{source.recordCount === 1 ? "" : "s"}<br />latest {new Date(source.retrievedAt).toLocaleString()}</div>
           </div>
-        </div>
+        ))}
+        {researchSources.length === 0 ? <div className="sv-empty">No accepted research snapshot evidence is available yet.</div> : null}
       </section>
     </div>
   );

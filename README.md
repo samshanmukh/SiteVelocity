@@ -15,7 +15,7 @@ SiteVelocity is not a listing portal, a parcel database, a zoning chatbot, or a 
 
 The immediate deliverable is a working vertical slice for the July 25, 2026 Prompt Driven Development Hackathon. The repository is designed as the foundation of the full SiteVelocity product rather than as a disposable demo.
 
-The implemented foundation now includes a Next.js 16 / React 19 TypeScript application, server-only provider contracts for Render Workflows, Rtrvr.ai, MiniMax, and Supabase, a live readiness dashboard, and a no-cache diagnostics endpoint at `/api/integrations`. Provider credentials are not committed; without local credentials the dashboard truthfully reports each provider as unconfigured.
+The implemented product now includes a Next.js 16 / React 19 TypeScript application; tenant-aware Supabase persistence and sign-in; durable Render research/ingestion commands; Nexla managed-ingestion landing; Mapbox opportunity mapping; ElevenLabs Scout voice; evidence-backed contacts, utilities, ownership, title, and air-rights screens; deterministic feasibility/yield/underwriting/IC scenarios; watchlists and snapshot-change events; agent policy settings; integration diagnostics; and team-role administration. Provider credentials are not committed, and unavailable facts remain explicit unknowns.
 
 The Alpha proves one complete loop:
 
@@ -159,7 +159,9 @@ The production capability map includes parcel integrity, title, ownership, tax/l
 
 ## Product modules
 
-The Alpha presents the future application honestly through explicit capability states.
+The application exposes every sidebar capability as a working route. A module may
+show an explicit unknown or require a declared scenario when authoritative inputs
+are unavailable; it never substitutes fabricated property facts.
 
 | Module | Alpha state |
 | --- | --- |
@@ -169,20 +171,29 @@ The Alpha presents the future application honestly through explicit capability s
 | Site Dossier | LIVE |
 | Agent Research | LIVE |
 | Next Steps | LIVE |
-| Watchlists | PREVIEW |
-| Development Events | PREVIEW |
-| Buildable Envelope | PREVIEW |
-| Utilities | PREVIEW |
-| Title & Liens | PREVIEW |
-| Ownership & Capital | PREVIEW |
-| Contacts | PREVIEW |
-| Investment Committee | PREVIEW |
-| Development Yield | ROADMAP |
-| Market Intelligence | ROADMAP |
-| Underwriting | ROADMAP |
-| Portfolio / CRM | ROADMAP |
+| Watchlists | LIVE |
+| Development Events | LIVE |
+| Land & Parcel | LIVE |
+| Land Use | LIVE |
+| Entitlements & Permits | LIVE |
+| Site & Environment | LIVE |
+| Utilities & Infrastructure | LIVE |
+| Title & Liens | LIVE |
+| Ownership & Capital | LIVE |
+| Air & Vertical Rights | LIVE |
+| Contacts | LIVE |
+| Buildable Envelope | LIVE |
+| Development Yield | LIVE |
+| Underwriting | LIVE |
+| Investment Committee | LIVE |
+| Data Sources | LIVE |
+| Agent Settings | LIVE |
+| Integrations | LIVE |
+| Team | LIVE |
 
-`LIVE` means functional now. `PREVIEW` means a truthful future-state explanation is available. `ROADMAP` means intentionally unavailable. Preview interfaces must never display fabricated site-specific results.
+`LIVE` means the route reads persisted ingestion, research, configuration, or
+scenario state and its mutations persist through the tenant repository. “Unknown”
+is a supported evidence state, not a preview or an inferred clean result.
 
 ## System architecture
 
@@ -252,11 +263,12 @@ See [System Design](docs/SYSTEM_DESIGN.md) for implementation details.
 - **Nexla:** conditional structured dataset ingestion and normalization
 - **Respan:** optional low-risk tracing after the core loop works
 - **Cerebras:** optional rapid first-pass signal extraction after the core loop works
-- **ElevenLabs:** optional verified `Brief Me` text-to-speech feature
+- **ElevenLabs:** Scout speech-to-text microphone input and verified answer playback
+- **Mem0:** semantic retrieval for durable Scout working preferences, backed by PostgreSQL
 
 ### Future/provider options
 
-- mem0 for user preference and pursue/pass memory, never authoritative property facts
+- Expanded Mem0 pursue/pass rationale memory, never authoritative property facts
 - TokenRouter or an internal router for multi-model fallback
 - RocketRide as an alternative pipeline implementation, not alongside Render in Alpha
 - Tencent EdgeOne as an alternative deployment target
@@ -390,6 +402,8 @@ npm run dev
 
 Open `http://localhost:3000`. Provider connection state is available in the UI and as JSON at `http://localhost:3000/api/integrations`.
 
+The default is a safe local demo (`DEMO_MODE=true`, `LIVE_RESEARCH=false`). To use live persisted data, link and migrate a Supabase project, create an organization and membership, then set `PERSISTENCE_BACKEND=supabase`, `SITEVELOCITY_ORGANIZATION_ID=<uuid>`, `DEMO_MODE=false`, and `LIVE_RESEARCH=true`. The app fails closed if tenant identity or the live database is missing.
+
 Verification commands:
 
 ```bash
@@ -399,17 +413,34 @@ npm run build
 npm audit --audit-level=high
 ```
 
+Supabase database workflow:
+
+```bash
+npm run db:start
+npm run db:reset
+npm run db:lint
+npm run db:test
+npm run db:types
+```
+
+See [Supabase Runbook](docs/runbooks/SUPABASE.md) for key boundaries, migrations, remote linking, RLS, Storage, and recovery procedures.
+
 ## Environment configuration
 
 Expected variables are documented here as names only; never commit their values.
 
 ```dotenv
 DATABASE_URL=
+PERSISTENCE_BACKEND=auto
+SITEVELOCITY_ORGANIZATION_ID=
 SUPABASE_URL=
 SUPABASE_PUBLISHABLE_KEY=
 SUPABASE_SECRET_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-NEXT_PUBLIC_MAP_STYLE_URL=
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=
+NEXT_PUBLIC_MAPBOX_STYLE_URL=mapbox://styles/mapbox/streets-v12
 
 DEMO_MODE=true
 LIVE_RESEARCH=false
@@ -418,12 +449,17 @@ RENDER_API_KEY=
 RENDER_WORKFLOW_TASK_SLUG=
 RTRVR_API_KEY=
 MINIMAX_API_KEY=
+ELEVENLABS_API_KEY=
+ELEVENLABS_VOICE_ID=JBFqnCBsd6RMkjVDRZzb
+ELEVENLABS_MODEL_ID=eleven_flash_v2_5
+ELEVENLABS_STT_MODEL_ID=scribe_v2
 MINIMAX_MODEL=MiniMax-M2.7
 
 NEXLA_API_KEY=
+NEXLA_API_URL=
+NEXLA_TOKEN=
 RESPAN_API_KEY=
 CEREBRAS_API_KEY=
-ELEVENLABS_API_KEY=
 MEM0_API_KEY=
 ```
 

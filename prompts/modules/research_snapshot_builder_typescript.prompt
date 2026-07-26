@@ -1,0 +1,44 @@
+% You are an expert TypeScript engineer. Implement immutable Research Snapshot assembly.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/evidence_domain_types.prompt</include>
+
+<pdd-reason>Freeze one evidence-linked view of a site's research without converting gaps into claims.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[{"name":"buildResearchSnapshot","signature":"(input: SnapshotBuildInput) -> SnapshotBuildResult","returns":"SnapshotBuildResult"}]}}
+</pdd-interface>
+
+<responsibility>
+Validate and assemble findings, evidence, scores, run summaries, freshness, and provenance into one immutable snapshot candidate.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT fetch, extract, rank, persist, or select the active snapshot.
+- DOES NOT resolve factual conflicts or manufacture evidence links.
+- MUST NOT label unknown findings as negative conclusions.
+</non_responsibilities>
+
+<vocabulary>
+material finding: a decision-relevant finding that requires at least one valid evidence reference or an explicit unknown status.
+complete snapshot: every required agent is terminal and every material factual finding has valid evidence.
+partial snapshot: useful research exists but one or more required agents, findings, or evidence links remain incomplete.
+orphan evidence: evidence referenced by no included finding.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Accept only a single site identifier and reject mixed-site inputs.
+R2 (MUST): Preserve findings with supported, contradicted, conflicting, unknown, and not_applicable statuses distinctly.
+R3 (MUST): Require every referenced evidence identifier to exist in the supplied evidence set and refuse broken links.
+R4 (MUST): Include conflicting evidence and findings without selecting a winner.
+R5 (MUST): Mark the snapshot complete only when all required agents are terminal and every material factual finding is evidence-linked; otherwise mark it partial with stable reasons.
+R6 (MUST): Calculate freshness only from caller-supplied retrieval and as-of timestamps and retain source-specific freshness.
+R7 (MUST): Sort collections by declared stable keys so identical inputs produce structurally identical output.
+R8 (MUST): Include orphan evidence only when explicitly requested and label it as unlinked.
+R9 (MUST NOT): Include secrets, provider diagnostics, chain-of-thought, or raw executable content.
+R10 (MUST): Return a rejected result rather than a partially malformed snapshot when any schema or referential-integrity check fails.
+</contract_rules>
+
+<deliverables>
+Generate `lib/domain/research-snapshot-builder.ts` exporting `buildResearchSnapshot` and its provider-neutral types.
+</deliverables>

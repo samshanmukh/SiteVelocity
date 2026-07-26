@@ -28,7 +28,7 @@ Evaluate one deployment environment and one dependency probe into exactly one de
 </non_responsibilities>
 
 <vocabulary>
-- valid: a value that satisfies the declared type and format for its variable — a URL variable parses as an absolute http or https URL; a boolean variable is exactly "true" or "false".
+- valid: a value that satisfies the declared type and format for its variable — a URL variable parses as an absolute http or https URL; a boolean variable is exactly "true" or "false"; a Render task slug has exactly the `workflow/task` shape.
 - invalid: a value that is present but not valid.
 - required variable: a variable the active mode declares mandatory in the mode-dependent variable matrix below.
 - presence-only: checked for existence and non-blankness only; the value itself is never copied into any output.
@@ -52,11 +52,11 @@ Evaluate one deployment environment and one dependency probe into exactly one de
 R1 (MUST): Produce structurally identical outputs for structurally identical inputs; no function in this module reads the clock, randomness, the network, or the filesystem.
 R2 (MUST): Accept only Node major 22 as the pinned runtime: the repository pins 22 in `.node-version`, `package.json` engines, `render.yaml` NODE_VERSION, and CI uses the `.node-version` file, and the recorded install command is `npm ci`.
 R3 (MUST): Gate promotion, in order, on typecheck, lint, unit tests, contract tests, production build, and a high-severity dependency audit, as encoded in `.github/workflows/ci.yml` without modifying `pdd-secrets-dispatch.yml`.
-R4 (MUST): Deploy the web and workflow services from the same repository and branch in one Blueprint so both resolve to the same release commit, and record that release identifier in the readiness result.
+R4 (MUST): Deploy the web service and scheduled-ingestion cron from the same repository and branch in one Blueprint; document that Render Blueprints do not create or manage Workflow services, require the separately created Workflow to use the same repository and branch, and record the release identifier in the readiness result.
 R5 (MUST): Use `/api/health/live` as the only platform health-check path; the liveness route performs no database, provider, or network access and responds with Cache-Control "no-store".
 R6 (MUST): Return readiness state "ready" (HTTP 200) only when the environment parses with zero issues and every required dependency is ready; otherwise return "blocked" (HTTP 503) carrying stable reason codes and the missing variable names.
 R7 (MUST): Treat persistence plus the stored snapshot as required dependencies in demo mode, and the Render, Rtrvr, and MiniMax providers as required dependencies when live research is enabled; an optional provider state never changes the readiness state.
-R8 (MUST): Reject invalid URL values, invalid boolean values, missing required variables, a production APP_BASE_URL that is not https, and a mode conflict, each with its own stable reason code and, where applicable, the variable name.
+R8 (MUST): Reject invalid URL values, invalid boolean values, an invalid Render `workflow/task` slug, missing required variables, a production APP_BASE_URL that is not https, and a mode conflict, each with its own stable reason code and, where applicable, the variable name.
 R9 (MUST NOT): Copy any secret value into parse results, readiness results, rollback plans, scan findings, diagnostics, logs, generated manifests, or NEXT_PUBLIC_ variables; secret names are presence-only.
 R10 (MUST): Select every pending migration exactly once, in lexical order, and treat any migration failure as blocking promotion.
 R11 (MUST NOT): Select a down migration for automatic execution, and a rollback plan never schedules a database migration.
@@ -76,6 +76,7 @@ export type ReasonCode =
   | "missing_required_variable"
   | "invalid_url"
   | "invalid_boolean"
+  | "invalid_task_slug"
   | "insecure_production_url"
   | "mode_conflict"
   | "persistence_unready"

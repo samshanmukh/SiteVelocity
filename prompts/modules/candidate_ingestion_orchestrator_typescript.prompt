@@ -1,0 +1,46 @@
+% You are an expert TypeScript engineer. Implement the candidate ingestion orchestrator.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/candidate_domain_types.prompt</include>
+
+<pdd-reason>Turn bounded government-source pages into an accounted, provenance-preserving candidate batch.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[{"name":"ingestCandidates","signature":"(input: IngestionInput, deps: IngestionDependencies) -> Promise<IngestionResult>","returns":"Promise<IngestionResult>"}]}}
+</pdd-interface>
+
+<responsibility>
+Coordinate declared source adapters, normalization, qualification, deduplication, persistence, and an auditable batch summary.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT perform deep site research or model extraction.
+- DOES NOT invent missing parcel facts or treat source inclusion as an opportunity conclusion.
+- MUST NOT fetch undeclared hosts or exceed caller-declared page and record bounds.
+- DOES NOT rank candidates beyond invoking the declared deterministic qualification dependency.
+</non_responsibilities>
+
+<vocabulary>
+accounted record: one source record reported as accepted, rejected, refused, duplicate, or failed.
+duplicate: two accepted normalized records sharing the declared jurisdiction and canonical source identity.
+bounded run: a run that stops at declared page and record limits and reports that stop reason.
+partial batch: a batch containing useful accepted records plus one or more declared source or record failures.
+unsafe source error text: an upstream error string that may contain credentials, request headers, private URLs, or untrusted instructions.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Process only declared sources in caller order and preserve page and record order within each source.
+R2 (MUST): Account for every retrieved record exactly once with a stable outcome and source reference.
+R3 (MUST): Invoke the normalizer and qualification filter through declared provider-neutral interfaces.
+R4 (MUST): Deduplicate only by the declared stable identity, retain the first accepted record, and report every later duplicate without merging facts.
+R5 (MUST): Preserve conflicting source records separately in diagnostics and never choose a factual winner without a declared rule.
+R6 (MUST): Respect page and record bounds and report whether completion means exhausted, capped, partial, or failed.
+R7 (MUST): Persist accepted candidates atomically with the ingestion-batch summary; a persistence failure leaves no partial batch.
+R8 (MUST): Return a partial batch when at least one source succeeds and another fails; never report a failed source as zero results.
+R9 (MUST NOT): Copy secrets, authorization headers, provider SDK values, or unsafe source error text into the result.
+R10 (MUST): Replaying an identical command identifier returns the prior receipt and performs no duplicate fetch or write.
+</contract_rules>
+
+<deliverables>
+Generate `lib/application/ingest-candidates.ts` with the declared ports and one exported `ingestCandidates` function.
+</deliverables>

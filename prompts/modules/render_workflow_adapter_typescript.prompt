@@ -1,0 +1,42 @@
+% You are an expert TypeScript engineer. Implement the Render Workflows adapter behind SiteVelocity's workflow port.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+
+<pdd-reason>Dispatch and observe durable research work without leaking Render transport details into the domain.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[{"name":"createRenderWorkflowAdapter","signature":"(transport: RenderWorkflowTransport, config: RenderWorkflowConfig) -> WorkflowEngine","returns":"WorkflowEngine"}]}}
+</pdd-interface>
+
+<responsibility>
+Map provider-neutral workflow commands and statuses to a bounded Render transport with idempotency and sanitized failures.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT implement research tasks, domain logic, persistence, or deployment provisioning.
+- MUST NOT expose Render SDK or HTTP types through `WorkflowEngine`.
+- MUST NOT log or return API keys, authorization headers, or request bodies containing secrets.
+- DOES NOT retry beyond the declared transport policy.
+</non_responsibilities>
+
+<vocabulary>
+workflow command: a provider-neutral task name, command identifier, payload reference, and correlation metadata.
+accepted dispatch: Render acknowledged one durable execution and returned a provider run identifier.
+idempotent dispatch: repeating one command identifier does not create another execution.
+sanitized failure: a stable failure code without raw provider content or credentials.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Validate configuration and commands before any transport call.
+R2 (MUST): Send exactly one declared task slug and command identifier per dispatch.
+R3 (MUST): Preserve correlation, site, plan-version, and command identifiers through status results.
+R4 (MUST): Return the same accepted execution for repeated identical command identifiers and reject different-input reuse.
+R5 (MUST): Map provider states into queued, running, succeeded, failed, or cancelled without inventing completion.
+R6 (MUST): Bound status calls and retries by caller configuration and expose rate limiting separately from authentication and provider failure.
+R7 (MUST NOT): Return provider response bodies, SDK values, secrets, or internal URLs.
+R8 (MUST): Convert unknown provider states into a sanitized provider_unrecognized_state failure rather than success.
+</contract_rules>
+
+<deliverables>
+Generate `lib/adapters/render/workflow-engine.ts` exporting `createRenderWorkflowAdapter` and provider-neutral port types.
+</deliverables>

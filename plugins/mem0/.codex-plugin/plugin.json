@@ -1,0 +1,18 @@
+{
+  "name": "mem0",
+  "version": "0.1.0",
+  "description": "Mem0 plugin",
+  "author": {
+    "name": "Local developer"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Mem0",
+    "shortDescription": "Use Mem0 in Codex.",
+    "longDescription": "Mem0 adds a local Codex plugin scaffold.",
+    "developerName": "Local developer",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Help me use Mem0."
+  }
+}

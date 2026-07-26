@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ScoutPreference } from "@/lib/domain/scout-preference";
 import {
   EVIDENCE_BADGES,
   agentLabel,
@@ -225,6 +226,34 @@ function ScorePane({ site, snapshot, ui }: { site: CandidateSite; snapshot: Snap
 
 function ScoutPane({ site, snapshot, ui, patch, openPane }: { site: CandidateSite; snapshot: SnapshotView | undefined; ui: UiState; patch: Patch; openPane: OpenPane }) {
   const [input, setInput] = useState("");
+  const [preferences, setPreferences] = useState<ScoutPreference[]>([]);
+  const [voiceState, setVoiceState] = useState<{ index: number; status: "loading" | "playing" } | null>(null);
+  const [micState, setMicState] = useState<"idle" | "requesting" | "recording" | "transcribing">("idle");
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const recordingChunksRef = useRef<Blob[]>([]);
+  const recordingTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    audioRef.current?.pause();
+    audioRef.current = null;
+    if (recordingTimeoutRef.current !== null) window.clearTimeout(recordingTimeoutRef.current);
+    const recorder = recorderRef.current;
+    if (recorder && recorder.state !== "inactive") {
+      recorder.onstop = null;
+      recorder.stop();
+    }
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+  }, []);
+
+  useEffect(() => {
+    void fetch(`/api/scout/preferences?q=${encodeURIComponent(`development preference for ${site.address ?? site.apnFormatted}`)}`, { cache: "no-store" })
+      .then(async (response) => response.ok ? response.json() as Promise<{ preferences: ScoutPreference[] }> : { preferences: [] })
+      .then((payload) => setPreferences(payload.preferences))
+      .catch(() => setPreferences([]));
+  }, [site.address, site.apnFormatted]);
 
   const answer = (q: string): ScoutMessage => {
     if (/rank|score|why/i.test(q)) {
@@ -271,20 +300,160 @@ function ScoutPane({ site, snapshot, ui, patch, openPane }: { site: CandidateSit
       q,
       kind: "AI EXPLANATION",
       title: "I can research that",
-      body: "There is no verified answer in the current Research Snapshot. I can scope a research run against planning, recorder, and permit sources and report back with evidence.",
+      body: `There is no verified answer in the current Research Snapshot. I can scope a research run against planning, recorder, and permit sources and report back with evidence.${preferences[0] ? ` I’ll also follow your advisory preference: ${preferences[0].content}` : ""}`,
       next: "Run research",
       actions: [{ label: "Agent runs", mode: "agents" }],
     };
   };
 
-  const ask = (q: string) => {
-    patch({ scoutThread: [...ui.scoutThread, answer(q)] });
+  const speak = async (message: ScoutMessage, index: number) => {
+    if (voiceState?.index === index && voiceState.status === "playing") {
+      audioRef.current?.pause();
+      audioRef.current = null;
+      setVoiceState(null);
+      return;
+    }
+
+    audioRef.current?.pause();
+    audioRef.current = null;
+    setVoiceError(null);
+    setVoiceState({ index, status: "loading" });
+
+    try {
+      const text = [message.title, message.body, message.next ? `Next: ${message.next}` : null]
+        .filter(Boolean)
+        .join(". ")
+        .slice(0, 1_000);
+      const response = await fetch("/api/voice", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      });
+      if (!response.ok) throw new Error("voice_unavailable");
+
+      const url = URL.createObjectURL(await response.blob());
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => {
+        URL.revokeObjectURL(url);
+        audioRef.current = null;
+        setVoiceState(null);
+      };
+      audio.onerror = () => {
+        URL.revokeObjectURL(url);
+        audioRef.current = null;
+        setVoiceState(null);
+        setVoiceError("Scout voice playback failed.");
+      };
+      await audio.play();
+      setVoiceState({ index, status: "playing" });
+    } catch {
+      audioRef.current = null;
+      setVoiceState(null);
+      setVoiceError("Scout voice is unavailable right now.");
+    }
+  };
+
+  const ask = (q: string, speakReply = false) => {
+    const message = answer(q);
+    const index = ui.scoutThread.length;
+    patch({ scoutThread: [...ui.scoutThread, message] });
     setInput("");
+    if (speakReply) void speak(message, index);
+  };
+
+  const transcribeAndAsk = async (audio: Blob) => {
+    setMicState("transcribing");
+    try {
+      const extension = audio.type.includes("mp4") ? "m4a" : audio.type.includes("ogg") ? "ogg" : "webm";
+      const form = new FormData();
+      form.append("audio", audio, `scout-question.${extension}`);
+      const response = await fetch("/api/voice/transcribe", { method: "POST", body: form });
+      const payload: unknown = await response.json();
+      if (
+        !response.ok
+        || !payload
+        || typeof payload !== "object"
+        || !("text" in payload)
+        || typeof payload.text !== "string"
+        || !payload.text.trim()
+      ) {
+        throw new Error("transcription_unavailable");
+      }
+
+      const transcript = payload.text.trim();
+      setInput(transcript);
+      ask(transcript, true);
+    } catch {
+      setVoiceError("I couldn't transcribe that recording. Please try again or type your question.");
+    } finally {
+      setMicState("idle");
+    }
+  };
+
+  const stopRecording = () => {
+    if (recorderRef.current?.state === "recording") {
+      setMicState("transcribing");
+      recorderRef.current.stop();
+    }
+  };
+
+  const startRecording = async () => {
+    setVoiceError(null);
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      setVoiceError("Microphone recording is not supported in this browser.");
+      return;
+    }
+
+    audioRef.current?.pause();
+    audioRef.current = null;
+    setVoiceState(null);
+    setMicState("requesting");
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const preferredType = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm", "audio/ogg;codecs=opus"]
+        .find((type) => MediaRecorder.isTypeSupported(type));
+      const recorder = preferredType ? new MediaRecorder(stream, { mimeType: preferredType }) : new MediaRecorder(stream);
+      recorderRef.current = recorder;
+      recordingChunksRef.current = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size) recordingChunksRef.current.push(event.data);
+      };
+      recorder.onstop = () => {
+        if (recordingTimeoutRef.current !== null) window.clearTimeout(recordingTimeoutRef.current);
+        recordingTimeoutRef.current = null;
+        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        recorderRef.current = null;
+        const audio = new Blob(recordingChunksRef.current, { type: recorder.mimeType || "audio/webm" });
+        recordingChunksRef.current = [];
+        if (!audio.size) {
+          setMicState("idle");
+          setVoiceError("No audio was captured. Please try again.");
+          return;
+        }
+        void transcribeAndAsk(audio);
+      };
+
+      recorder.start();
+      setMicState("recording");
+      recordingTimeoutRef.current = window.setTimeout(stopRecording, 60_000);
+    } catch {
+      streamRef.current?.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      recorderRef.current = null;
+      setMicState("idle");
+      setVoiceError("Microphone access was blocked. Allow microphone access and try again.");
+    }
   };
 
   return (
     <div className="sv-cards">
       <p className="sv-note">Scout answers from deterministic tools and the evidence graph of {site.address ?? site.apnFormatted}. Tool results and AI explanations are always visually distinct.</p>
+      {preferences.length ? <div className="sv-callout"><div className="sv-section-label">Remembered working preferences</div>{preferences.slice(0, 3).map((preference) => <div key={preference.id} style={{ fontSize: 11.5 }}>· {preference.content}</div>)}</div> : null}
       {ui.scoutThread.map((message, index) => (
         <div key={index} className="sv-cards" style={{ gap: 8 }}>
           <div style={{ alignSelf: "flex-end", background: "var(--bg-chip)", color: "#1C46A3", borderRadius: "8px 8px 2px 8px", padding: "7px 11px", fontSize: 12, maxWidth: "85%" }}>{message.q}</div>
@@ -295,6 +464,9 @@ function ScoutPane({ site, snapshot, ui, patch, openPane }: { site: CandidateSit
             <p style={{ fontSize: 12, color: "var(--text-2)", marginTop: 4 }}>{message.body}</p>
             {message.next ? <div style={{ fontSize: 11.5, marginTop: 5 }}><strong>Next:</strong> {message.next}</div> : null}
             <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+              <button className="sv-btn2" onClick={() => speak(message, index)} disabled={voiceState?.index === index && voiceState.status === "loading"}>
+                {voiceState?.index === index ? (voiceState.status === "loading" ? "◌ Generating voice…" : "■ Stop") : "▶ Listen"}
+              </button>
               {message.actions.map((action) => (
                 <button key={action.label} className="sv-btn2" onClick={() => openPane(action.mode, action.evidenceId ? { evidenceId: action.evidenceId, prevMode: "scout" } : undefined)}>
                   {action.label}
@@ -304,6 +476,7 @@ function ScoutPane({ site, snapshot, ui, patch, openPane }: { site: CandidateSit
           </div>
         </div>
       ))}
+      {voiceError ? <div className="sv-note" role="alert" style={{ color: "var(--red)" }}>{voiceError}</div> : null}
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
         {["Why is this ranked here?", "What's the biggest risk?", "What happened here before?"].map((q) => (
           <button key={q} className="sv-btn2" onClick={() => ask(q)}>{q}</button>
@@ -318,8 +491,20 @@ function ScoutPane({ site, snapshot, ui, patch, openPane }: { site: CandidateSit
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && input.trim()) ask(input.trim()); }}
         />
+        <button
+          className={`sv-mic${micState === "recording" ? " recording" : ""}`}
+          type="button"
+          aria-label={micState === "recording" ? "Stop recording" : "Ask Scout by voice"}
+          aria-pressed={micState === "recording"}
+          disabled={micState === "requesting" || micState === "transcribing"}
+          onClick={micState === "recording" ? stopRecording : startRecording}
+        >
+          {micState === "recording" ? "■ Stop" : micState === "requesting" ? "◌ Mic…" : micState === "transcribing" ? "◌ Transcribing…" : "🎙 Talk"}
+        </button>
         <button className="sv-btn" onClick={() => input.trim() && ask(input.trim())}>Send</button>
       </div>
+      {micState === "recording" ? <div className="sv-mic-status" role="status"><span /> Listening… Select Stop when you finish.</div> : null}
+      {micState === "transcribing" ? <div className="sv-note" role="status">ElevenLabs is transcribing your question…</div> : null}
     </div>
   );
 }

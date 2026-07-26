@@ -16,8 +16,8 @@ Saturday, July 25, 2026 · 9:00 AM–9:00 PM · 555 University Ave, Palo Alto
 - Thesis: multifamily & mixed-use residential redevelopment, 0.5–10 acres, prefer 100+ units
 - Hero workflow: SEARCH → DISCOVER → RESEARCH → VERIFY → NEXT STEP
 - Funnel: 50–100 raw HCD/DGS records → ~15 candidates → top 5 researched → 3 hero sites → 1 polished dossier
-- Sponsor stack (runtime): Render Workflows → Rtrvr.ai → MiniMax. PDD as methodology. ElevenLabs only after all core criteria pass.
-- Not integrating today: Cerebras, Band, Nexla, Respan, TokenRouter, mem0, RocketRide, Featherless, Tencent EdgeOne.
+- Sponsor stack (runtime): Render Workflows → Rtrvr.ai → MiniMax, with Nexla managed-ingestion support, ElevenLabs Scout voice, and Mem0 preference memory. PDD is the implementation methodology.
+- Optional/not selected for the core runtime: Cerebras, Band, TokenRouter, RocketRide, Featherless, and Tencent EdgeOne. Respan tracing awaits the required auto-vs-structured instrumentation choice.
 
 Other delegation segments (Foundation & QA, Government Ingestion, Candidate Pipeline,
 Research Providers, Evidence & Snapshots, Decision Layer, App UI, Landing Page) are
@@ -33,7 +33,7 @@ tracked on their own `pdd/*` branches — see the team delegation doc.
   evaluation, rollback planning, migration selection, secret-leak scanning
 - `tests/contracts/render-alpha-deployment.contract.test.ts` — 16/16 passing,
   one test per rule
-- `render.yaml` — single Blueprint, one web + one worker service, same branch/release
+- `render.yaml` — single Blueprint, one web + one ingestion cron service, same branch/release
   SHA, Node 22 pinned, `preDeployCommand: npm run db:migrate`,
   `healthCheckPath: /api/health/live`, all secrets presence-only (`sync: false`)
 - `app/api/health/live/route.ts` — liveness: no DB/provider/network access, no-store
@@ -57,16 +57,24 @@ tracked on their own `pdd/*` branches — see the team delegation doc.
   `npm run test:contracts` (16/16 for this module), `npm run build`,
   `npm audit --audit-level=high` (0 vulnerabilities)
 
-### Blocked — needs a human with Render/GitHub access
+### Deployment activation blockers — verified July 25, 2026
 
-- Render account + Blueprint apply (creates the two services from `render.yaml`)
-- Provider secrets entered directly in the Render dashboard (never through PDD or
-  this repo)
-- A stored Research Snapshot's id set as `DEMO_SNAPSHOT_ID` once Segment 5 lands
-  fixture snapshots
-- First `LAST_KNOWN_GOOD_RELEASE_ID` recorded after the first accepted release
-- Actual deploy + smoke run: `npm run deployment:check -- --target=render --smoke
-  --base-url=https://<deployed-host>`
+- The existing Render `SiteVelocity` production web service is connected to
+  `master`, but its latest auto-deploy was canceled before the build because the
+  workspace exhausted its build-pipeline minutes. A workspace owner must upgrade
+  the plan or increase the build spend limit before another deploy can run.
+- The Supabase endpoint and server credential are reachable, but every
+  SiteVelocity application table is absent remotely. The signed-in Supabase
+  Dashboard account explicitly lacks access to the configured project; the owner
+  must grant access or approve a replacement project before migrations are pushed.
+- The Mem0 CLI and local app are authenticated, and the Scout preference retrieval
+  endpoint is live. The credential still needs to be added to the Render secret
+  store for production; never print it in logs.
+- Respan is configured, but code instrumentation intentionally awaits the required
+  selection between automatic and structured tracing.
+- After the blockers clear: apply migrations, bootstrap the first tenant, release
+  both Render Workflow tasks, deploy the Blueprint, set the last-known-good release,
+  and run `npm run deployment:check -- --target=render --smoke --base-url=https://sitevelocity.onrender.com`.
 
 ### Non-responsibilities (explicitly out of scope for this segment)
 
@@ -78,13 +86,15 @@ tracked on their own `pdd/*` branches — see the team delegation doc.
 
 ### Working
 
-- Full app shell per the design handoff: navy rail with LIVE/PREVIEW/ROADMAP badges, top bar, right drilldown pane, Scout FAB — all screens: Command Center, Scout (buy-box), Opportunity Map, Sites, Dossier (Snapshot/Land Use/History/Site Risk/Evidence + honest preview tabs), Next Steps, Research Runs, Data Sources
+- Full app shell per the design handoff: Command Center, persisted Scout buy box, live Mapbox opportunity map, Sites, evidence-backed property dossier, feasibility studio, development events, watchlists, Next Steps, Research Runs, Data Sources, Agent Settings, Integrations, and Team
 - **Real candidate ingestion** (`npm run ingest`): City of San José AB2011Parcels2024 (official ArcGIS service, 87 vacant parcels) → County of Santa Clara parcel enrichment (address/geometry/acreage) → candidate-normalizer (PDD contract) → buy-box filter → deterministic Strategy Fit ranking → **15 shortlisted candidates with full provenance** in `data/candidates.json`
 - **Real research loop** (`npm run research`): per-site Land Use (SJ Zoning + General Plan 2040 layers), Site Risk (FEMA NFHL flood + city constraint screens), Verifier rules, deterministic Readiness + Evidence Confidence scores, Next Best Action, immutable Research Snapshot — **top 5 sites researched and persisted** under `data/sites/`
 - Six visible agents with persisted statuses; snapshots honestly `partial` until live providers configured
 - API: GET /api/candidates, GET /api/sites/:id, POST /api/sites/:id/research, GET /api/integrations
 - Render Workflows task body ready: `workflows/research-site.ts` (same pipeline as API/CLI)
 - Live Rtrvr+MiniMax Development History path coded (`lib/research/live-history.ts`) — activates when keys land
+- ElevenLabs microphone transcription and answer playback are wired into Ask Scout; Mapbox uses the configured public token with a schematic fallback
+- Scout preferences persist as immutable tenant projections and sync/retrieve through Mem0 when configured; they remain advisory and separate from property evidence
 - PDD cycle demonstrable: prompt contract → 13 contract tests mapped R1–R12/P1–P8 → generated implementation → **accepted evidence manifest with real digests** (`pdd/evidence/candidate-normalizer/`)
 - `npm run typecheck` clean; the integrated test count is verified before deployment
 - **PDD Segment 2 (Government Ingestion) complete** on `pdd/government-adapters`: 5 prompt contracts (URL policy, source-record envelope, ArcGIS adapter, Socrata adapter, San José jurisdiction adapter), 84 rules, 130 contract tests, all three Definition-of-Done gates green — see `docs/PDD_SEGMENT_2_GOVERNMENT_INGESTION.md`
@@ -99,11 +109,11 @@ tracked on their own `pdd/*` branches — see the team delegation doc.
 ### Partially working
 
 - Development History agent: runs and records honestly-unknown findings; live extraction untested until RTRVR_API_KEY + MINIMAX_API_KEY exist
-- Map is a schematic street grid with real parcel-centroid markers (MapLibre upgrade optional)
+- Production persistence and workflow execution require the Supabase project and Render Blueprint to be activated with their server-side environment variables
 
-### Preview-only (truthful capability pages, no fabricated data)
+### Live with evidence/assumption boundaries
 
-- Contacts, Development Events, Watchlists, Land & Parcel, Entitlements, Utilities, Title & Liens, Ownership, Buildable Envelope, Yield, Underwriting, IC
+- Contacts, Development Events, Watchlists, Land & Parcel, Entitlements, Utilities, Title & Liens, Ownership, Air Rights, Buildable Envelope, Yield, Underwriting, and IC all render persisted research or explicit deterministic scenarios; unavailable records are shown as unknown
 
 ### Broken
 

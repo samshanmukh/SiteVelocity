@@ -11,6 +11,7 @@ import {
   type UiState,
 } from "./model";
 import type { Finding } from "../lib/domain/schemas/core";
+import { FeasibilityStudio, type FeasibilityMode } from "./feasibility-studio";
 
 type Patch = (partial: Partial<UiState>) => void;
 type OpenPane = (mode: PaneMode, extra?: Partial<UiState>) => void;
@@ -21,24 +22,18 @@ const TABS: { id: string; label: string; preview?: boolean }[] = [
   { id: "history", label: "History" },
   { id: "siterisk", label: "Site Risk" },
   { id: "evidence", label: "Evidence" },
-  { id: "contacts", label: "Contacts", preview: true },
-  { id: "land", label: "Land", preview: true },
-  { id: "entitlements", label: "Entitlements", preview: true },
-  { id: "utilities", label: "Utilities", preview: true },
-  { id: "title", label: "Title & Liens", preview: true },
-  { id: "ownership", label: "Ownership", preview: true },
-  { id: "economics", label: "Economics", preview: true },
+  { id: "contacts", label: "Contacts" },
+  { id: "land", label: "Land" },
+  { id: "entitlements", label: "Entitlements" },
+  { id: "utilities", label: "Utilities" },
+  { id: "title", label: "Title & Liens" },
+  { id: "ownership", label: "Ownership" },
+  { id: "airrights", label: "Air Rights" },
+  { id: "envelope", label: "Envelope" },
+  { id: "yield", label: "Yield" },
+  { id: "underwriting", label: "Underwriting" },
+  { id: "ic", label: "IC" },
 ];
-
-const PREVIEW_TAB_COPY: Record<string, [string, string]> = {
-  contacts: ["Contact Intelligence", "Role-matched public contacts with conversation briefs, generated from verified findings. No contact records exist for this site yet — SiteVelocity never invents a person."],
-  land: ["Land & Parcel", "Canonical parcel record: boundary reconciliation, plats, legal access, recorded easements."],
-  entitlements: ["Entitlements & Permits", "Full entitlement timeline with conditions of approval and permit lifecycle status — populated by the Development History agent once live research providers are configured."],
-  utilities: ["Utilities & Infrastructure", "Utility Readiness Matrix — power, sewer, water, gas, fiber — with capacity signals."],
-  title: ["Title & Liens", "Encumbrance summary from recorded documents: easements, covenants, mortgages, tax liens."],
-  ownership: ["Ownership & Capital", "Entity resolution, hold history, institutional classification, disposition patterns."],
-  economics: ["Economics", "Deterministic preliminary economics: residual land value, yield on cost, sensitivities. AI researches assumptions; typed calculation tools compute results."],
-};
 
 function findingBadge(f: Finding, openEvidence: (id: string | null) => void) {
   const badge = EVIDENCE_BADGES[f.evidenceLevel];
@@ -53,6 +48,51 @@ function findingBadge(f: Finding, openEvidence: (id: string | null) => void) {
   );
 }
 
+function findingValue(finding: Finding): string {
+  if (finding.valueJson === null) return "Unknown";
+  if (typeof finding.valueJson === "string") return finding.valueJson;
+  return JSON.stringify(finding.valueJson);
+}
+
+function FindingCategoryPanel({
+  title,
+  findings,
+  empty,
+  disclaimer,
+  openEvidence,
+  openPane,
+}: {
+  title: string;
+  findings: Finding[];
+  empty: string;
+  disclaimer: string;
+  openEvidence: (id: string | null) => void;
+  openPane: OpenPane;
+}) {
+  return (
+    <section className="sv-panel sv-panel-pad">
+      <div className="sv-section-label">{title}</div>
+      {findings.map((finding) => (
+        <div
+          key={finding.id}
+          className="sv-row"
+          onClick={() => finding.evidenceIds[0] ? openEvidence(finding.evidenceIds[0]) : openPane("nextstep")}
+        >
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontWeight: 650, fontSize: 12.5 }}>{finding.field.replace(/_/g, " ")}</div>
+            <div style={{ fontSize: 12, marginTop: 2 }}>{findingValue(finding)}</div>
+            {finding.note ? <div className="sv-note" style={{ marginTop: 3 }}>{finding.note}</div> : null}
+          </div>
+          {findingBadge(finding, openEvidence)}
+          <span className="sv-score">c {Math.round(finding.confidence * 100)}</span>
+        </div>
+      ))}
+      {findings.length === 0 ? <div className="sv-empty">{empty}</div> : null}
+      <p className="sv-note" style={{ marginTop: 10 }}>{disclaimer}</p>
+    </section>
+  );
+}
+
 export function Dossier({ data, site, snapshot, ui, patch, openPane }: {
   data: AppData;
   site: CandidateSite;
@@ -61,7 +101,6 @@ export function Dossier({ data, site, snapshot, ui, patch, openPane }: {
   patch: Patch;
   openPane: OpenPane;
 }) {
-  void data;
   const status = siteStatus(site, snapshot);
   const openEvidence = (evidenceId: string | null, from: PaneMode = "overview") =>
     openPane("evidence", { evidenceId, prevMode: from });
@@ -73,12 +112,19 @@ export function Dossier({ data, site, snapshot, ui, patch, openPane }: {
   const conflicts = findings.filter((f) => f.status === "conflicting");
   const flags = findings.filter((f) => f.impact === "fatal_constraint" || f.impact === "cost_timing_risk" || (f.status === "unknown" && f.category !== "development_history"));
 
-  const tiles: { label: string; key: UiState["scoreSel"] | null; value: number | null }[] = [
-    { label: "Strategy Fit", key: "strategyFit", value: site.strategyFit.output.score },
-    { label: "Dev. Readiness", key: "developmentReadiness", value: snapshot?.scores.developmentReadiness?.output.score ?? null },
-    { label: "Site Feasibility", key: null, value: null },
-    { label: "Deal Potential", key: null, value: null },
-    { label: "Evidence Conf.", key: "evidenceConfidence", value: snapshot?.scores.evidenceConfidence?.output.score ?? null },
+  const latestScenario = data.feasibilityScenarios[site.id]?.[0];
+  const tiles: Array<{
+    label: string;
+    score?: number;
+    text?: string;
+    key?: UiState["scoreSel"];
+    tab?: "yield" | "ic";
+  }> = [
+    { label: "Strategy Fit", key: "strategyFit", score: site.strategyFit.output.score },
+    { label: "Dev. Readiness", key: "developmentReadiness", score: snapshot?.scores.developmentReadiness?.output.score },
+    { label: "Site Feasibility", tab: "yield", text: latestScenario ? `${latestScenario.outputs.yield.units} units` : "create scenario" },
+    { label: "Deal Potential", tab: "ic", text: latestScenario ? latestScenario.outputs.investmentCommittee.recommendation.toUpperCase() : "create scenario" },
+    { label: "Evidence Conf.", key: "evidenceConfidence", score: snapshot?.scores.evidenceConfidence?.output.score },
   ];
 
   return (
@@ -99,17 +145,21 @@ export function Dossier({ data, site, snapshot, ui, patch, openPane }: {
           {tiles.map((tile) => (
             <div
               key={tile.label}
-              className={`sv-tile${tile.value === null ? " preview" : ""}`}
-              onClick={() => tile.key && tile.value !== null && openPane("score", { scoreSel: tile.key })}
+              className="sv-tile"
+              onClick={() => tile.key && tile.score !== undefined
+                ? openPane("score", { scoreSel: tile.key })
+                : tile.tab
+                  ? patch({ dossierTab: tile.tab })
+                  : undefined}
             >
               <div className="sv-tile-label">{tile.label}</div>
-              {tile.value !== null ? (
+              {tile.score !== undefined ? (
                 <>
-                  <div className="sv-tile-value">{tile.value}</div>
-                  <div className="sv-meter"><div style={{ width: `${tile.value}%`, background: barColor(tile.value) }} /></div>
+                  <div className="sv-tile-value">{tile.score}</div>
+                  <div className="sv-meter"><div style={{ width: `${tile.score}%`, background: barColor(tile.score) }} /></div>
                 </>
               ) : (
-                <div className="sv-tile-value">{tile.key === null ? "PREVIEW — awaits deterministic inputs" : "run research"}</div>
+                <div className="sv-tile-value">{tile.text ?? "run research"}</div>
               )}
             </div>
           ))}
@@ -314,19 +364,126 @@ export function Dossier({ data, site, snapshot, ui, patch, openPane }: {
             </tbody>
           </table>
         </section>
-      ) : (
-        (() => {
-          const [title, copy] = PREVIEW_TAB_COPY[ui.dossierTab] ?? ["Preview", "This capability ships after the Alpha."];
-          return (
-            <div style={{ maxWidth: 720 }}>
-              <span className="sv-badge" style={{ background: "var(--bg-chip)", color: "var(--accent)" }}>PREVIEW</span>
-              <h2 style={{ fontSize: 16, fontWeight: 700, margin: "10px 0 6px" }}>{title}</h2>
-              <p className="sv-sub">{copy}</p>
-              <div className="sv-placeholder" style={{ marginTop: 14 }}>No site-specific content — preview modules never display fabricated results.</div>
+      ) : ui.dossierTab === "land" ? (
+        <div className="sv-grid2">
+          <section className="sv-panel sv-panel-pad">
+            <div className="sv-section-label">Canonical parcel identity</div>
+            {[
+              ["APN", site.apnFormatted],
+              ["Jurisdiction", site.jurisdiction],
+              ["County", site.county ?? "Unknown"],
+              ["Situs address", site.address ?? "Unknown"],
+              ["Parcel area", site.acresDerived ? `${site.acresDerived.value} acres` : "Unknown"],
+              ["Parcel centroid", site.coordinates ? `${site.coordinates.latitude.toFixed(6)}, ${site.coordinates.longitude.toFixed(6)}` : "Unknown"],
+            ].map(([label, value]) => (
+              <div className="sv-row" key={label} onClick={() => openEvidence(site.evidence[0]?.id ?? null)}>
+                <span style={{ flex: 1, fontWeight: 600 }}>{label}</span>
+                <span className="mono" style={{ fontSize: 11 }}>{value}</span>
+              </div>
+            ))}
+          </section>
+          <section className="sv-panel sv-panel-pad">
+            <div className="sv-section-label">Geometry and recorded-rights coverage</div>
+            <div className="sv-callout">
+              <strong>GIS-derived, not survey-grade</strong>
+              <p className="sv-note" style={{ marginTop: 4 }}>{site.coordinates?.method ?? "No geometry-derived centroid is available."}</p>
             </div>
-          );
-        })()
-      )}
+            <div className="sv-row" style={{ cursor: "default" }}><span style={{ flex: 1 }}>Surveyed boundary</span><strong>UNKNOWN</strong></div>
+            <div className="sv-row" style={{ cursor: "default" }}><span style={{ flex: 1 }}>Legal access / recorded easements</span><strong>UNKNOWN</strong></div>
+            <p className="sv-note" style={{ marginTop: 8 }}>Unknowns remain open until a survey, plat, title report, or recorded document is attached.</p>
+          </section>
+        </div>
+      ) : ui.dossierTab === "entitlements" ? (
+        <div className="sv-grid2">
+          <FindingCategoryPanel
+            title="Planning applications and permits"
+            findings={findings.filter((finding) => finding.category === "development_history")}
+            empty="Run live research to query planning and permit sources for this APN."
+            disclaimer="A record not located by the portal is not proof that no entitlement or permit exists."
+            openEvidence={openEvidence}
+            openPane={openPane}
+          />
+          <section className="sv-panel sv-panel-pad">
+            <div className="sv-section-label">Evidence-backed timeline</div>
+            {snapshot?.timeline.map((event, index) => (
+              <div className="sv-row" key={`${event.year}-${index}`} onClick={() => openEvidence(event.evidenceId)}>
+                <span className="mono" style={{ width: 44 }}>{event.year}</span>
+                <div><strong>{event.title}</strong><div className="sv-note">{event.description}</div></div>
+              </div>
+            ))}
+            {!snapshot?.timeline.length ? <div className="sv-empty">No supported entitlement or permit event has been located yet.</div> : null}
+          </section>
+        </div>
+      ) : ui.dossierTab === "contacts" ? (
+        <div className="sv-grid2">
+          <FindingCategoryPanel
+            title="Public professional contacts"
+            findings={findings.filter((finding) => finding.category === "contacts")}
+            empty="Refresh live research to retrieve role-matched public agency contacts."
+            disclaimer="Only public professional contact details from official sources are shown; SiteVelocity never invents a person."
+            openEvidence={openEvidence}
+            openPane={openPane}
+          />
+          <section className="sv-panel sv-panel-pad">
+            <div className="sv-section-label">Preparation brief</div>
+            <strong>{snapshot?.nextAction?.role ?? "No resolver role selected yet"}</strong>
+            <p className="sv-note" style={{ marginTop: 6 }}>{snapshot?.nextAction?.why ?? "Research the site to generate a role-matched brief."}</p>
+            {snapshot?.nextAction?.questions.map((question) => <div key={question} className="sv-row" style={{ cursor: "default" }}>{question}</div>)}
+          </section>
+        </div>
+      ) : ui.dossierTab === "utilities" ? (
+        <FindingCategoryPanel
+          title="Utility and infrastructure signals"
+          findings={findings.filter((finding) => finding.category === "utilities")}
+          empty="Refresh live research to retrieve official utility service and application guidance."
+          disclaimer="Service-area guidance is not a will-serve letter or capacity determination. Parcel-specific capacity remains unknown until the provider confirms it."
+          openEvidence={openEvidence}
+          openPane={openPane}
+        />
+      ) : ui.dossierTab === "title" ? (
+        <FindingCategoryPanel
+          title="Title, liens, easements, and recorded documents"
+          findings={findings.filter((finding) => finding.category === "title")}
+          empty="Refresh live research to establish the official-record access path."
+          disclaimer="Santa Clara County recorded-document images require official in-person research; this screen is never a title clearance or legal opinion."
+          openEvidence={openEvidence}
+          openPane={openPane}
+        />
+      ) : ui.dossierTab === "ownership" ? (
+        <FindingCategoryPanel
+          title="Ownership and capital signals"
+          findings={findings.filter((finding) => finding.category === "ownership")}
+          empty="Refresh live research to inspect official assessor-accessible ownership facts."
+          disclaimer="Entity identity, beneficial ownership, debt, and disposition intent remain unknown unless directly supported by retained evidence."
+          openEvidence={openEvidence}
+          openPane={openPane}
+        />
+      ) : ui.dossierTab === "airrights" ? (
+        <div className="sv-grid2">
+          <FindingCategoryPanel
+            title="Air and vertical development rights"
+            findings={findings.filter((finding) => finding.category === "air_rights")}
+            empty="Run land-use research to establish the zoning evidence and record the unresolved vertical-rights questions."
+            disclaimer="A zoning screen is not a legal determination of air rights, TDR availability, rooftop control, or FAA/avigation clearance."
+            openEvidence={openEvidence}
+            openPane={openPane}
+          />
+          <section className="sv-panel sv-panel-pad">
+            <div className="sv-section-label">Modeled vertical envelope</div>
+            {data.feasibilityScenarios[site.id]?.[0] ? <>
+              <div className="sv-row" style={{ cursor: "default" }}><span style={{ flex: 1 }}>Declared stories</span><strong>{data.feasibilityScenarios[site.id]![0]!.assumptions.maxStories}</strong></div>
+              <div className="sv-row" style={{ cursor: "default" }}><span style={{ flex: 1 }}>Modeled max envelope</span><strong>{Math.round(data.feasibilityScenarios[site.id]![0]!.outputs.envelope.maxEnvelopeGrossSqFt).toLocaleString()} sf</strong></div>
+              <p className="sv-note">Scenario output only. It uses declared assumptions and does not create or verify a legal development right.</p>
+            </> : <div className="sv-empty">Save a feasibility scenario to compare a declared story count with the sourced parcel area.</div>}
+          </section>
+        </div>
+      ) : (["envelope", "yield", "underwriting", "ic"] as string[]).includes(ui.dossierTab) ? (
+        <FeasibilityStudio
+          siteId={site.id}
+          mode={ui.dossierTab as FeasibilityMode}
+          scenarios={data.feasibilityScenarios[site.id] ?? []}
+        />
+      ) : <div className="sv-empty">Select a supported dossier module.</div>}
     </div>
   );
 }

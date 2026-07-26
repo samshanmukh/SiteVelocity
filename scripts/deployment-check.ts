@@ -11,6 +11,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { parse as parseYaml } from "yaml";
 import {
+  evaluateReadiness,
   parseDeploymentEnv,
   planRollback,
   scanForSecretLeaks,
@@ -32,6 +33,7 @@ const SECRET_NAMES = [
   "RTRVR_API_KEY",
   "MINIMAX_API_KEY",
   "NEXLA_API_KEY",
+  "NEXLA_TOKEN",
   "RESPAN_API_KEY",
   "CEREBRAS_API_KEY",
   "ELEVENLABS_API_KEY",
@@ -62,6 +64,7 @@ interface RenderService {
   healthCheckPath?: string;
   preDeployCommand?: string;
   startCommand?: string;
+  schedule?: string;
   envVars?: RenderEnvVar[];
 }
 
@@ -93,7 +96,7 @@ export function runStaticChecks(root: string): CheckFinding[] {
     if (nodeMajor(packageJson.engines?.node ?? "") !== "22") {
       findings.push({ code: "runtime_pin_mismatch", detail: "package.json engines.node must pin Node major 22" });
     }
-    for (const script of ["db:migrate", "workflow:start", "deployment:check", "test:contracts", "lint", "typecheck", "test", "build", "start"]) {
+    for (const script of ["db:migrate", "workflow:start", "ingest:schedule", "deployment:check", "test:contracts", "lint", "typecheck", "test", "build", "start"]) {
       if (!packageJson.scripts?.[script]) {
         findings.push({ code: "script_missing", detail: `package.json scripts.${script} is required` });
       }
@@ -108,14 +111,14 @@ export function runStaticChecks(root: string): CheckFinding[] {
     const blueprint = parseYaml(renderYamlRaw) as { services?: RenderService[] };
     const services = blueprint.services ?? [];
     const web = services.filter((service) => service.type === "web");
-    const workers = services.filter((service) => service.type === "worker");
+    const cron = services.filter((service) => service.type === "cron");
 
-    if (web.length !== 1 || workers.length !== 1) {
-      findings.push({ code: "service_shape", detail: "render.yaml must declare exactly one web and one worker service" });
+    if (web.length !== 1 || cron.length !== 1) {
+      findings.push({ code: "service_shape", detail: "render.yaml must declare exactly one web and one ingestion cron service" });
     }
     const branches = new Set(services.map((service) => service.branch ?? ""));
     if (branches.size > 1) {
-      findings.push({ code: "release_divergence", detail: "web and workflow services must deploy from the same branch (same release SHA)" });
+      findings.push({ code: "release_divergence", detail: "Blueprint services must deploy from the same branch (same release SHA)" });
     }
     for (const service of services) {
       if (service.runtime !== "node") {
@@ -146,6 +149,15 @@ export function runStaticChecks(root: string): CheckFinding[] {
       }
       if (!webService.preDeployCommand?.includes("db:migrate")) {
         findings.push({ code: "migration_gate_missing", detail: "web preDeployCommand must run npm run db:migrate" });
+      }
+    }
+    const cronService = cron[0];
+    if (cronService) {
+      if (cronService.startCommand !== "npm run ingest:schedule") {
+        findings.push({ code: "schedule_command_invalid", detail: "ingestion cron must run npm run ingest:schedule" });
+      }
+      if (!cronService.schedule) {
+        findings.push({ code: "schedule_missing", detail: "ingestion cron must declare a schedule" });
       }
     }
   }
@@ -268,7 +280,10 @@ async function main(): Promise<void> {
       parsed.status === "parsed"
         ? { status: "parsed", releaseId: parsed.env.releaseId, demoMode: parsed.env.demoMode, liveResearch: parsed.env.liveResearch }
         : { status: "rejected", issues: parsed.issues };
-    if (parsed.status === "rejected") blocked = true;
+    const { probeDependencies } = await import("../lib/config/deployment-probes");
+    const readiness = evaluateReadiness(parsed, await probeDependencies(parsed));
+    report.readiness = readiness;
+    if (readiness.state === "blocked") blocked = true;
   }
 
   if (smoke) {

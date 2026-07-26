@@ -11,8 +11,9 @@ database and never cancels work. Contract rules R11, R13, R14
   does not schedule any migration.
 - The active stored snapshot (`DEMO_SNAPSHOT_ID`) is preserved; the demo keeps
   serving the last accepted snapshot.
-- Existing workflow runs are preserved: the workflow service shuts down gracefully on
-  redeploy and rollback never duplicates or silently cancels queued or in-flight work.
+- Existing workflow runs are preserved: the separately managed Workflow shuts down
+  gracefully on release and rollback never duplicates or silently cancels queued or
+  in-flight work. The cron command is date-idempotent.
 
 ## When to roll back
 
@@ -29,9 +30,10 @@ require the manual steps below.
 
 1. Read `LAST_KNOWN_GOOD_RELEASE_ID` from the Render environment. If it is blank
    (first deploy), **hold**: fix forward, never guess a target.
-2. In the Render dashboard, redeploy **both** services (`sitevelocity-web` and
-   `sitevelocity-workflow`) at that commit — "Rollback" / "Deploy specific commit".
-   Both services must land on the same SHA.
+2. In the Render dashboard, redeploy `sitevelocity-web` and
+   `sitevelocity-ingestion-schedule` at that commit, then release the separately
+   managed `sitevelocity-workflow` from the same commit. All three must land on the
+   same SHA.
 3. Do **not** change `DEMO_SNAPSHOT_ID` and do not run any migration as part of the
    rollback.
 4. Verify: `/api/health/live` returns 200, then

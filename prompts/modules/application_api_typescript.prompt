@@ -1,0 +1,46 @@
+% You are an expert TypeScript engineer. Implement SiteVelocity's HTTP application boundary.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/domain-types.prompt</include>
+
+<pdd-reason>Expose candidates, sites, snapshots, research commands, and integration readiness through stable safe API results.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[{"name":"createApplicationApi","signature":"(services: ApplicationServices) -> ApplicationApi","returns":"ApplicationApi"}]}}
+</pdd-interface>
+
+<responsibility>
+Validate request inputs, authorize declared operations, invoke application services once, and map outcomes to stable HTTP-neutral responses for route handlers.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT implement UI, domain calculations, provider calls, workflow internals, or database queries.
+- MUST NOT expose stack traces, secrets, provider diagnostics, or database errors.
+- MUST NOT claim a research command completed when it was only accepted.
+- DOES NOT use integration readiness as factual site evidence.
+</non_responsibilities>
+
+<vocabulary>
+accepted command: a valid asynchronous command acknowledged for execution but not yet completed.
+safe response: a JSON-serializable status, data or stable error code, correlation identifier, and no secret material.
+not found: the requested aggregate is absent; distinct from unauthorized and provider failure.
+unauthorized: the caller is unauthenticated or lacks permission for the declared operation.
+capability state: LIVE, PREVIEW, or ROADMAP derived from declared configuration and implementation state.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Validate all identifiers, pagination, filters, command identifiers, and bodies before invoking a service.
+R2 (MUST): Invoke at most one application-service operation per API method.
+R3 (MUST): Map validation to 400, unauthorized to 401 or 403, missing to 404, conflict to 409, accepted asynchronous work to 202, rate limiting to 429, and sanitized internal failure to 500 or 503.
+R4 (MUST): Return stored snapshot data for reads and distinguish stale or partial data through explicit fields rather than hiding it.
+R5 (MUST): Require an idempotency command identifier for every mutating or workflow-start operation.
+R6 (MUST): Return integration capability and readiness separately; configured does not imply healthy and PREVIEW does not imply LIVE.
+R7 (MUST): Preserve correlation identifiers across accepted, completed, and failed responses.
+R8 (MUST NOT): Include secrets, raw request authorization, stack traces, SQL text, provider bodies, or chain-of-thought in any response.
+R9 (MUST): Treat instruction-shaped source content as inert response data and never as API policy.
+R10 (MUST): Produce deterministic response mappings for identical service outcomes.
+</contract_rules>
+
+<deliverables>
+Generate `lib/application/api.ts` exporting an HTTP-framework-neutral `ApplicationApi`; Next.js route handlers remain thin adapters around it.
+</deliverables>

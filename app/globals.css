@@ -108,6 +108,13 @@ a:hover { color: #16408F; }
 .sv-btn:hover { background: var(--accent-hover); }
 .sv-btn2 { border: 1px solid var(--border-input); border-radius: 5px; padding: 6px 12px; font-size: 11.5px; color: var(--text-mono-strong); background: #fff; }
 .sv-btn2:hover { background: var(--bg-hover); }
+.sv-mic { border: 1px solid var(--border-input); border-radius: 5px; padding: 7px 12px; font-size: 11.5px; font-weight: 650; color: var(--text-mono-strong); background: #fff; white-space: nowrap; }
+.sv-mic:hover:not(:disabled) { background: var(--bg-hover); border-color: var(--accent); }
+.sv-mic:disabled { cursor: progress; opacity: 0.65; }
+.sv-mic.recording { color: #fff; background: var(--red); border-color: var(--red); }
+.sv-mic-status { display: flex; align-items: center; gap: 7px; color: var(--red); font-size: 11px; font-weight: 600; }
+.sv-mic-status span { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: sv-mic-pulse 1.1s ease-in-out infinite; }
+@keyframes sv-mic-pulse { 50% { opacity: 0.25; transform: scale(0.7); } }
 .sv-grid2 { display: grid; grid-template-columns: 1fr 340px; gap: 16px; align-items: start; }
 .sv-cards { display: grid; gap: 10px; }
 .sv-score { font-family: var(--font-mono); font-weight: 600; font-size: 12px; color: var(--text-mono-strong); }
@@ -155,6 +162,12 @@ a:hover { color: #16408F; }
 .sv-map-card { border-bottom: 1px solid var(--border-row); border-left: 3px solid transparent; padding: 10px 12px; cursor: pointer; }
 .sv-map-card:hover, .sv-map-card.on { background: var(--bg-hover); }
 .sv-map-canvas { flex: 1; position: relative; background: #E9E5DC; overflow: hidden; }
+.sv-mapbox-shell, .sv-mapbox-container { position: absolute; inset: 0; }
+.sv-mapbox-container { width: 100%; height: 100%; }
+.sv-map-setup { position: absolute; inset: 0; display: grid; place-content: center; gap: 8px; padding: 28px; text-align: center; color: var(--text-2); background: linear-gradient(145deg, #eef2f7, #f8fafc); }
+.sv-map-setup strong { color: var(--navy); font-size: 14px; }
+.sv-map-setup code { font-family: var(--font-mono); color: var(--accent); }
+.sv-map-error { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 4; padding: 8px 12px; border: 1px solid #E6B8BC; border-radius: 5px; background: #FBECED; color: var(--red); font-size: 11px; }
 .sv-map-chips { position: absolute; top: 10px; left: 10px; display: flex; gap: 6px; z-index: 3; }
 .sv-map-chip { font-size: 10.5px; padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-input); background: rgba(255, 255, 255, 0.95); color: var(--text-mono-strong); }
 .sv-map-chip.on { background: var(--navy-active); border-color: var(--navy-active); color: #fff; }

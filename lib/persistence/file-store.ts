@@ -2,6 +2,8 @@ import { mkdir, readFile, writeFile, readdir } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { CandidateSetSchema, type CandidateSet } from "../domain/site";
 import { ResearchSnapshotSchema, type ResearchSnapshot } from "../domain/schemas/core";
+import { createSnapshotDiff, type SnapshotDiff } from "../research/snapshot-diff";
+import { stableStringify } from "../calculations/registry";
 
 /**
  * File-based persistence for the Alpha demo path. Snapshots and candidate
@@ -50,16 +52,40 @@ export interface SnapshotBundle {
   scores: Record<string, unknown>;
   nextAction: unknown | null;
   timeline: unknown[];
+  changes?: SnapshotDiff;
+}
+
+export interface SnapshotWriteContext {
+  /** Existing durable command that produced this snapshot. */
+  workflowRunId?: string;
 }
 
 function snapshotDir(siteId: string): string {
   return join(DATA_DIR, "sites", siteId, "snapshots");
 }
 
-export async function saveSnapshotBundle(bundle: SnapshotBundle): Promise<void> {
+export async function saveSnapshotBundle(
+  bundle: SnapshotBundle,
+  context?: SnapshotWriteContext,
+): Promise<void> {
+  void context;
   ResearchSnapshotSchema.parse(bundle.snapshot);
   const path = join(snapshotDir(bundle.snapshot.siteId), `${bundle.snapshot.id}.json`);
-  await writeJson(path, bundle);
+  const existing = await readJson(path);
+  if (existing && typeof existing === "object" && !Array.isArray(existing)) {
+    const { changes: _existingChanges, ...existingCore } = existing as SnapshotBundle;
+    void _existingChanges;
+    if (stableStringify(existingCore) !== stableStringify(bundle)) {
+      throw new Error("Snapshot version conflicts with different content.");
+    }
+    return;
+  }
+  const previous = await loadActiveSnapshot(bundle.snapshot.siteId);
+  const persisted = {
+    ...bundle,
+    changes: createSnapshotDiff(previous, bundle),
+  };
+  await writeJson(path, persisted);
 }
 
 /**

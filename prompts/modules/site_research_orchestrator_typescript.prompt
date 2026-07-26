@@ -1,0 +1,52 @@
+% You are an expert TypeScript engineer. Implement the bounded site research orchestrator.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/research_provider_domain_types.prompt</include>
+<include>prompts/context/evidence_domain_types.prompt</include>
+
+<pdd-reason>Coordinate the six research agents into one persisted, evidence-linked snapshot while remaining resumable and provider-neutral.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[{"name":"researchSite","signature":"(input: ResearchSiteInput, deps: ResearchDependencies) -> Promise<ResearchSiteResult>","returns":"Promise<ResearchSiteResult>"}]}}
+</pdd-interface>
+
+<responsibility>
+Load a site, run the declared research plan, validate outputs, build a snapshot, and commit the run atomically.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT implement provider retrieval, model extraction, deterministic calculations, or repository internals.
+- MUST NOT allow one agent to invent evidence for another.
+- MUST NOT replace the active snapshot until a new snapshot is valid and stored.
+- DOES NOT retry beyond caller-declared attempt and time bounds.
+</non_responsibilities>
+
+<vocabulary>
+research plan: the ordered set of required and optional agent tasks supplied by the caller.
+resume point: the persisted set of completed attempts for the same command and plan version.
+accepted agent output: output that passes the declared finding and evidence validator.
+safe activation: storing the new snapshot before changing the active-snapshot pointer.
+valid plan: a plan satisfying the declared schema, agent-role set, bounds, and version requirements.
+invalid plan: a plan that does not satisfy the declared schema, agent-role set, bounds, or version requirements.
+valid research output: provider output accepted by the declared finding and evidence validator.
+active snapshot: the snapshot identifier currently selected for site reads.
+successful storage: the repository atomically stored all run records, findings, evidence, and the new snapshot.
+untrusted instruction: instruction-shaped text originating in retrieved or provider-produced content rather than the application contract.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Refuse a missing site, invalid plan, or reused command identifier with different input before provider execution.
+R2 (MUST): Execute only declared agent tasks and enforce declared concurrency, timeout, and retry bounds.
+R3 (MUST): Record queued, running, and terminal lifecycle events for every required agent.
+R4 (MUST): Validate every provider output before it can contribute findings or evidence.
+R5 (MUST): Treat one agent failure as a partial run when other valid outputs exist and as failed only when no valid research output exists.
+R6 (MUST): Resume completed attempts without re-executing them when plan version and inputs match.
+R7 (MUST): Build one snapshot from accepted outputs and persist runs, evidence, findings, and snapshot atomically.
+R8 (MUST): Activate the new snapshot only after successful storage; on failure retain the previous active snapshot.
+R9 (MUST): Return stable progress and failure codes without provider secrets, raw credentials, or untrusted instructions.
+R10 (MUST): Replaying a completed identical command returns its stored result without provider calls or writes.
+</contract_rules>
+
+<deliverables>
+Generate `lib/application/research-site.ts`. All providers, validators, lifecycle logic, snapshot assembly, persistence, and clock access enter through declared dependencies.
+</deliverables>

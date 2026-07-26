@@ -165,14 +165,17 @@ Do not regenerate unrelated modules. Review generated diffs with the same care a
 
 ## 11. Module sequence
 
-1. Domain types (foundation Zod / parse helpers) — `prompts/modules/domain_types_typescript.prompt`
-2. Candidate normalizer — `prompts/modules/candidate_normalizer_typescript.prompt`
-3. Candidate qualification filter — `prompts/modules/candidate_qualification_typescript.prompt`
-4. Finding/evidence validator
-5. Research Snapshot selector and fallback
-6. Government and sponsor provider adapters
-7. Scout ranker after score approval
-8. Finance engine after formula approval
+The authoritative full-app sequence and dependency graph live in
+`docs/PDD_PROMPT_CATALOG.md`. In summary:
+
+1. Foundation domain types and source-safety boundaries.
+2. Government adapters and candidate normalization/qualification.
+3. Candidate ingestion orchestration and persistence repositories.
+4. Research provider adapters and finding/evidence validation.
+5. Agent lifecycle, site-research orchestration, and snapshot assembly.
+6. Snapshot selection, ranking, finance, and Next Best Action.
+7. Render workflow dispatch and the framework-neutral application API.
+8. Application UI, public landing page, and Render deployment.
 
 Contract tests for generation modules skip until the corresponding file exists under `generated/`.
 

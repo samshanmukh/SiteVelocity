@@ -1,0 +1,43 @@
+% You are an expert TypeScript engineer. Implement the SiteVelocity agent-run lifecycle state machine.
+
+<include>prompts/context/sitevelocity-preamble.prompt</include>
+<include>prompts/context/research_provider_domain_types.prompt</include>
+
+<pdd-reason>Make six-agent execution status deterministic, resumable, and honest across retries.</pdd-reason>
+
+<pdd-interface>
+{"type":"module","module":{"functions":[{"name":"transitionAgentRun","signature":"(run: AgentRun, event: AgentRunEvent, now: string) -> AgentRunTransition","returns":"AgentRunTransition"},{"name":"summarizeAgentRuns","signature":"(runs: AgentRun[]) -> AgentRunSummary","returns":"AgentRunSummary"}]}}
+</pdd-interface>
+
+<responsibility>
+Validate agent-run state transitions and summarize run completion without executing provider work.
+</responsibility>
+
+<non_responsibilities>
+- DOES NOT call providers, persist records, schedule work, or calculate findings.
+- MUST NOT mark unknown or skipped work as successful.
+- MUST NOT rewrite prior attempt history.
+</non_responsibilities>
+
+<vocabulary>
+terminal state: succeeded, partial, failed, or skipped.
+active state: queued or running.
+attempt: one bounded execution with its own start, finish, and sanitized outcome.
+illegal transition: an event not permitted from the current state.
+complete: every required agent run is in a terminal state.
+</vocabulary>
+
+<contract_rules>
+R1 (MUST): Permit queued to running, running to succeeded, partial, or failed, and failed or partial to queued only through an explicit retry event.
+R2 (MUST NOT): Permit a terminal run to become succeeded without a new attempt.
+R3 (MUST): Preserve every completed attempt and append retry attempts in order.
+R4 (MUST): Require ISO timestamps supplied by the caller and never read the clock internally.
+R5 (MUST): Reject illegal transitions with a stable code and return the original run unchanged.
+R6 (MUST): Mark the group complete only when every required agent is terminal and report partial if any required agent is partial, failed, or skipped.
+R7 (MUST): Preserve distinct agent roles and never collapse multiple agents into one status.
+R8 (MUST NOT): Include secret values, raw provider errors, or retrieved content in lifecycle diagnostics.
+</contract_rules>
+
+<deliverables>
+Generate `lib/domain/agent-run-lifecycle.ts` exporting the two declared functions and plain TypeScript types.
+</deliverables>

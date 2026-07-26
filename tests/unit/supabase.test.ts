@@ -1,10 +1,15 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
-import { createSupabaseDiagnosticHeaders } from "../../lib/providers/supabase";
 
-test("sends Supabase API keys only through the apikey header", () => {
-  const headers = createSupabaseDiagnosticHeaders("sb_publishable_example");
+test("Supabase server provider diagnostics", () => {
+  const casesPath = fileURLToPath(new URL("./supabase.cases.ts", import.meta.url));
+  const result = spawnSync(
+    process.execPath,
+    ["--conditions=react-server", "--import", "tsx", "--test", casesPath],
+    { cwd: process.cwd(), encoding: "utf8" },
+  );
 
-  assert.deepEqual(headers, { apikey: "sb_publishable_example" });
-  assert.equal("Authorization" in headers, false);
+  assert.equal(result.status, 0, [result.stdout, result.stderr].filter(Boolean).join("\n"));
 });

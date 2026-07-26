@@ -8,8 +8,13 @@ import {
   evidenceConfidence,
   type ScoreOutput,
 } from "../calculations/scoring/alpha-scores";
-import { saveSnapshotBundle, type SnapshotBundle } from "../persistence/file-store";
-import { researchDevelopmentHistoryLive, liveResearchConfigured } from "./live-history";
+import { saveSnapshotBundle, type SnapshotBundle } from "../persistence/runtime-store";
+import {
+  researchDevelopmentHistoryLive,
+  researchPropertyIntelligenceLive,
+  liveResearchConfigured,
+} from "./live-history";
+import { DEFAULT_WORKSPACE_AGENT_SETTINGS, type WorkspaceAgentSettings } from "../domain/workspace-settings";
 
 /**
  * Site research pipeline (docs/SYSTEM_DESIGN.md §11).
@@ -79,6 +84,13 @@ async function runLandUse(ctx: AgentContext): Promise<AgentRun> {
       valueJson: null, status: "unknown", evidenceLevel: "professional_verification_required",
       confidence: 0.3, impact: "unknown", evidenceIds: [evidenceId],
       note: "Permitted residential use and density must be confirmed against the municipal code and any PD overlay — not inferred from the zone abbreviation.",
+      createdAt: now,
+    });
+    ctx.findings.push({
+      id: nextId("f-airrights", site.id), siteId: site.id, category: "air_rights", field: "vertical_development_rights",
+      valueJson: null, status: "unknown", evidenceLevel: "professional_verification_required",
+      confidence: 0.25, impact: "unknown", evidenceIds: [evidenceId],
+      note: "The mapped zoning district does not establish transferable development rights, unused air rights, rooftop rights, FAA clearance, or a legal height envelope. Confirm the controlling code, overlays, recorded agreements, and aviation constraints.",
       createdAt: now,
     });
     if (zoning.REZONINGFILE && zoning.APPROVALDATE) {
@@ -174,7 +186,7 @@ async function runSiteRisk(ctx: AgentContext): Promise<AgentRun> {
     sources, now);
 }
 
-async function runDevelopmentHistory(ctx: AgentContext): Promise<AgentRun> {
+async function runDevelopmentHistory(ctx: AgentContext, maxExternalTasks = 2): Promise<AgentRun> {
   const { site, now } = ctx;
   const run: AgentRun = { id: nextId("run-history", site.id), siteId: site.id, agent: "development_history", status: "running", startedAt: now, sourcesUsed: 0 };
 
@@ -186,16 +198,37 @@ async function runDevelopmentHistory(ctx: AgentContext): Promise<AgentRun> {
       note: "Planning-case and permit history has not been researched yet. Absence of a located record is never proof that no record exists.",
       createdAt: now,
     });
+    addUnavailablePropertyIntelligence(ctx, "Live public-records research has not run. Configure Rtrvr and MiniMax, then refresh the site.");
     return finishRun(run, "queued", "Awaiting live research providers (Rtrvr + MiniMax keys not configured on this machine).", 0, now);
   }
 
-  try {
-    const live = await researchDevelopmentHistoryLive(site, now);
-    ctx.evidence.push(...live.evidence);
-    ctx.findings.push(...live.findings);
-    ctx.timeline.push(...live.timeline);
-    return finishRun(run, "complete", live.summary, live.evidence.length, now);
-  } catch (error) {
+  if (maxExternalTasks < 2) {
+    try {
+      const result = await researchDevelopmentHistoryLive(site, now);
+      ctx.evidence.push(...result.evidence);
+      ctx.findings.push(...result.findings);
+      ctx.timeline.push(...result.timeline);
+      addUnavailablePropertyIntelligence(ctx, "Workspace policy limited this run to development-history research; full property intelligence was not executed.");
+      return finishRun(run, "complete", `${result.summary} Property-intelligence task skipped by workspace policy.`, result.evidence.length, now);
+    } catch {
+      addUnavailablePropertyIntelligence(ctx, "The allowed live public-records task failed; these facts remain unknown.");
+      return finishRun(run, "failed", "Development-history retrieval failed; facts remain unknown.", 0, now);
+    }
+  }
+
+  const [historyResult, propertyResult] = await Promise.allSettled([
+    researchDevelopmentHistoryLive(site, now),
+    researchPropertyIntelligenceLive(site, now),
+  ]);
+  let sources = 0;
+  const summaries: string[] = [];
+  if (historyResult.status === "fulfilled") {
+    ctx.evidence.push(...historyResult.value.evidence);
+    ctx.findings.push(...historyResult.value.findings);
+    ctx.timeline.push(...historyResult.value.timeline);
+    sources += historyResult.value.evidence.length;
+    summaries.push(historyResult.value.summary);
+  } else {
     ctx.findings.push({
       id: nextId("f-history", site.id), siteId: site.id, category: "development_history", field: "planning_and_permit_history",
       valueJson: null, status: "unknown", evidenceLevel: "professional_verification_required",
@@ -203,18 +236,59 @@ async function runDevelopmentHistory(ctx: AgentContext): Promise<AgentRun> {
       note: "Live research attempt failed; history remains unknown. The failure is recorded and does not overwrite prior valid research.",
       createdAt: now,
     });
-    return finishRun(run, "failed", `Live research failed: ${error instanceof Error ? error.message : "unknown error"}`, 0, now);
+    summaries.push("Development-history retrieval failed; history remains unknown.");
+  }
+  if (propertyResult.status === "fulfilled") {
+    ctx.evidence.push(...propertyResult.value.evidence);
+    ctx.findings.push(...propertyResult.value.findings);
+    sources += propertyResult.value.evidence.length;
+    summaries.push(propertyResult.value.summary);
+  } else {
+    addUnavailablePropertyIntelligence(ctx, "Live public-records retrieval failed; the previous accepted snapshot remains available and these facts remain unknown.");
+    summaries.push("Property-intelligence retrieval failed; contacts, utilities, ownership, and title remain unknown.");
+  }
+
+  const complete = historyResult.status === "fulfilled" && propertyResult.status === "fulfilled";
+  return finishRun(run, complete ? "complete" : "failed", summaries.join(" "), sources, now);
+}
+
+function addUnavailablePropertyIntelligence(ctx: AgentContext, reason: string): void {
+  const fields = [
+    ["contacts", "public_professional_contact", "unknown"],
+    ["utilities", "parcel_utility_capacity", "cost_timing_risk"],
+    ["ownership", "record_owner", "unknown"],
+    ["title", "liens_easements_and_encumbrances", "cost_timing_risk"],
+  ] as const;
+  for (const [category, field, impact] of fields) {
+    ctx.findings.push({
+      id: nextId(`f-${category}`, ctx.site.id),
+      siteId: ctx.site.id,
+      category,
+      field,
+      valueJson: null,
+      status: "unknown",
+      evidenceLevel: "professional_verification_required",
+      confidence: 0.2,
+      impact,
+      evidenceIds: [],
+      note: reason,
+      createdAt: ctx.now,
+    });
   }
 }
 
-function runVerifier(ctx: AgentContext): AgentRun {
+function runVerifier(ctx: AgentContext, depth: WorkspaceAgentSettings["verificationDepth"]): AgentRun {
   const { site, now } = ctx;
   const run: AgentRun = { id: nextId("run-verify", site.id), siteId: site.id, agent: "verifier", status: "running", startedAt: now, sourcesUsed: 0 };
   let checked = 0;
   let downgraded = 0;
 
   for (const finding of ctx.findings) {
-    const isHighImpact = finding.impact === "fatal_constraint" || (finding.status === "verified" && finding.confidence >= 0.85);
+    const isHighImpact = depth === "screening"
+      ? finding.impact === "fatal_constraint"
+      : depth === "enhanced"
+        ? finding.status !== "unknown"
+        : finding.impact === "fatal_constraint" || (finding.status === "verified" && finding.confidence >= 0.85);
     if (!isHighImpact) continue;
     checked += 1;
     const hasAuthoritativeEvidence = finding.evidenceIds.some((id) => {
@@ -301,9 +375,17 @@ function recommendNextAction(ctx: AgentContext): { run: AgentRun; action: NextAc
   };
 }
 
-export async function researchSite(site: CandidateSite): Promise<SnapshotBundle> {
+export async function researchSite(
+  site: CandidateSite,
+  options: { persist?: (bundle: SnapshotBundle) => Promise<void>; settings?: WorkspaceAgentSettings } = {},
+): Promise<SnapshotBundle> {
   const now = new Date().toISOString();
   const ctx: AgentContext = { site, now, evidence: [], findings: [], timeline: [], runs: [] };
+  const settings = options.settings ?? DEFAULT_WORKSPACE_AGENT_SETTINGS;
+  const skipped = (agent: AgentRun["agent"], summary: string): AgentRun => ({
+    id: nextId(`run-${agent}`, site.id), siteId: site.id, agent, status: "complete",
+    startedAt: now, finishedAt: now, sourcesUsed: 0, summary,
+  });
 
   // Scout already ran at ingestion; record it for the visible agent roster.
   ctx.runs.push({
@@ -312,11 +394,22 @@ export async function researchSite(site: CandidateSite): Promise<SnapshotBundle>
     summary: `Ranked #${site.rank} for the thesis: ${site.scoutReasons.slice(0, 3).join("; ")}.`,
   });
 
-  const [landUse, siteRisk] = await Promise.all([runLandUse(ctx), runSiteRisk(ctx)]);
+  const [landUse, siteRisk] = await Promise.all([
+    settings.enabledAgents.land_use ? runLandUse(ctx) : skipped("land_use", "Disabled by workspace policy."),
+    settings.enabledAgents.site_risk ? runSiteRisk(ctx) : skipped("site_risk", "Disabled by workspace policy."),
+  ]);
   ctx.runs.push(landUse, siteRisk);
-  ctx.runs.push(await runDevelopmentHistory(ctx));
-  ctx.runs.push(runVerifier(ctx));
-  const { run: nbaRun, action } = recommendNextAction(ctx);
+  if (settings.enabledAgents.development_history && settings.maxExternalResearchTasksPerSite > 0 && settings.verificationDepth !== "screening") {
+    ctx.runs.push(await runDevelopmentHistory(ctx, settings.maxExternalResearchTasksPerSite));
+  } else {
+    addUnavailablePropertyIntelligence(ctx, "Live public-records research was skipped by workspace policy; these facts remain unknown.");
+    ctx.findings.push({ id: nextId("f-history", site.id), siteId: site.id, category: "development_history", field: "planning_and_permit_history", valueJson: null, status: "unknown", evidenceLevel: "professional_verification_required", confidence: 0.2, impact: "unknown", evidenceIds: [], note: "Development-history research was skipped by workspace policy.", createdAt: now });
+    ctx.runs.push(skipped("development_history", "Disabled or limited by workspace policy."));
+  }
+  ctx.runs.push(settings.enabledAgents.verifier ? runVerifier(ctx, settings.verificationDepth) : skipped("verifier", "Disabled by workspace policy."));
+  const { run: nbaRun, action } = settings.enabledAgents.next_best_action
+    ? recommendNextAction(ctx)
+    : { run: skipped("next_best_action", "Disabled by workspace policy."), action: null };
   ctx.runs.push(nbaRun);
 
   const readiness: CalculationRun<ScoreOutput> = runCalculation(developmentReadiness, {
@@ -362,6 +455,6 @@ export async function researchSite(site: CandidateSite): Promise<SnapshotBundle>
     nextAction: action,
     timeline: ctx.timeline,
   };
-  await saveSnapshotBundle(bundle);
+  await (options.persist ?? saveSnapshotBundle)(bundle);
   return bundle;
 }
